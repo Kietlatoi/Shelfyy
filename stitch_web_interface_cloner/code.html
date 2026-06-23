@@ -1,0 +1,539 @@
+<!doctype html>
+
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Acloset - Tủ đồ AI &amp; Gợi ý trang phục</title>
+    <!-- Tailwind CSS v3 CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Google Fonts: Inter -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+            },
+            colors: {
+              primary: "#111827",
+              surface: "#f7f9fb",
+              accent: "#ff4b6e", // From the CTA button color in screenshot
+            },
+            borderRadius: {
+              custom: "8px",
+            },
+          },
+        },
+      };
+    </script>
+    <style data-purpose="custom-styles">
+      body {
+        background-color: #ffffff;
+        color: #111827;
+        overflow-x: hidden;
+      }
+      .gradient-bg {
+        background: linear-gradient(0deg, #fcf4f5 0%, #ffffff 100%);
+      }
+      .testimonial-card {
+        background: #1a1a2e;
+        color: white;
+      }
+    </style>
+  </head>
+  <body class="font-sans">
+    <!-- BEGIN: MainHeader -->
+    <header
+      class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100"
+    >
+      <div
+        class="container mx-auto px-4 h-16 flex items-center justify-between"
+      >
+        <div class="flex items-center" style="gap: 30rem">
+          <a data-purpose="logo" href="/">
+            <img
+              alt="Acloset"
+              class="h-8"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjwp-JlXIKxCOATdVLfj8B0lNQzdXsDtycumj94lHh2qcsvBRh6GgB6mnIkzMewYOWN-wx42Ip9LWGcEstWPrDDZlUhlj83D0cVKvIav1CQF6Tu0ZzXwW-amx82iWOz-RDY9S6JPNUmtDiOdooqwRC0JxGZv2uufoN0BKfhST-PmtXOoOZg33KWk0-rMwItB_FmYaNGsyPOrEeYvFM62LxtdNDpR2ouXb6GTjHRAkHv_SpNqAly3UPS5hbIx9WFJl_nRpnziVnt_4X"
+            />
+          </a>
+          <nav
+            class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600"
+          >
+            <a class="hover:text-black" href="#">Tính năng</a>
+            <a class="hover:text-black" href="#">Tạp chí</a>
+            <a class="hover:text-black" href="#">Giới thiệu</a>
+            <a class="hover:text-black" href="#">FAQ</a>
+            <a class="hover:text-black" href="#">Thông báo</a>
+          </nav>
+        </div>
+        <div class="flex items-center gap-4">
+          <a
+            class="bg-accent text-white px-4 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+            href="#"
+            style="background-color: #b83c44"
+          >
+            Tải ứng dụng
+          </a>
+          <a
+            class="bg-accent text-white px-4 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+            href="#"
+            style="background-color: #b83c44"
+          >
+            Đăng nhập
+          </a>
+        </div>
+      </div>
+    </header>
+    <!-- END: MainHeader -->
+    <main>
+      <!-- BEGIN: HeroSection -->
+      <section class="gradient-bg pt-16 pb-24 overflow-hidden">
+        <div
+          class="container mx-auto px-4 grid md:grid-cols-2 gap-12 items-center"
+          style="padding-left: 150px"
+        >
+          <div class="max-w-xl" data-purpose="hero-content">
+            <div
+              class="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold mb-6"
+            >
+              <span>⭐ Google Play Editor's Pick</span>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-bold leading-tight mb-6">
+              Bộ đồ hôm nay — do AI chọn cho bạn
+            </h1>
+            <p class="text-lg text-gray-600 mb-10 leading-relaxed">
+              AI sắp xếp tủ quần áo, gợi ý outfit và quản lý phong cách của bạn.
+              7 triệu người dùng tin tưởng ứng dụng tủ quần áo AI số 1.
+            </p>
+          </div>
+        </div>
+      </section>
+      <!-- END: HeroSection -->
+      <!-- BEGIN: ProblemSection -->
+      <section class="py-24 bg-white">
+        <div class="container mx-auto px-4">
+          <h2 class="text-3xl font-bold text-center mb-16">Nghe quen không?</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
+            <!-- Card 1 -->
+            <div
+              class="p-8 rounded-2xl bg-[#F0F4FF] border border-transparent hover:border-blue-200 transition-colors"
+            >
+              <h3 class="font-bold text-lg mb-3">
+                Có đầy quần áo mà không biết mặc gì
+              </h3>
+              <p class="text-gray-600 text-sm">
+                80% tủ đồ của bạn đang ngủ. Không biết mình có gì, tủ đồ đầy ắp
+                cũng cảm thấy trống rỗng.
+              </p>
+            </div>
+            <!-- Card 2 -->
+            <div
+              class="p-8 rounded-2xl bg-[#FFF9EB] border border-transparent hover:border-yellow-200 transition-colors"
+            >
+              <h3 class="font-bold text-lg mb-3">"Hôm nay mặc gì nhỉ?"</h3>
+              <p class="text-gray-600 text-sm">
+                Mỗi sáng, 10 phút phân vân. Năng lượng đó có thể dùng cho việc
+                khác hay hơn.
+              </p>
+            </div>
+            <!-- Card 3 -->
+            <div
+              class="p-8 rounded-2xl bg-[#C7EBF0] border border-transparent hover:border-green-200 transition-colors"
+            >
+              <h3 class="font-bold text-lg mb-3">
+                Cứ mua mãi những đồ giống nhau
+              </h3>
+              <p class="text-gray-600 text-sm">
+                30% đồ mới mua là bản sao của thứ đã có. Nếu biết rõ tủ đồ, bạn
+                sẽ dừng lại.
+              </p>
+            </div>
+            <!-- Card 4 -->
+            <div
+              class="p-8 rounded-2xl bg-[#F6F4FF] border border-transparent hover:border-purple-200 transition-colors"
+            >
+              <h3 class="font-bold text-lg mb-3">
+                Xếp đồ đi du lịch luôn phiền phức
+              </h3>
+              <p class="text-gray-600 text-sm">
+                Thời tiết, dịp đi, đồ đa năng trong trang phục — lên kế hoạch
+                mang gì cũng khó hơn bạn nghĩ.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- END: ProblemSection -->
+      <!-- BEGIN: FeaturesContainer -->
+      <section class="py-20">
+        <div class="container mx-auto px-4">
+          <h2 class="text-4xl font-bold text-center mb-24">
+            AI Thay Đổi Cách Bạn Ăn Mặc
+          </h2>
+          <!-- BEGIN: ClosetFeature -->
+          <div
+            class="grid md:grid-cols-2 gap-20 items-center mb-32 max-w-6xl mx-auto"
+          >
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Tủ Đồ Số Của Bạn</h3>
+              <p class="text-gray-600 leading-relaxed">
+                AI sắp xếp quần áo từ một bức ảnh. Nhập từ Amazon, Zara, Shein
+                và hơn thế — toàn bộ tủ đồ luôn bên bạn.
+              </p>
+            </div>
+            <div class="flex gap-4">
+              <img
+                alt="Closet View"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG9blIrPRxtvaszfU-5U2kPpe28u2rTDDmV8vkDu9pIL5KJFSYalp6WMy9w7p2El_ge91GnPTolozAv7mcK6KEKdXB6jldt-YSFZ7HifiVX8VbU4J3cx0qAQdq4IBr3txFWGHP3XaHF0gjWJd6fqNFLchSooUWs5-Jx4QFw1joZGQ-3tkkcr9W4s5YZ995-0I994In7Uy9pRE2_aCIFEU5TnwfxsjxnMEK_kSqSR4LqfzUrpRqRXx-7TGVRtXNufjhukjQDXJPzyEX"
+              />
+              <img
+                alt="Store Import"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkSc4bta5IKoBXJNr4faT3HFyVJRfZq9m3FoJtoSetLv2vCNi0pJBCmUaI7hvgAf4j3ruOM1699aLB8fjiGaT0iBo1KN2x1S0IiOH8CIWuWb4KsZ9Ugou80bTSYkL17JQYKfUoB6DmjTD5lr3Pbjk37xNraK4wW8yC7B25Ew4EMwmBOST-SUBWuK7hgnY1gIoLauQJ3KGD6OJujLzFj6cJkSSPfxVoke_qUUyHJ4JL1WaDMYx9SFlvJ_zwK6_K-txnqDDIqKc62Fel"
+              />
+            </div>
+          </div>
+          <!-- END: ClosetFeature -->
+          <!-- BEGIN: SmartImportFeature -->
+          <div
+            class="grid md:grid-cols-2 gap-20 items-center mb-32 max-w-6xl mx-auto"
+          >
+            <div class="order-2 md:order-1 flex flex-col gap-4">
+              <img
+                alt="Smart Detect"
+                class="rounded-3xl shadow-md"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBNhX_1Vn_dLOLt_pOLI_8KTtJcEumNeCk_yYgez5YRER0YvC4gdBT1RRmFYGA3HukibTQPFbFL7JocK_ayxsYSv-JLAdciLCNMMpqcqDRtOuRli_Y8fsKgD_liZJqmI6pRCZDzW_cviVocJto67RPNTSSCLrJZ5-0HAAFHBPuZ4M9lZFkTj9AwXXn1c0osb18xiGYsU71U3d_T_ycRt-WjDL-Kfhn3fwgYJcPr5yGVjyjhzmVvjIonNUcEKDOGsxA_qxp712Odlz4S"
+              />
+              <img
+                alt="Smart Edit"
+                class="rounded-3xl shadow-md"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAd2oeeT_QtahaDLnWz0060I2Bw5l-2gEw0kw4hOgCQ279Zljf7zBFzznH18XmF6I4dGHwDJ91yaBXd0yMk8dHkXwrnoV3r91BDqXt9p2pphnC59QBkvZGXQrGutJHTcnjyPrHsD3GE_QAKw4vwc_9bL8liGPa3ylJ6Cz-wjh09ULXZ5u9TEl0vJK1oZ03jjjU6h8yHPPK0Xmlp-vWF3Kck4I-3j0xnip5zzrcPcT2HddE5Zvkut86jkG2sQjHudhWu83d6yeNhm2iQ"
+              />
+            </div>
+            <div class="order-1 md:order-2">
+              <h3 class="text-2xl font-bold mb-4">Thêm đồ thông minh</h3>
+              <p class="text-gray-600 leading-relaxed">
+                AI nhận diện từng món đồ từ selfie trước gương và biến ảnh
+                thường thành ảnh sản phẩm sạch sẽ. Xây dựng tủ đồ chưa bao giờ
+                dễ đến thế.
+              </p>
+            </div>
+          </div>
+          <!-- END: SmartImportFeature -->
+          <!-- BEGIN: StylistFeature -->
+          <div
+            class="grid md:grid-cols-2 gap-20 items-center mb-32 max-w-6xl mx-auto"
+          >
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Stylist AI</h3>
+              <p class="text-gray-600 leading-relaxed">
+                AI chọn outfit phù hợp lịch trình, thời tiết và tâm trạng — từ
+                chính quần áo của bạn. Còn phân tích màu sắc và dáng người để
+                bạn luôn biết gì hợp nhất.
+              </p>
+            </div>
+            <div class="flex gap-4">
+              <img
+                alt="AI Chat"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrEk7IYe1m9ucA_R2kW-CBBycgfHPMPQ_oOnGgzbiOgjvhn9BXsOjKsDTOMZZ7HoQRV7tjEY8CeQ6vqm5KkYk8wZpRavAa7V7zvOL9_ObDZcW2u0yOeoQd4mEZH31Wg0e5PQ8pyG3iRN_pw3rdRu-RCDrXbm4BYF6vwBqlECpuzI3AB-vQ3ayHZnZWaJcZUTbqx42jUmnerYtoQKbMV_aR_zEipN64UMzXRyaetW2qBtFeb48QMadMbRMMkbl0ItoHWpXRGNkLtEoG"
+              />
+              <img
+                alt="Color Analysis"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIApSrAggXhKQ7dwm16idtecHS_MSMUezm5qre0YHNd9ncyxXacB-0mq4zzXISYmY4jZs3477Z7Qv9SWrivnrt4xDJkOn-aruHjx_a8A8yWVnlMmCte8QIYIiB_edvRC_MP4fBUDeqEw2LUhl0p9_grOgUfKmrUU0zxSn3IBmTgGArb3uiSFpVxO-SgXaT-IQHtTkIBGdhAgA71OOBWQVQL6q2wQcpH2ObemZtadmi82TvcRLwgOq2h7ZriWmjZ81F07c8Vpi-QkZG"
+              />
+            </div>
+          </div>
+          <!-- END: StylistFeature -->
+          <!-- BEGIN: TripPlanningFeature -->
+          <div
+            class="grid md:grid-cols-2 gap-20 items-center mb-32 max-w-6xl mx-auto"
+          >
+            <div class="order-2 md:order-1 flex gap-4">
+              <img
+                alt="Calendar"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiljOk1BKaRHBTj7vJRG7-uvKc0xjsI8y0I2MvfwSG2HvX9-pzPcVVOSrDGGYLH-mPWPsnzBBkaLw7Tc3Pkk4lzvjoI-_U3CQ2aeNazFr_jXnkA7-ljVS8cVlYByMRhDKkqdGvQbIl1suA_BGsRDw41Sd9lfVWkN26kuk4F_OstqmLNdERkLaNOsUXh-wN67PgGRbFCxOlNKVOriaiBR1qYXZVTDIaXO0Y7ncxwHnyZFFppTCY3P2DBjchIwQ0lLRivp1Te5xFGqaK"
+              />
+              <img
+                alt="Travel"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD4sMB6jq9-J_q_cXJsRoX6y7JP0k5ZZr_NChQBsDsXG1_-jQggaA64o5IHhGtf5qsNIP9kDr3yGDcHVwCQcOdmED-Dxh7MbpByTAVgO6w3f3ZWUFwClSq8gOqfmQg1ft3idlInLU9Lbuh9yMVENlgU_7urZ-ytanN-fFY5859V9hctZBwk8D4gTku2XfMbi6JTFuywMi7WjbqXBiL_nHLV7kIbz9xgnhvRJFacLjv2jePviVmC2k2FmTgiH6_YPz6LnaoIKehglYY"
+              />
+            </div>
+            <div class="order-1 md:order-2">
+              <h3 class="text-2xl font-bold mb-4">
+                Lên Kế Hoạch Ngày &amp; Chuyến Đi
+              </h3>
+              <p class="text-gray-600 leading-relaxed">
+                Ghi lại mỗi ngày mặc gì và chuẩn bị hành lý theo thời tiết thực
+                tế. Không còn mang quá nhiều hay thiếu phân vân mỗi sáng.
+              </p>
+            </div>
+          </div>
+          <!-- END: TripPlanningFeature -->
+          <!-- BEGIN: StatsFeature -->
+          <div
+            class="grid md:grid-cols-2 gap-20 items-center max-w-6xl mx-auto"
+          >
+            <div>
+              <h3 class="text-2xl font-bold mb-4">Thống Kê Phong Cách</h3>
+              <p class="text-gray-600 leading-relaxed">
+                Xem quần áo nào bạn thật sự mặc, món nào đáng giá nhất và tiền
+                đi đâu. Tủ đồ của bạn, hiểu ngay trong nháy mắt.
+              </p>
+            </div>
+            <div class="flex gap-4">
+              <img
+                alt="Stats 1"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuArhDLtTcgEdBXLCxq6TDwKQ4rlrkcLqsdqoElB39CzCLzspZtqgFodFWiZhGaW3hl1bOTNLhYVlTebbxR7ULLUUvAmWeU3Zz23n85Jdu4USmkM5QJRG_3LIBWDYM7zneLmSpNxI9vJ9JDmTvmJMQEh9H5WFFtIhPN9hB3vEDEObLMy3T2AY4y0pcPK9gvQuoTyRRp104jLPhecsrQ0Z5R6EPZTveMX94fJ7bepfbzVs_tdG5g8b2TM--F0fpmDJ_PfmMr6mDYbcSKS"
+              />
+              <img
+                alt="Stats 2"
+                class="w-1/2 rounded-3xl shadow-lg"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxtVbjtddLXwHzARX6a7ACQH4P5or1810xZNxUtnfzoJFXeZdD89hJiZyACR7Rm7oz6SJ492APA_hIN1EV08x7_eiGQczAknzjub_vkrsIUMJaa_sbZRdQndlIy2MeYmdBBbeHcdVQWregZNpVlx3lgOBO2s0LfyySa9eC7Xz7kqYtqzFSRR2S1pRqtIBtUzFh9pnjnHNZOthhgJithMYDQn7Ks2Ver24POs-BnxVL8ITsg4wGFBe9hy6uBxhgJiMfJdwtjrZStiku"
+              />
+            </div>
+          </div>
+          <!-- END: StatsFeature -->
+        </div>
+      </section>
+      <!-- END: FeaturesContainer -->
+      <!-- BEGIN: ChromeExtensionSection -->
+      <section class="py-24 bg-gray-50">
+        <div class="container mx-auto px-4 text-center">
+          <h2 class="text-3xl font-bold mb-4">
+            Khám phá Shelfy ngay trên trình duyệt máy tính của bạn
+          </h2>
+          <p class="text-gray-600 mb-12">
+            Nhập một cái là lưu. Tủ quần áo và danh sách yêu thích của bạn luôn
+            chờ sẵn ngay trên trình duyệt, dù đang mua sắm hay lướt web.
+          </p>
+          <div
+            class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto mb-12"
+          >
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-left">
+              <div style="display: flex; gap: 0.5rem">
+                <div
+                  class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mb-4"
+                >
+                  🌥️
+                </div>
+                <div
+                  class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mb-4"
+                >
+                  📅
+                </div>
+              </div>
+
+              <h4 class="font-bold mb-2">
+                Tích hợp dữ liệu thời tiết realtime và lịch trình Calendar của
+                bạn
+              </h4>
+              <p class="text-sm text-gray-500">
+                Dễ dàng đưa ra gợi ý phù hợp với thời tiết và lịch trình của
+                bạn.
+              </p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-left">
+              <div
+                class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mb-4"
+              >
+                🪄
+              </div>
+              <h4 class="font-bold mb-2">AI tự động sắp xếp gọn gàng</h4>
+              <p class="text-sm text-gray-500">
+                AI tự điền danh mục, màu sắc, mùa và họa tiết cho từng món đồ mà
+                không cần bạn nhập tay.
+              </p>
+            </div>
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-left">
+              <div
+                class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-4"
+              >
+                👕
+              </div>
+              <h4 class="font-bold mb-2">
+                Cho phép bạn thấy mình trong trang phục
+              </h4>
+              <p class="text-sm text-gray-500">
+                Có thể thử trang phục trực tiếp trên cơ thể bạn, giúp bạn hình
+                dung rõ hơn về outfit.
+              </p>
+            </div>
+          </div>
+          <div class="flex justify-center gap-4">
+            <button
+              class="bg-accent text-white px-8 py-3 rounded-full font-bold hover:bg-pink-600 transition-colors"
+              style="background-color: #b83c44"
+            >
+              Đăng nhập ngay
+            </button>
+          </div>
+        </div>
+      </section>
+      <!-- END: ChromeExtensionSection -->
+      <!-- BEGIN: SocialProof -->
+
+      <!-- END: SocialProof -->
+      <!-- BEGIN: HowItWorks -->
+      <section class="py-24 bg-white">
+        <div class="container mx-auto px-4">
+          <h2 class="text-3xl font-bold text-center mb-20">Cách Hoạt Động</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            <!-- Step 1 -->
+            <div class="text-center group">
+              <div class="relative inline-block mb-10">
+                <img
+                  alt="Step 1"
+                  class="w-48 mx-auto rounded-3xl shadow-xl transition-transform group-hover:-translate-y-2"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG-HRRkPf_8Km8t5GQk4oM_yzb8eoC6skqlVPxUhGupFnM3h9RHd202KP7UVEHcZ7muC7ZD9n4CaeoxKoaAjS_2b2-km8rdruy5eN7AvbjtFmJiW8fRuo4WWiqqdqxtXR3gevebRAVwUXRTiyzcnk9xYUMx9pbgOqQwkOJRK-6oxuztacvJ1xKr-Cr0DYYvMv6AcEwH2eNOvCNE1AuVgmm3wwYNasS5fk1a_400g4EDLHp4m8UzYZT0hc4wVgjgH3lRAytr6vO2Qid"
+                />
+                <span
+                  class="absolute -top-4 -right-4 w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-xl"
+                  >1</span
+                >
+              </div>
+              <h4 class="font-bold text-lg mb-2">
+                Chụp hoặc tải lên quần áo của bạn
+              </h4>
+              <p class="text-sm text-gray-500">
+                Chụp ảnh, nhập từ cửa hàng hoặc dùng Smart Detector
+              </p>
+            </div>
+            <!-- Step 2 -->
+            <div class="text-center group">
+              <div class="relative inline-block mb-10">
+                <img
+                  alt="Step 2"
+                  class="w-48 mx-auto rounded-3xl shadow-xl transition-transform group-hover:-translate-y-2"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_I0vPs3WgXnV01n7p47jTG924ZvDx6UHSIXvoBLtP9Z0xcRObxTdIG5Xf1eWvOMVc5yI660p_zShPviNdWOolScrJvjF6YCwPXyMHZYQlQW5fPDh5XQ8yqgBZujRn3QmQx9I5E9kdiWYKBG5ZWd9-vNslvzai0CIQZf8YCVBFyTHuWvttEyGrJS4oGupsTre0ULXKsJkvBlpjib266m5oCwxrJRizdfuyC3i5UlGUH9pMmaR4rg5u-Tq2gf02c9nSnqTYRSCXzmUK"
+                />
+                <span
+                  class="absolute -top-4 -right-4 w-10 h-10 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold text-xl"
+                  >2</span
+                >
+              </div>
+              <h4 class="font-bold text-lg mb-2">AI sắp xếp và làm đẹp</h4>
+              <p class="text-sm text-gray-500">
+                Nhận gợi ý và mãn nhãn dựa trên thời tiết và lịch trình
+              </p>
+            </div>
+            <!-- Step 3 -->
+            <div class="text-center group">
+              <div class="relative inline-block mb-10">
+                <img
+                  alt="Step 3"
+                  class="w-48 mx-auto rounded-3xl shadow-xl transition-transform group-hover:-translate-y-2"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQageaZNnAl-lBI3Jk5arc7McW25soFXjVNjLKS-L-zxDJ3VFubmlKDWpdUWenxSK0G_sCUtXn53kZjLEmvZlok5MTlK4ayAK-gVAVhdsgxPdYC9bWpf7wE_F94C9IeO8Y24CIG_tAEsrI2Z7u7GlHzif84vkbGEvAeNQeP3_pfqz2mLHRQXOKzVNr9x0pjLQxgr3wNzSt67gDKktOV-YoutcguSxOq3DeIPOJfakCwqd8M8nDsNgMQr3PdOEjcTA1n78xQwxJnHYW"
+                />
+                <span
+                  class="absolute -top-4 -right-4 w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center font-bold text-xl"
+                  >3</span
+                >
+              </div>
+              <h4 class="font-bold text-lg mb-2">
+                Nhận gợi ý trang phục hàng ngày từ AI
+              </h4>
+              <p class="text-sm text-gray-500">
+                Ghi lại phong cách hàng ngày và khám phá thói quen mặc thực sự
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <!-- BEGIN: MainFooter -->
+    <footer class="bg-[#0c0c14] text-white pt-20 pb-10">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+          <div>
+            <img
+              alt="Acloset"
+              class="h-6 mb-6 brightness-0 invert"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIFIXS1EZrbJhg5Fogo0SulnZr5vWEd8ShVyCJGenKcKgz7pklU6j87YsffJR1-HwJ6uvawKNnJfIDX_mPozBqbS4bQzykSmFtrxTmG24yrgMjmr_7qnre1WxdKO18PJxrsQOliRE8r10_lfN_W0ZBXXWqGLb-4cA4Pb5gM6_IEzR3dFjih1vl8l_ksBhqmC_K5rHq57skxy1anyAEgdaCXSA9IZwoDf6AwFdCTh-2KBgQ_53SAp4m8E8Ytij8RrDX-gPy8s3B4hzr"
+            />
+            <p class="text-sm text-gray-400 leading-relaxed mb-6">
+              Tủ đồ thông minh của AI. Số hóa tủ quần áo, nhận gợi ý trang phục
+              thực tế và mặc đẹp hơn mỗi ngày.
+            </p>
+            <div class="flex gap-4">
+              <a href="#"
+                ><img
+                  alt="App Store"
+                  class="h-8"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl6QHH8Yu-lnObwRWGK59xFI2opZY_HUWaTpyIe_sJdwhi4bkwRbiqAyVBzCFtlmxhjJlpViDIbxTtBkJ1dtCpIWAz_0vLdKSWgV9G4_q_viq3XHgJh3ZZCL9nEFidEXK-P40pRT7607gRAxLm008ODXPKhzmTAT-t3UnMmprsp3uOkrY88E8Uqe7Bdw3BXFQq577BwbfiXyHcV5jNpIM5ovdbTQMtcmnPKLej_JS-vREtGKeV6qoulonxl6iRTKw_OeN9rH_RHSJf"
+              /></a>
+              <a href="#"
+                ><img
+                  alt="Google Play"
+                  class="h-8"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGeqnJjVG0wgB_krb3hn7qayUhLCRlh9mQZ-B_qUL8RYDL5LAloefJfl5jHbso17UA1szb9j-JNdWwgsI4XjVS-9oUDqtqjamohHI9qg20SIQ91LO0HhPWGCPQmgEdYSYSXYMPIra37Q_AUJXV-5t2swypTHLJPgOfRP2Q4pbSSi7d0oPDqX_5FQqkrJ-AcnNXVv9wWcxV7Z1Huw3chbzAABSlc7eIp8GfnsOc4m9LAPIvu1EULGEvEGGmcx_k84s1cx8J46w32Exg"
+              /></a>
+            </div>
+          </div>
+          <div>
+            <h5
+              class="font-bold mb-6 text-sm uppercase tracking-widest text-gray-500"
+            >
+              PAGES
+            </h5>
+            <ul class="text-sm text-gray-400 space-y-4">
+              <li><a class="hover:text-white" href="#">Tính năng</a></li>
+              <li><a class="hover:text-white" href="#">Tiện ích Chrome</a></li>
+              <li><a class="hover:text-white" href="#">Tạp chí</a></li>
+              <li><a class="hover:text-white" href="#">Giới thiệu</a></li>
+              <li><a class="hover:text-white" href="#">FAQ</a></li>
+              <li><a class="hover:text-white" href="#">Thông báo</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5
+              class="font-bold mb-6 text-sm uppercase tracking-widest text-gray-500"
+            >
+              SOCIAL
+            </h5>
+            <ul class="text-sm text-gray-400 space-y-4">
+              <li><a class="hover:text-white" href="#">Facebook</a></li>
+              <li><a class="hover:text-white" href="#">TikTok</a></li>
+              <li><a class="hover:text-white" href="#">YouTube</a></li>
+            </ul>
+          </div>
+          <div>
+            <h5
+              class="font-bold mb-6 text-sm uppercase tracking-widest text-gray-500"
+            >
+              LIÊN HỆ
+            </h5>
+            <p class="text-sm text-gray-400 mb-2">support@acloset.app</p>
+            <p class="text-xs text-gray-600">
+              Looko Inc. 10F, 506 Teheran-ro, Gangnam-gu, Seoul, Republic of
+              Korea
+            </p>
+          </div>
+        </div>
+        <div
+          class="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-6"
+        >
+          <p class="text-[10px] text-gray-500">
+            © 2024 Looko Inc. Mọi quyền được bảo lưu.
+          </p>
+          <div class="flex gap-6 text-[10px] text-gray-500">
+            <a class="hover:text-white" href="#">Chính sách bảo mật</a>
+            <a class="hover:text-white" href="#">Điều khoản dịch vụ</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <!-- END: MainFooter -->
+  </body>
+</html>
