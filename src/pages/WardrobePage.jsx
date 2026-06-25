@@ -16,11 +16,29 @@ import {
   wardrobeStorageData,
 } from "../const/wardrobeData";
 
+function getFilterLabel(category) {
+  if (category?.startsWith("Áo")) return "Áo";
+  if (category?.startsWith("Quần")) return "Quần";
+  if (category?.startsWith("Váy")) return "Váy";
+  return "Phụ kiện";
+}
+
 export function WardrobePage() {
   const [items, setItems] = useState(wardrobeItems);
   const [aiUpload, setAiUpload] = useState(aiUploadData);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [storage, setStorage] = useState(wardrobeStorageData);
+  const [activeFilter, setActiveFilter] = useState("Tất cả");
+
+  const filteredItems =
+    activeFilter === "Tất cả"
+      ? items
+      : items.filter((item) => item.category === activeFilter);
+
+  const filters = wardrobeFilters.map((filter) => ({
+    ...filter,
+    active: filter.label === activeFilter,
+  }));
 
   const handleNotify = () => {
     window.alert(topNavData.notificationMessage);
@@ -60,9 +78,10 @@ export function WardrobePage() {
       brand: preset.brand,
       name: preset.name,
       meta: preset.meta,
+      category: getFilterLabel(preset.category),
       image: preset.url,
     };
-    setItems([newItem, ...items]);
+    setItems((currentItems) => [newItem, ...currentItems]);
 
     // 3. Update Storage Used count
     const nextUsed = parseInt(storage.used, 10) + 1;
@@ -92,9 +111,10 @@ export function WardrobePage() {
         <LoadingComponent delay={750}>
           <WardrobeGrid
             collection={featuredCollection}
-            filters={wardrobeFilters}
-            items={items}
+            filters={filters}
+            items={filteredItems}
             onAddClick={() => setIsModalOpen(true)}
+            onFilterChange={setActiveFilter}
           />
         </LoadingComponent>
       </main>

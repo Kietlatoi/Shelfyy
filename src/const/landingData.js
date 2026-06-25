@@ -1,17 +1,20 @@
-import t_acloset from "../assets/t_acloset/screen.png";
-import g_i_h_m_nay_acloset from "../assets/g_i_h_m_nay_acloset/screen.png";
-import th_o_acloset from "../assets/th_o_acloset/screen.png";
-import heroImg from "../assets/hero.png";
-import screenImg from "../assets/screen.png";
+const t_Shelfy = new URL("../../image/landing-wardrobe.png", import.meta.url).href;
+const g_i_h_m_nay_Shelfy = new URL("../../image/landing-ai-stylist.png", import.meta.url).href;
+const th_o_Shelfy = new URL("../../image/landing-add-smart.png", import.meta.url).href;
+const screenImg = new URL("../../image/app-screen.png", import.meta.url).href;
+const landingLogo = new URL("../../image/landing-logo.png", import.meta.url).href;
+const landingFooterLogo = new URL("../../image/landing-footer-logo.png", import.meta.url).href;
+const landingAppStoreBadge = new URL("../../image/landing-app-store.png", import.meta.url).href;
+const landingGooglePlayBadge = new URL("../../image/landing-google-play.png", import.meta.url).href;
 
 export const landingHeaderData = {
-  logo: "/landing/image-01.png",
+  logo: landingLogo,
   nav: ["Tính năng", "Tạp chí", "Giới thiệu", "FAQ", "Thông báo"],
   actions: ["Tải ứng dụng", "Đăng nhập"],
 };
 
 export const landingHeroData = {
-  badge: "⭐ Google Play Editor's Pick",
+  badge: "⭐ Thay đổi gu ăn mặc hôm nay",
   title: "Bộ đồ hôm nay — do AI chọn cho bạn",
   description:
     "AI sắp xếp tủ quần áo, gợi ý outfit và quản lý phong cách của bạn. 7 triệu người dùng tin tưởng ứng dụng tủ quần áo AI số 1.",
@@ -49,13 +52,13 @@ export const landingFeatures = [
     title: "Tủ Đồ Số Của Bạn",
     description:
       "AI sắp xếp quần áo từ một bức ảnh. Nhập từ Amazon, Zara, Shein và hơn thế — toàn bộ tủ đồ luôn bên bạn.",
-    images: [t_acloset],
+    images: [t_Shelfy],
   },
   {
     title: "Thêm đồ thông minh",
     description:
       "AI nhận diện từng món đồ từ selfie trước gương và biến ảnh thường thành ảnh sản phẩm sạch sẽ. Xây dựng tủ đồ chưa bao giờ dễ đến thế.",
-    images: [th_o_acloset],
+    images: [th_o_Shelfy],
     reverse: true,
     stacked: true,
   },
@@ -63,7 +66,7 @@ export const landingFeatures = [
     title: "Stylist AI",
     description:
       "AI chọn outfit phù hợp lịch trình, thời tiết và tâm trạng — từ chính quần áo của bạn. Còn phân tích màu sắc và dáng người để bạn luôn biết gì hợp nhất.",
-    images: [g_i_h_m_nay_acloset],
+    images: [g_i_h_m_nay_Shelfy],
   },
   {
     title: "Lên Kế Hoạch Ngày & Chuyến Đi",
@@ -106,31 +109,31 @@ export const landingSteps = [
   {
     title: "Chụp hoặc tải lên quần áo của bạn",
     description: "Chụp ảnh, nhập từ cửa hàng hoặc dùng Smart Detector",
-    image: t_acloset,
+    image: t_Shelfy,
     badgeClass: "bg-blue-500",
   },
   {
     title: "AI sắp xếp và làm đẹp",
     description: "Nhận gợi ý và mãn nhãn dựa trên thời tiết và lịch trình",
-    image: th_o_acloset,
+    image: th_o_Shelfy,
     badgeClass: "bg-purple-500",
   },
   {
     title: "Nhận gợi ý trang phục hàng ngày từ AI",
     description:
       "Ghi lại phong cách hàng ngày và khám phá thói quen mặc thực sự",
-    image: g_i_h_m_nay_acloset,
+    image: g_i_h_m_nay_Shelfy,
     badgeClass: "bg-green-500",
   },
 ];
 
 export const landingFooterData = {
-  logo: "/landing/image-15.png",
+  logo: landingFooterLogo,
   description:
     "Tủ đồ thông minh của AI. Số hóa tủ quần áo, nhận gợi ý trang phục thực tế và mặc đẹp hơn mỗi ngày.",
   badges: [
-    { alt: "App Store", src: "/landing/image-16.png" },
-    { alt: "Google Play", src: "/landing/image-17.png" },
+    { alt: "App Store", src: landingAppStoreBadge },
+    { alt: "Google Play", src: landingGooglePlayBadge },
   ],
   columns: [
     {
@@ -151,7 +154,7 @@ export const landingFooterData = {
   ],
   contact: {
     title: "LIÊN HỆ",
-    email: "support@acloset.app",
+    email: "support@Shelfy.app",
     address:
       "Looko Inc. 10F, 506 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
   },

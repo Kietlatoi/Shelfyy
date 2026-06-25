@@ -19,8 +19,6 @@ function ComparisonCell({ isPro, value }) {
 }
 
 export function PremiumComparison({ data }) {
-  const visibleHeaders = data.headers.slice(0, 3)
-
   return (
     <section className="mt-32">
       <h4 className="font-headline-md text-headline-md text-center mb-12">{data.title}</h4>
@@ -28,11 +26,11 @@ export function PremiumComparison({ data }) {
         <table className="w-full text-left">
           <thead>
             <tr className="bg-surface-container-low">
-              {visibleHeaders.map((header, index) => (
+              {data.headers.map((header, index) => (
                 <th
                   className={`p-6 font-label-md border-b border-border-subtle ${
                     index === 0 ? '' : 'text-center'
-                  } ${index === 2 ? 'text-secondary' : ''}`}
+                  } ${index === data.headers.length - 1 ? 'text-secondary' : ''}`}
                   key={header}
                 >
                   {header}
@@ -44,9 +42,9 @@ export function PremiumComparison({ data }) {
             {data.rows.map((row) => (
               <tr key={row[0]}>
                 <td className="p-6 font-body-md text-on-surface">{row[0]}</td>
-                {row.slice(1, 3).map((value, index) => (
+                {row.slice(1).map((value, index) => (
                   <td className="p-6 text-center" key={`${row[0]}-${value}-${index}`}>
-                    <ComparisonCell isPro={index === 1} value={value} />
+                    <ComparisonCell isPro={index === data.headers.length - 2} value={value} />
                   </td>
                 ))}
               </tr>

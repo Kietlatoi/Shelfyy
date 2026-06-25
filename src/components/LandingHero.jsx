@@ -1,4 +1,4 @@
-import screenImg from "../assets/screen.png";
+const screenImg = new URL("../../image/app-screen.png", import.meta.url).href;
 
 export function LandingHero({ data }) {
   return (

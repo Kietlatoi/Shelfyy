@@ -3,9 +3,7 @@ export function LandingHeader({ data, onLoginClick }) {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-10 lg:gap-32">
-          <a data-purpose="logo" href="/">
-            <img alt="Acloset" className="h-8" src={data.logo} />
-          </a>
+          <a data-purpose="logo" href="/"></a>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
             {data.nav.map((item) => (
               <a className="hover:text-black" href="#" key={item}>

@@ -13,7 +13,7 @@ export function LandingLoginModal({ onClose, onSubmit, isLoading = false }) {
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#b83c44]">
-              Acloset
+              Shelfy
             </p>
             <h2 className="text-2xl font-bold text-[#111827]" id="landing-login-title">
               Đăng nhập tài khoản
@@ -38,7 +38,7 @@ export function LandingLoginModal({ onClose, onSubmit, isLoading = false }) {
             <span className="mb-2 block text-sm font-semibold text-gray-700">Email</span>
             <input
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-[#b83c44] focus:ring-[#b83c44]/20"
-              defaultValue="demo@acloset.app"
+              defaultValue="demo@Shelfy.app"
               type="email"
               disabled={isLoading}
             />

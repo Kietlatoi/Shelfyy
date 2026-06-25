@@ -4,15 +4,14 @@ export function LandingFooter({ data }) {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div>
-            <img alt="Acloset" className="h-6 mb-6 brightness-0 invert" src={data.logo} />
             <p className="text-sm text-gray-400 leading-relaxed mb-6">{data.description}</p>
-            <div className="flex gap-4">
+            {/* <div className="flex gap-4">
               {data.badges.map((badge) => (
                 <a href="#" key={badge.alt}>
                   <img alt={badge.alt} className="h-8" src={badge.src} />
                 </a>
               ))}
-            </div>
+            </div> */}
           </div>
           {data.columns.map((column) => (
             <div key={column.title}>

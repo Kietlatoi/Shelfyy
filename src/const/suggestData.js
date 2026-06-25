@@ -1,6 +1,9 @@
+const suggestAvatarImage = new URL("../../image/suggest-avatar.png", import.meta.url).href;
+const outfitImage = new URL("../../image/suggest-outfit.jpg", import.meta.url).href;
+
 export const suggestTopNavData = {
   searchPlaceholder: "Tìm kiếm trang phục...",
-  avatar: "/suggest/avatar.png",
+  avatar: suggestAvatarImage,
 };
 
 export const suggestHeroData = {
@@ -12,8 +15,6 @@ export const suggestHeroData = {
     condition: "Trời nhiều mây",
   },
 };
-
-const outfitImage = "/suggest/outfit.jpg";
 
 export const outfitSuggestionsData = {
   title: "Outfit của ngày",

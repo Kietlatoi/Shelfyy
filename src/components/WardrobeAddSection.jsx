@@ -72,7 +72,15 @@ export function WardrobeAddSection({ aiUpload, intro, pairings, storage, onUploa
                   className="flex items-center gap-4 p-3 bg-white rounded-xl border border-border-subtle"
                   key={item.title}
                 >
-                  <div className="w-12 h-12 bg-surface-container rounded-lg" />
+                  {item.image ? (
+                    <img
+                      className="w-12 h-12 rounded-lg object-cover bg-surface-container"
+                      src={item.image}
+                      alt={item.title}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 bg-surface-container rounded-lg" />
+                  )}
                   <div className="flex-1">
                     <p className="text-xs font-bold">{item.title}</p>
                     <p className="text-[10px] text-on-surface-variant">{item.description}</p>

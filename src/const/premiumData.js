@@ -1,7 +1,11 @@
+const premiumTopAvatarImage = new URL("../../image/premium-top-avatar.png", import.meta.url).href;
+const premiumUserAvatarImage = new URL("../../image/premium-user-avatar.png", import.meta.url).href;
+const premiumAppStoreImage = new URL("../../image/premium-app-store.png", import.meta.url).href;
+const premiumGooglePlayImage = new URL("../../image/premium-google-play.png", import.meta.url).href;
+
 export const premiumTopNavData = {
   searchPlaceholder: "Tìm kiếm trang phục, xu hướng...",
-  avatar:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDYNPJaogo4LakJHNKP008AegQgq_VEworEAnG3tHMKyQpYcu7vQ8OtmTIg4z6Myt_xdalPq2Pv9pWLZ22_8x3Jdq8vXl0JVujYQ3RjwFuSuL9GmCYeIq1zLLA25jE1uR2fmzIQcQEGOYhbbQRqagkDjSYj9hAMXekSl9FcFuAEWgJ49a1C20h_ZDlrpCq7zCSi9S83Rge9fDytWpgIwJiJJqs5o1U9EN8CWmfnqGN5OBa-OAWcKVXpBAkJSlsxnZ8wvn7CqgcUsRak",
+  avatar: premiumTopAvatarImage,
 };
 
 export const premiumHeroData = {
@@ -21,7 +25,18 @@ export const premiumPlans = [
     features: [
       { label: "Thử đồ ảo: 5 lượt/ngày", included: true },
       { label: "Lưu trữ tối đa 100 món đồ", included: true },
-      { label: "AI Stylist cao cấp", included: false },
+    ],
+  },
+  {
+    name: "Gói Premium",
+    tier: "Tiết kiệm năm",
+    price: "590.000đ",
+    suffix: "/1 năm",
+    action: "Nâng cấp Premium",
+    featured: false,
+    features: [
+      { label: "Thử đồ ảo: 100 lượt/ tháng", included: true, premium: true },
+      { label: "Lưu trữ tủ đồ không giới hạn", included: true, premium: true },
     ],
   },
   {
@@ -35,27 +50,21 @@ export const premiumPlans = [
     features: [
       { label: "Thử đồ ảo: 100 lượt/ tháng", included: true, premium: true },
       { label: "Lưu trữ tủ đồ không giới hạn", included: true, premium: true },
-      { label: "Hỗ trợ AI Stylist 24/7", included: true, premium: true },
     ],
   },
 ];
 
 export const premiumComparisonData = {
   title: "So sánh chi tiết tính năng",
-  headers: ["Tính năng", "Miễn phí", "Pro (Cá nhân)"],
+  headers: ["Tính năng", "Miễn phí", "Premium", "Pro (Cá nhân)"],
   rows: [
     [
       "Lượt thử đồ ảo (AI Magic Mirror)",
       "5 lượt/ngày",
       "100 lượt/tháng",
-  
+      "100 lượt/tháng",
     ],
-    [
-      "Sức chứa tủ đồ kỹ thuật số",
-      "100 items",
-      "Không giới hạn",
-    ],
-    ["Stylist AI cao cấp", "remove", "check_circle", "check_circle"],
+    ["Sức chứa tủ đồ kỹ thuật số", "100 items", "Không giới hạn", "Không giới hạn"],
     ["Xóa phông nền tự động (AI)", "Thủ công", "Tự động 100%", "Tự động 100%"],
   ],
 };
@@ -68,8 +77,7 @@ export const premiumTrustData = {
   user: {
     name: "Minh Anh",
     role: "Fashion Blogger, Hồ Chí Minh",
-    avatar:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuBN--USdSWspW1av4di_6jVyok8oM5wdNqe8kYECjV8hcm7pkD46818Yez9y97dghLTvza5aW3FFD6HbuCLzBfPxYJPKJK-Dk2_BOFhEpc0eGYaiaa_vr_IIpwfeN9-psAvNLRNcFD2MjHI-Gm5GWCAedmRYlmri2L9HwzWbsQt1dvOLCBFgDOMARAzCoLk60v0RJutAvwqarzZu9NrnJ-gpEGNoTaY3xJ58zWnhhVc54RHpjHYsqsNJdYPUdJ5rnr7Khdw0PBMBlfs",
+    avatar: premiumUserAvatarImage,
   },
   stats: [
     { value: "5M+", label: "Bộ trang phục đã được AI phối" },
@@ -104,11 +112,11 @@ export const premiumFooterData = {
   badges: [
     {
       alt: "Apple App Store download badge",
-      src: "https://lh3.googleusercontent.com/aida-public/AB6AXuCXOjb1Xbd1pp5nVoCWfrN5JhHJvQSJ77AzF_qVnVztznhbI3iQABnF6pmiEG7-akV7oYpGitCcGHJ2Qo51VqzVyPrYtoOKPOMyDKUyvl-EVTVfxpzbgk4Ciy0quxsUxcFCV4R0yG0nqTFhTP_1XV-_fJmmZw1bFdmwXYYuTa5vuFhahPr4CM4PFmBTqaq0kP8LaFyuBDS60rFSdPt_sPsQoTfB4hO7agy1XYzIYzNUfHPu5zw4B0lQm8bfqZaNXMgGo6RRy4haG9M3",
+      src: premiumAppStoreImage,
     },
     {
       alt: "Google Play Store download badge",
-      src: "https://lh3.googleusercontent.com/aida-public/AB6AXuDHhDA-QTP0g4prqE6_mgJyegTZizoE0fv_wmrSkugOO79BTKq1KFA6ZDZ-T2kDDF07K1YjiJCy-9blUWHrAZV7aLqUr9Pvq9t-hu2LJw-EN0MgdfAaB-lG_1EuawSxz19CmtN5NAl6eHDwBmWpOYTb3FDixeXKRt6FEmBKwYu3hJNfTRh6qDO7nabGoom9YvbZ6yct_bhUQPpxSdYe1K9UP25ITyjcvZmbvbNaxE6bt0AC2vK6udvyaKNfLkcAH4Oy8suyagdIW6oa",
+      src: premiumGooglePlayImage,
     },
   ],
   links: ["Điều khoản", "Bảo mật", "Liên hệ"],

@@ -23,19 +23,28 @@ function WardrobeItemCard({ item }) {
   );
 }
 
-export function WardrobeGrid({ collection, filters, items, onAddClick }) {
+export function WardrobeGrid({
+  collection,
+  filters,
+  items,
+  onAddClick,
+  onFilterChange,
+}) {
   return (
     <section>
       <div className="flex items-center justify-between mb-8">
         <div className="flex gap-6">
           {filters.map((filter) => (
             <button
+              aria-pressed={filter.active}
               className={
                 filter.active
                   ? "font-label-md text-primary border-b-2 border-primary pb-2"
                   : "font-label-md text-on-surface-variant hover:text-primary pb-2 transition-colors"
               }
               key={filter.label}
+              onClick={() => onFilterChange(filter.label)}
+              type="button"
             >
               {filter.label}
             </button>

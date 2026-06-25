@@ -1,3 +1,6 @@
+const calendarImage = new URL("../../image/calendar.webp", import.meta.url).href;
+const outfitMainImage = new URL("../../image/outfit-main.png", import.meta.url).href;
+
 export const sidebarData = {
   brand: {
     name: "Shelfy",
@@ -39,20 +42,19 @@ export const weatherData = {
   eyebrow: "Thời tiết hiện tại",
   location: "TP. Hồ Chí Minh",
   icon: "wb_sunny",
-  temperature: "32°",
+  temperature: "36°",
   condition: "Nắng ráo",
   feelsLike: "Cảm giác như 35°",
   metrics: [
     { label: "Độ ẩm", value: "65%" },
-    { label: "UV", value: "Cao", emphasis: true },
-    { label: "Gió", value: "12km/h" },
+    { label: "UV", value: "Trung bình", emphasis: true },
+    { label: "Dự đoán 5 giờ nữa", value: "Nắng ấm" },
   ],
 };
 
 export const calendarData = {
   title: "Lịch trình cá nhân",
-  image:
-    "https://lh3.googleusercontent.com/aida/AP1WRLsFlccw96PtfyQY8U0DP2hWuNfJaRnlcf7UCDXU3lArmKbZJdxSXCxTpJ7uXNLyrieo3OIKUAPt1BaxV0C0l8D5qli7IULm92cKRLIBxNeYLR38CsXR_dlHURlIth5eJfZ-SBKCdxwhuF7qkU70lFUGJIDUUB_5Id4Fok6iByQqxQOUf9tCf9dfoEBnMsDtrpua1Ms6zNQBZ3FbfQmG05u_m33pbzH4n6vX_RHIRJ4xg7D7_Llv9-oQVXI",
+  image: calendarImage,
   event: {
     month: "Oct",
     day: "24",
@@ -66,8 +68,7 @@ export const outfitData = {
   eyebrow: "Gợi ý AI Stylist",
   title: "Outfit hoàn hảo cho ngày nắng đẹp",
   remaining: "Số lượt thử còn lại: 5",
-  image:
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuAhf82MkMX2iQE0VQ25TKpCjk-u-THE-BJhD0kO6NC59Yb3joKmaSw_MdaSUOUZjz8z_IEhQyEWI16X4IsfKiJGmNGrUSFsWMVERoRy3_FNuDcm5yKKa6wqrqoaMqI0dfR_6Cbf8Klo-UmBjFy0B5tyDoJOfZ4z1SJtxJ8RnGLUlCzsByF02IYDb6_rX5ijt1B88EY4TnD1elqiJZncCskF2oCeEiJJKMFC-ZnkrQAkh2hxjMbRQe8iR9f-K0k9uAsDJueqFnGkMWvU",
+  image: outfitMainImage,
   quote:
     "Sự kết hợp giữa nét cổ điển và hiện đại, phù hợp cho những buổi cafe cuối tuần.",
   items: [
