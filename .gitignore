@@ -1,5 +1,8 @@
+```gitignore
+# =========================
 # Logs
-logs
+# =========================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,18 +10,76 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# =========================
+# Environment files
+# =========================
+.env
+.env.*
+!.env.example
+
+frontend/.env
+backend/.env
+ai/.env
+
+# =========================
+# Frontend - React/Vite
+# =========================
+node_modules/
+frontend/node_modules/
+
+dist/
+dist-ssr/
+frontend/dist/
+frontend/dist-ssr/
+
 *.local
 
+# =========================
+# Backend - Spring Boot / Java
+# =========================
+backend/target/
+backend/logs/
+backend/src/main/resources/application-local.properties
+
+*.class
+
+# =========================
+# AI - Python/FastAPI
+# =========================
+ai/venv/
+ai/.venv/
+ai/__pycache__/
+ai/**/__pycache__/
+ai/*.pyc
+ai/**/*.pyc
+ai/.pytest_cache/
+
+# =========================
+# Uploaded / generated files
+# =========================
+uploads/
+temp/
+tmp/
+
+# =========================
 # Editor directories and files
+# =========================
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
+
+# =========================
+# OS files
+# =========================
 .DS_Store
+Thumbs.db
+
+# =========================
+# Visual Studio / Misc
+# =========================
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+```
