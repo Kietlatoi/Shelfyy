@@ -1,0 +1,791 @@
+<!doctype html>
+
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Shelfy - Premium Plans</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#000000",
+              "on-secondary-fixed": "#40000c",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#ffdada",
+              "on-tertiary-container": "#968065",
+              "surface-dim": "#d8dadc",
+              "on-primary-fixed": "#141b2b",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "text-muted": "#64748B",
+              "surface-container-lowest": "#ffffff",
+              "on-error": "#ffffff",
+              "on-primary-fixed-variant": "#404758",
+              "inverse-primary": "#c0c6db",
+              "primary-container": "#141b2b",
+              "on-tertiary-fixed": "#261906",
+              "outline-variant": "#c6c6cd",
+              "on-primary-container": "#7d8497",
+              "border-subtle": "#E2E8F0",
+              "inverse-on-surface": "#eff1f3",
+              secondary: "#ba0035",
+              "on-secondary-container": "#fffbff",
+              "on-tertiary-fixed-variant": "#55442d",
+              "tertiary-fixed-dim": "#dcc2a4",
+              "secondary-fixed-dim": "#ffb3b6",
+              "on-error-container": "#93000a",
+              "surface-container": "#eceef0",
+              "primary-fixed-dim": "#c0c6db",
+              tertiary: "#000000",
+              "surface-tint": "#575e70",
+              background: "#f7f9fb",
+              "primary-fixed": "#dce2f7",
+              "tertiary-container": "#261906",
+              "surface-container-low": "#f2f4f6",
+              "secondary-container": "#e21e49",
+              "surface-container-high": "#e6e8ea",
+              "on-surface-variant": "#45464c",
+              "tertiary-fixed": "#f9debf",
+              "on-secondary-fixed-variant": "#920028",
+              "on-surface": "#191c1e",
+              "inverse-surface": "#2d3133",
+              "on-primary": "#ffffff",
+              "accent-gold": "#FCD34D",
+              outline: "#76777d",
+              "surface-variant": "#e0e3e5",
+              surface: "#f7f9fb",
+              "on-background": "#191c1e",
+              "surface-bright": "#f7f9fb",
+              error: "#ba1a1a",
+              "surface-container-highest": "#e0e3e5",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              "margin-desktop": "64px",
+              gutter: "24px",
+              base: "8px",
+              "margin-mobile": "20px",
+              "container-max": "1200px",
+            },
+            fontFamily: {
+              "headline-lg": ["Inter"],
+              "headline-md": ["Inter"],
+              "body-lg": ["Inter"],
+              "label-md": ["Inter"],
+              "display-lg": ["Inter"],
+              "headline-lg-mobile": ["Inter"],
+              "label-sm": ["Inter"],
+              "body-md": ["Inter"],
+            },
+            fontSize: {
+              "headline-lg": [
+                "32px",
+                {
+                  lineHeight: "40px",
+                  letterSpacing: "-0.01em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-md": [
+                "24px",
+                { lineHeight: "32px", fontWeight: "600" },
+              ],
+              "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+              "label-md": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.01em",
+                  fontWeight: "600",
+                },
+              ],
+              "display-lg": [
+                "48px",
+                {
+                  lineHeight: "56px",
+                  letterSpacing: "-0.02em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-lg-mobile": [
+                "24px",
+                { lineHeight: "32px", fontWeight: "700" },
+              ],
+              "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+              "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .premium-gradient {
+        background: linear-gradient(135deg, #f7f9fb 0%, #ffdada 100%);
+      }
+      .pro-gradient {
+        background: linear-gradient(135deg, #ba0035 0%, #e21e49 100%);
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+      }
+    </style>
+  </head>
+  <body class="bg-surface text-on-surface antialiased">
+    <!-- Sidebar Navigation -->
+    <aside
+      class="h-screen w-64 fixed left-0 top-0 bg-surface dark:bg-surface-dim border-r border-border-subtle dark:border-outline-variant flex flex-col py-8 px-4 z-50"
+    >
+      <div class="mb-10 px-4">
+        <h1
+          class="font-headline-md text-headline-md font-bold text-primary dark:text-on-primary-fixed"
+        >
+          Shelfy
+        </h1>
+        <p
+          class="font-body-md text-label-sm text-on-surface-variant opacity-70"
+        >
+          Digital Wardrobe
+        </p>
+      </div>
+      <nav class="flex-1 space-y-2">
+        <a
+          class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+          href="#"
+        >
+          <span class="material-symbols-outlined">home</span>
+          <span class="font-body-md">Trang chủ</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+          href="#"
+        >
+          <span class="material-symbols-outlined">checkroom</span>
+          <span class="font-body-md">Tủ đồ</span>
+        </a>
+        <a
+          class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+          href="#"
+        >
+          <span class="material-symbols-outlined">auto_awesome</span>
+          <span class="font-body-md">Gợi ý hôm nay</span>
+        </a>
+      </nav>
+      <div class="mt-auto space-y-4">
+        <div class="mb-4 p-4 rounded-xl bg-primary-container text-white">
+          <p class="text-xs font-semibold mb-1 opacity-80">PRO PLAN</p>
+          <p class="text-sm font-bold mb-3">Upgrade to Premium</p>
+          <button
+            class="w-full py-2 bg-secondary text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Nâng cấp ngay
+          </button>
+        </div>
+        <div class="space-y-1">
+          <a
+            class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200"
+            href="#"
+          >
+            <span class="material-symbols-outlined">settings</span>
+            <span class="font-body-md text-label-md">Settings</span>
+          </a>
+          <a
+            class="flex items-center gap-3 px-4 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200"
+            href="#"
+          >
+            <span class="material-symbols-outlined">help</span>
+            <span class="font-body-md text-label-md">Help</span>
+          </a>
+        </div>
+      </div>
+    </aside>
+    <!-- Top Navigation -->
+    <header
+      class="fixed top-0 right-0 left-64 h-16 z-40 bg-surface/80 backdrop-blur-md border-b border-border-subtle flex items-center justify-between px-margin-desktop"
+    >
+      <div class="relative w-96">
+        <span
+          class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm"
+          >search</span
+        >
+        <input
+          class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-label-md focus:ring-1 focus:ring-primary"
+          placeholder="Tìm kiếm trang phục, xu hướng..."
+          type="text"
+        />
+      </div>
+      <div class="flex items-center gap-4">
+        <button
+          class="text-on-surface-variant hover:text-secondary transition-all"
+        >
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div
+          class="h-8 w-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-border-subtle cursor-pointer"
+        >
+          <img
+            class="w-full h-full object-cover"
+            data-alt="A sophisticated headshot of a fashionable user in their 20s, with a clean and minimalist aesthetic. The lighting is soft and natural, emphasizing a professional yet approachable look. The background is a neutral, light gray studio setting, fitting the premium digital wardrobe app branding."
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYNPJaogo4LakJHNKP008AegQgq_VEworEAnG3tHMKyQpYcu7vQ8OtmTIg4z6Myt_xdalPq2Pv9pWLZ22_8x3Jdq8vXl0JVujYQ3RjwFuSuL9GmCYeIq1zLLA25jE1uR2fmzIQcQEGOYhbbQRqagkDjSYj9hAMXekSl9FcFuAEWgJ49a1C20h_ZDlrpCq7zCSi9S83Rge9fDytWpgIwJiJJqs5o1U9EN8CWmfnqGN5OBa-OAWcKVXpBAkJSlsxnZ8wvn7CqgcUsRak"
+          />
+        </div>
+      </div>
+    </header>
+    <!-- Main Content -->
+    <main class="ml-64 pt-24 pb-16 px-margin-desktop min-h-screen">
+      <div class="max-w-container-max mx-auto">
+        <!-- Hero Section -->
+        <section class="text-center mb-16">
+          <h2 class="font-display-lg text-display-lg text-primary mb-4">
+            Nâng Tầm Phong Cách Cùng Premium
+          </h2>
+          <p
+            class="font-body-lg text-body-lg text-text-muted max-w-2xl mx-auto"
+          >
+            Trải nghiệm tủ đồ kỹ thuật số thông minh hơn với trợ lý AI và không
+            giới hạn lưu trữ.
+          </p>
+        </section>
+        <!-- Pricing Cards Bento Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-20">
+          <!-- Free Plan -->
+          <div
+            class="bg-white border border-border-subtle rounded-xl p-8 flex flex-col h-full hover:shadow-lg transition-shadow"
+          >
+            <div class="mb-8">
+              <span
+                class="font-label-md text-text-muted uppercase tracking-wider"
+                >Cơ bản</span
+              >
+              <h3 class="font-headline-lg text-headline-lg mt-2">Miễn phí</h3>
+              <p class="text-primary font-bold text-3xl mt-4">
+                0đ
+                <span class="text-sm font-normal text-text-muted">/tháng</span>
+              </p>
+            </div>
+            <ul class="space-y-4 mb-10 flex-1">
+              <li class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-green-600 text-lg"
+                  >check_circle</span
+                >
+                <span class="font-body-md text-on-surface-variant"
+                  >Thử đồ ảo: 5 lượt/ngày</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-green-600 text-lg"
+                  >check_circle</span
+                >
+                <span class="font-body-md text-on-surface-variant"
+                  >Lưu trữ tối đa 100 món đồ</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <span
+                  class="material-symbols-outlined text-text-muted text-lg opacity-40"
+                  >cancel</span
+                >
+                <span class="font-body-md text-on-surface-variant opacity-60"
+                  >AI Stylist cao cấp</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <span
+                  class="material-symbols-outlined text-text-muted text-lg opacity-40"
+                  >cancel</span
+                >
+                <span class="font-body-md text-on-surface-variant opacity-60"
+                  >Chia sẻ tủ đồ gia đình</span
+                >
+              </li>
+            </ul>
+            <button
+              class="w-full py-4 border border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-all"
+            >
+              Sử dụng ngay
+            </button>
+          </div>
+          <!-- Pro Plan (Featured) -->
+          <div
+            class="pro-gradient rounded-xl p-[2px] shadow-2xl scale-105 relative z-10"
+          >
+            <div
+              class="bg-white h-full w-full rounded-[10px] p-8 flex flex-col"
+            >
+              <div
+                class="absolute top-0 right-8 -translate-y-1/2 bg-secondary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest"
+              >
+                Phổ biến nhất
+              </div>
+              <div class="mb-8">
+                <span
+                  class="font-label-md text-secondary uppercase tracking-wider"
+                  >Cá nhân</span
+                >
+                <h3 class="font-headline-lg text-headline-lg mt-2">Gói Pro</h3>
+                <p class="text-secondary font-bold text-3xl mt-4">
+                  99.000đ
+                  <span class="text-sm font-normal text-text-muted"
+                    >/tháng</span
+                  >
+                </p>
+              </div>
+              <ul class="space-y-4 mb-10 flex-1">
+                <li class="flex items-start gap-3">
+                  <span
+                    class="material-symbols-outlined text-secondary text-lg"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >stars</span
+                  >
+                  <span class="font-body-md text-on-surface font-semibold"
+                    >Thử đồ ảo không giới hạn</span
+                  >
+                </li>
+                <li class="flex items-start gap-3">
+                  <span
+                    class="material-symbols-outlined text-secondary text-lg"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >stars</span
+                  >
+                  <span class="font-body-md text-on-surface font-semibold"
+                    >Lưu trữ tủ đồ không giới hạn</span
+                  >
+                </li>
+                <li class="flex items-start gap-3">
+                  <span
+                    class="material-symbols-outlined text-secondary text-lg"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >stars</span
+                  >
+                  <span class="font-body-md text-on-surface font-semibold"
+                    >Hỗ trợ AI Stylist 24/7</span
+                  >
+                </li>
+                <li class="flex items-start gap-3">
+                  <span
+                    class="material-symbols-outlined text-secondary text-lg"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >stars</span
+                  >
+                  <span class="font-body-md text-on-surface font-semibold"
+                    >Tự động xóa phông nền AI</span
+                  >
+                </li>
+              </ul>
+              <button
+                class="w-full py-4 bg-secondary text-white font-bold rounded-lg hover:opacity-90 transition-all shadow-lg shadow-secondary/20"
+              >
+                Bắt đầu dùng thử
+              </button>
+            </div>
+          </div>
+          <!-- Family Plan -->
+          <div
+            class="bg-white border border-border-subtle rounded-xl p-8 flex flex-col h-full hover:shadow-lg transition-shadow"
+          >
+            <div class="mb-8">
+              <span
+                class="font-label-md text-text-muted uppercase tracking-wider"
+                >Nhóm</span
+              >
+              <h3 class="font-headline-lg text-headline-lg mt-2">Gia đình</h3>
+              <p class="text-primary font-bold text-3xl mt-4">
+                199.000đ
+                <span class="text-sm font-normal text-text-muted">/tháng</span>
+              </p>
+            </div>
+            <ul class="space-y-4 mb-10 flex-1">
+              <li class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-green-600 text-lg"
+                  >check_circle</span
+                >
+                <span class="font-body-md text-on-surface-variant"
+                  >Tất cả tính năng của Pro</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-green-600 text-lg"
+                  >check_circle</span
+                >
+                <span class="font-body-md text-on-surface-variant"
+                  >Tối đa 5 thành viên</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-green-600 text-lg"
+                  >check_circle</span
+                >
+                <span class="font-body-md text-on-surface-variant"
+                  >Chia sẻ tủ đồ chung</span
+                >
+              </li>
+              <li class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-green-600 text-lg"
+                  >check_circle</span
+                >
+                <span class="font-body-md text-on-surface-variant"
+                  >Phối đồ nhóm thông minh</span
+                >
+              </li>
+            </ul>
+            <button
+              class="w-full py-4 border border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-all"
+            >
+              Đăng ký ngay
+            </button>
+          </div>
+        </div>
+        <!-- Detailed Comparison Table -->
+        <section class="mt-32">
+          <h4 class="font-headline-md text-headline-md text-center mb-12">
+            So sánh chi tiết tính năng
+          </h4>
+          <div
+            class="bg-white rounded-2xl border border-border-subtle overflow-hidden"
+          >
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-surface-container-low">
+                  <th class="p-6 font-label-md border-b border-border-subtle">
+                    Tính năng
+                  </th>
+                  <th
+                    class="p-6 font-label-md border-b border-border-subtle text-center"
+                  >
+                    Miễn phí
+                  </th>
+                  <th
+                    class="p-6 font-label-md border-b border-border-subtle text-center text-secondary"
+                  >
+                    Pro (Cá nhân)
+                  </th>
+                  <th
+                    class="p-6 font-label-md border-b border-border-subtle text-center"
+                  >
+                    Gia đình
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border-subtle">
+                <tr>
+                  <td class="p-6 font-body-md text-on-surface">
+                    Lượt thử đồ ảo (AI Magic Mirror)
+                  </td>
+                  <td class="p-6 text-center text-on-surface-variant">
+                    5 lượt/ngày
+                  </td>
+                  <td class="p-6 text-center font-bold text-secondary">
+                    Không giới hạn
+                  </td>
+                  <td class="p-6 text-center text-on-surface-variant">
+                    Không giới hạn
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-6 font-body-md text-on-surface">
+                    Sức chứa tủ đồ kỹ thuật số
+                  </td>
+                  <td class="p-6 text-center text-on-surface-variant">
+                    100 items
+                  </td>
+                  <td class="p-6 text-center font-bold text-secondary">
+                    Không giới hạn
+                  </td>
+                  <td class="p-6 text-center text-on-surface-variant">
+                    Không giới hạn
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-6 font-body-md text-on-surface">
+                    Stylist AI cao cấp
+                  </td>
+                  <td class="p-6 text-center">
+                    <span
+                      class="material-symbols-outlined text-text-muted opacity-40"
+                      >remove</span
+                    >
+                  </td>
+                  <td class="p-6 text-center">
+                    <span
+                      class="material-symbols-outlined text-secondary"
+                      style="font-variation-settings: &quot;FILL&quot; 1"
+                      >check_circle</span
+                    >
+                  </td>
+                  <td class="p-6 text-center">
+                    <span class="material-symbols-outlined text-primary"
+                      >check_circle</span
+                    >
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-6 font-body-md text-on-surface">
+                    Xóa phông nền tự động (AI)
+                  </td>
+                  <td class="p-6 text-center text-on-surface-variant">
+                    Thủ công
+                  </td>
+                  <td class="p-6 text-center font-bold text-secondary">
+                    Tự động 100%
+                  </td>
+                  <td class="p-6 text-center text-on-surface-variant">
+                    Tự động 100%
+                  </td>
+                </tr>
+                <tr>
+                  <td class="p-6 font-body-md text-on-surface">
+                    Phân tích xu hướng thời trang
+                  </td>
+                  <td class="p-6 text-center">
+                    <span
+                      class="material-symbols-outlined text-text-muted opacity-40"
+                      >remove</span
+                    >
+                  </td>
+                  <td class="p-6 text-center">
+                    <span
+                      class="material-symbols-outlined text-secondary"
+                      style="font-variation-settings: &quot;FILL&quot; 1"
+                      >check_circle</span
+                    >
+                  </td>
+                  <td class="p-6 text-center">
+                    <span class="material-symbols-outlined text-primary"
+                      >check_circle</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <!-- Testimonial/Trust Section -->
+        <section
+          class="mt-24 bg-primary-container text-on-primary-container rounded-3xl p-12 overflow-hidden relative"
+        >
+          <div
+            class="relative z-10 flex flex-col md:flex-row items-center gap-12"
+          >
+            <div class="md:w-1/2">
+              <span
+                class="font-label-md text-accent-gold uppercase tracking-widest"
+                >Đánh giá người dùng</span
+              >
+              <h4 class="font-headline-lg text-headline-lg mt-4 mb-6">
+                "Gói Pro hoàn toàn thay đổi cách tôi chọn đồ mỗi sáng."
+              </h4>
+              <p class="font-body-lg text-on-primary-container/80 mb-8 italic">
+                "Kể từ khi nâng cấp, trợ lý AI của Shelfy đã giúp tôi tiết kiệm
+                hàng giờ đồng hồ chuẩn bị. Những gợi ý phối đồ cực kỳ tinh tế và
+                hợp xu hướng."
+              </p>
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-12 h-12 rounded-full overflow-hidden border-2 border-accent-gold"
+                >
+                  <img
+                    class="w-full h-full object-cover"
+                    data-alt="A portrait of a stylish woman in her 30s, wearing high-end fashion with a minimalist aesthetic. She has a confident smile, and the image is shot in a sun-drenched, elegant room with neutral tones. This professional photography style reinforces the luxury quality of the digital wardrobe app's premium features."
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN--USdSWspW1av4di_6jVyok8oM5wdNqe8kYECjV8hcm7pkD46818Yez9y97dghLTvza5aW3FFD6HbuCLzBfPxYJPKJK-Dk2_BOFhEpc0eGYaiaa_vr_IIpwfeN9-psAvNLRNcFD2MjHI-Gm5GWCAedmRYlmri2L9HwzWbsQt1dvOLCBFgDOMARAzCoLk60v0RJutAvwqarzZu9NrnJ-gpEGNoTaY3xJ58zWnhhVc54RHpjHYsqsNJdYPUdJ5rnr7Khdw0PBMBlfs"
+                  />
+                </div>
+                <div>
+                  <p class="font-label-md font-bold">Minh Anh</p>
+                  <p class="text-xs opacity-60">Fashion Blogger, Hà Nội</p>
+                </div>
+              </div>
+            </div>
+            <div class="md:w-1/2 grid grid-cols-2 gap-4">
+              <div
+                class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/10"
+              >
+                <p class="text-3xl font-bold text-accent-gold mb-2">5M+</p>
+                <p class="text-sm opacity-80">Bộ trang phục đã được AI phối</p>
+              </div>
+              <div
+                class="bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/10"
+              >
+                <p class="text-3xl font-bold text-accent-gold mb-2">98%</p>
+                <p class="text-sm opacity-80">
+                  Người dùng hài lòng với AI Stylist
+                </p>
+              </div>
+              <div
+                class="col-span-2 bg-white/10 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex items-center justify-between"
+              >
+                <div>
+                  <p class="text-xl font-bold mb-1">Dùng thử 7 ngày</p>
+                  <p class="text-xs opacity-60">
+                    Không rủi ro, hủy bất cứ lúc nào.
+                  </p>
+                </div>
+                <span
+                  class="material-symbols-outlined text-4xl text-accent-gold"
+                  >verified_user</span
+                >
+              </div>
+            </div>
+          </div>
+          <!-- Abstract Decorative Background -->
+          <div
+            class="absolute -bottom-24 -right-24 w-96 h-96 bg-secondary/20 rounded-full blur-3xl"
+          ></div>
+        </section>
+        <!-- FAQ Micro-interaction -->
+        <section class="mt-24 max-w-3xl mx-auto">
+          <h4 class="font-headline-md text-headline-md text-center mb-10">
+            Câu hỏi thường gặp
+          </h4>
+          <div class="space-y-4">
+            <div
+              class="bg-white rounded-xl border border-border-subtle p-6 cursor-pointer hover:border-secondary transition-colors"
+              onclick="
+                this.querySelector('.faq-content').classList.toggle('hidden')
+              "
+            >
+              <div class="flex items-center justify-between">
+                <h5 class="font-label-md">
+                  Tôi có thể hủy gói Premium bất cứ lúc nào không?
+                </h5>
+                <span class="material-symbols-outlined">expand_more</span>
+              </div>
+              <p
+                class="faq-content hidden mt-4 text-on-surface-variant font-body-md"
+              >
+                Có, bạn có thể hủy đăng ký của mình bất kỳ lúc nào trong phần
+                cài đặt tài khoản. Bạn vẫn sẽ có quyền truy cập vào các tính
+                năng Premium cho đến hết chu kỳ thanh toán hiện tại.
+              </p>
+            </div>
+            <div
+              class="bg-white rounded-xl border border-border-subtle p-6 cursor-pointer hover:border-secondary transition-colors"
+              onclick="
+                this.querySelector('.faq-content').classList.toggle('hidden')
+              "
+            >
+              <div class="flex items-center justify-between">
+                <h5 class="font-label-md">
+                  Tính năng Thử đồ ảo hoạt động như thế nào?
+                </h5>
+                <span class="material-symbols-outlined">expand_more</span>
+              </div>
+              <p
+                class="faq-content hidden mt-4 text-on-surface-variant font-body-md"
+              >
+                Công nghệ AI của chúng tôi sẽ tạo ra một bản sao kỹ thuật số dựa
+                trên số đo cơ thể bạn. Bạn có thể "mặc" thử bất kỳ món đồ nào
+                trong tủ đồ để xem độ vừa vặn và thẩm mỹ trước khi phối thực tế.
+              </p>
+            </div>
+            <div
+              class="bg-white rounded-xl border border-border-subtle p-6 cursor-pointer hover:border-secondary transition-colors"
+              onclick="
+                this.querySelector('.faq-content').classList.toggle('hidden')
+              "
+            >
+              <div class="flex items-center justify-between">
+                <h5 class="font-label-md">
+                  Gói Gia đình chia sẻ quyền lợi như thế nào?
+                </h5>
+                <span class="material-symbols-outlined">expand_more</span>
+              </div>
+              <p
+                class="faq-content hidden mt-4 text-on-surface-variant font-body-md"
+              >
+                Chủ tài khoản có thể mời tối đa 4 thành viên khác tham gia. Mỗi
+                người vẫn có tủ đồ riêng tư nhưng có tùy chọn chia sẻ các món đồ
+                cụ thể vào "Tủ đồ chung" của gia đình.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+    <!-- Footer with Badges -->
+    <footer
+      class="ml-64 border-t border-border-subtle bg-white py-12 px-margin-desktop"
+    >
+      <div
+        class="max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8"
+      >
+        <div>
+          <h5 class="font-headline-md text-primary mb-2">Shelfy</h5>
+          <p class="text-sm text-text-muted">
+            Nâng tầm phong cách cá nhân của bạn mỗi ngày.
+          </p>
+        </div>
+        <div class="flex gap-4">
+          <img
+            class="h-10"
+            data-alt="A clean, official Apple App Store download badge, rendered with a professional and crisp aesthetic. The dark background of the badge contrasts sharply with the white typography and Apple logo, following standard branding guidelines. It is sized appropriately for a modern UI footer."
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXOjb1Xbd1pp5nVoCWfrN5JhHJvQSJ77AzF_qVnVztznhbI3iQABnF6pmiEG7-akV7oYpGitCcGHJ2Qo51VqzVyPrYtoOKPOMyDKUyvl-EVTVfxpzbgk4Ciy0quxsUxcFCV4R0yG0nqTFhTP_1XV-_fJmmZw1bFdmwXYYuTa5vuFhahPr4CM4PFmBTqaq0kP8LaFyuBDS60rFSdPt_sPsQoTfB4hO7agy1XYzIYzNUfHPu5zw4B0lQm8bfqZaNXMgGo6RRy4haG9M3"
+          />
+          <img
+            class="h-10"
+            data-alt="A professional and crisp Google Play Store download badge, following the official brand guidelines. The badge features the iconic colorful Google Play triangle and white text on a dark rounded rectangle. It is perfectly aligned for a minimalist web footer."
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHhDA-QTP0g4prqE6_mgJyegTZizoE0fv_wmrSkugOO79BTKq1KFA6ZDZ-T2kDDF07K1YjiJCy-9blUWHrAZV7aLqUr9Pvq9t-hu2LJw-EN0MgdfAaB-lG_1EuawSxz19CmtN5NAl6eHDwBmWpOYTb3FDixeXKRt6FEmBKwYu3hJNfTRh6qDO7nabGoom9YvbZ6yct_bhUQPpxSdYe1K9UP25ITyjcvZmbvbNaxE6bt0AC2vK6udvyaKNfLkcAH4Oy8suyagdIW6oa"
+          />
+        </div>
+        <div class="flex gap-6 text-sm text-on-surface-variant">
+          <a class="hover:text-secondary transition-colors" href="#"
+            >Điều khoản</a
+          >
+          <a class="hover:text-secondary transition-colors" href="#">Bảo mật</a>
+          <a class="hover:text-secondary transition-colors" href="#">Liên hệ</a>
+        </div>
+      </div>
+      <div
+        class="max-w-container-max mx-auto mt-8 pt-8 border-t border-border-subtle/50 text-center text-xs text-text-muted"
+      >
+        © 2024 Shelfy. All rights reserved. Designed for the fashion-forward.
+      </div>
+    </footer>
+    <script>
+      // Simple micro-interaction for hover states on pricing cards
+      const cards = document.querySelectorAll(".grid > div");
+      cards.forEach((card) => {
+        card.addEventListener("mouseenter", () => {
+          if (!card.classList.contains("pro-gradient")) {
+            card.style.transform = "translateY(-8px)";
+          }
+        });
+        card.addEventListener("mouseleave", () => {
+          if (!card.classList.contains("pro-gradient")) {
+            card.style.transform = "translateY(0)";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

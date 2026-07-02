@@ -1,0 +1,621 @@
+<!doctype html>
+
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Shelfy - Digital Wardrobe Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 300,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+      }
+      .calendar-mask {
+        mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+      }
+      .premium-gradient {
+        background: linear-gradient(135deg, #ba0035 0%, #e21e49 100%);
+      }
+    </style>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#000000",
+              "on-secondary-fixed": "#40000c",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#ffdada",
+              "on-tertiary-container": "#968065",
+              "surface-dim": "#d8dadc",
+              "on-primary-fixed": "#141b2b",
+              "error-container": "#ffdad6",
+              "on-tertiary": "#ffffff",
+              "text-muted": "#64748B",
+              "surface-container-lowest": "#ffffff",
+              "on-error": "#ffffff",
+              "on-primary-fixed-variant": "#404758",
+              "inverse-primary": "#c0c6db",
+              "primary-container": "#141b2b",
+              "on-tertiary-fixed": "#261906",
+              "outline-variant": "#c6c6cd",
+              "on-primary-container": "#7d8497",
+              "border-subtle": "#E2E8F0",
+              "inverse-on-surface": "#eff1f3",
+              secondary: "#ba0035",
+              "on-secondary-container": "#fffbff",
+              "on-tertiary-fixed-variant": "#55442d",
+              "tertiary-fixed-dim": "#dcc2a4",
+              "secondary-fixed-dim": "#ffb3b6",
+              "on-error-container": "#93000a",
+              "surface-container": "#eceef0",
+              "primary-fixed-dim": "#c0c6db",
+              tertiary: "#000000",
+              "surface-tint": "#575e70",
+              background: "#f7f9fb",
+              "primary-fixed": "#dce2f7",
+              "tertiary-container": "#261906",
+              "surface-container-low": "#f2f4f6",
+              "secondary-container": "#e21e49",
+              "surface-container-high": "#e6e8ea",
+              "on-surface-variant": "#45464c",
+              "tertiary-fixed": "#f9debf",
+              "on-secondary-fixed-variant": "#920028",
+              "on-surface": "#191c1e",
+              "inverse-surface": "#2d3133",
+              "on-primary": "#ffffff",
+              "accent-gold": "#FCD34D",
+              outline: "#76777d",
+              "surface-variant": "#e0e3e5",
+              surface: "#f7f9fb",
+              "on-background": "#191c1e",
+              "surface-bright": "#f7f9fb",
+              error: "#ba1a1a",
+              "surface-container-highest": "#e0e3e5",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              "margin-desktop": "64px",
+              gutter: "24px",
+              base: "8px",
+              "margin-mobile": "20px",
+              "container-max": "1200px",
+            },
+            fontFamily: {
+              "headline-lg": ["Inter"],
+              "headline-md": ["Inter"],
+              "body-lg": ["Inter"],
+              "label-md": ["Inter"],
+              "display-lg": ["Inter"],
+              "headline-lg-mobile": ["Inter"],
+              "label-sm": ["Inter"],
+              "body-md": ["Inter"],
+            },
+            fontSize: {
+              "headline-lg": [
+                "32px",
+                {
+                  lineHeight: "40px",
+                  letterSpacing: "-0.01em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-md": [
+                "24px",
+                { lineHeight: "32px", fontWeight: "600" },
+              ],
+              "body-lg": ["18px", { lineHeight: "28px", fontWeight: "400" }],
+              "label-md": [
+                "14px",
+                {
+                  lineHeight: "20px",
+                  letterSpacing: "0.01em",
+                  fontWeight: "600",
+                },
+              ],
+              "display-lg": [
+                "48px",
+                {
+                  lineHeight: "56px",
+                  letterSpacing: "-0.02em",
+                  fontWeight: "700",
+                },
+              ],
+              "headline-lg-mobile": [
+                "24px",
+                { lineHeight: "32px", fontWeight: "700" },
+              ],
+              "label-sm": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+              "body-md": ["16px", { lineHeight: "24px", fontWeight: "400" }],
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-background text-on-surface font-body-md min-h-screen">
+    <!-- SideNavBar Component -->
+    <nav
+      class="bg-surface dark:bg-surface-dim h-screen w-64 fixed left-0 top-0 border-r border-border-subtle dark:border-outline-variant flex flex-col py-8 px-4 z-50"
+    >
+      <div class="mb-10 px-2 flex items-center gap-3">
+        <div
+          class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center"
+        >
+          <span
+            class="material-symbols-outlined text-white"
+            style="font-variation-settings: &quot;FILL&quot; 1"
+            >checkroom</span
+          >
+        </div>
+        <div>
+          <h1
+            class="font-headline-md text-headline-md font-bold text-primary dark:text-on-primary-fixed leading-tight"
+          >
+            Shelfy
+          </h1>
+          <p
+            class="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-widest"
+          >
+            Digital Wardrobe
+          </p>
+        </div>
+      </div>
+      <div class="flex-grow space-y-2">
+        <!-- Active Tab: Trang chủ -->
+        <a
+          class="flex items-center gap-3 py-3 px-4 rounded-lg text-secondary font-bold border-r-4 border-secondary bg-surface-container-low transition-colors duration-200"
+          href="#"
+        >
+          <span
+            class="material-symbols-outlined"
+            style="font-variation-settings: &quot;FILL&quot; 1"
+            >home</span
+          >
+          <span class="font-label-md text-label-md">Trang chủ</span>
+        </a>
+        <!-- Inactive Tab: Tủ đồ -->
+        <a
+          class="flex items-center gap-3 py-3 px-4 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+          href="#"
+        >
+          <span class="material-symbols-outlined">checkroom</span>
+          <span class="font-label-md text-label-md">Tủ đồ</span>
+        </a>
+        <!-- Inactive Tab: Gợi ý hôm nay -->
+        <a
+          class="flex items-center gap-3 py-3 px-4 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+          href="#"
+        >
+          <span class="material-symbols-outlined">auto_awesome</span>
+          <span class="font-label-md text-label-md">Gợi ý hôm nay</span>
+        </a>
+      </div>
+      <div class="mt-auto space-y-4">
+        <!-- CTA: Upgrade to Premium -->
+        <div class="mb-4 p-4 rounded-xl bg-primary-container text-white">
+          <p class="text-xs font-semibold mb-1 opacity-80">PRO PLAN</p>
+          <p class="text-sm font-bold mb-3">Upgrade to Premium</p>
+          <button
+            class="w-full py-2 bg-secondary text-white text-xs font-bold rounded-lg hover:opacity-90 transition-opacity"
+          >
+            Nâng cấp ngay
+          </button>
+        </div>
+        <div class="pt-6 border-t border-border-subtle">
+          <a
+            class="flex items-center gap-3 py-2 px-4 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+            href="#"
+          >
+            <span class="material-symbols-outlined">settings</span>
+            <span class="font-label-md text-label-md">Settings</span>
+          </a>
+          <a
+            class="flex items-center gap-3 py-2 px-4 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors duration-200"
+            href="#"
+          >
+            <span class="material-symbols-outlined">help</span>
+            <span class="font-label-md text-label-md">Help</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+    <!-- TopNavBar Component -->
+    <header
+      class="fixed top-0 right-0 left-64 h-16 z-40 bg-surface/80 backdrop-blur-md dark:bg-surface-dim/80 border-b border-border-subtle dark:border-outline-variant flex items-center justify-between px-gutter"
+    >
+      <div class="flex items-center gap-4 w-1/2">
+        <div class="relative w-full max-w-md">
+          <span
+            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl"
+            >search</span
+          >
+          <input
+            class="w-full pl-10 pr-4 py-2 bg-surface-container border-none rounded-full focus:ring-2 focus:ring-primary/10 text-label-md font-label-md"
+            placeholder="Tìm kiếm trang phục..."
+            type="text"
+          />
+        </div>
+      </div>
+      <div class="flex items-center gap-6">
+        <button
+          class="text-on-surface-variant hover:text-secondary transition-all cursor-pointer"
+        >
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+        <div class="flex items-center gap-3 cursor-pointer group">
+          <div class="text-right">
+            <p
+              class="font-label-md text-label-md text-on-surface group-hover:text-secondary transition-colors"
+            >
+              Fashionista User
+            </p>
+            <p
+              class="text-[10px] text-on-surface-variant uppercase tracking-tighter"
+            >
+              Premium Member
+            </p>
+          </div>
+          <span
+            class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-secondary transition-all"
+            >account_circle</span
+          >
+        </div>
+      </div>
+    </header>
+    <!-- Main Content Canvas -->
+    <main class="ml-64 pt-24 pb-12 px-gutter max-w-container-max mx-auto">
+      <div class="grid grid-cols-12 gap-gutter">
+        <!-- Left Column: Forecast & Calendar -->
+        <div class="col-span-12 lg:col-span-5 space-y-gutter">
+          <!-- Weather Widget -->
+          <div
+            class="bg-surface-container-low rounded-3xl p-8 border border-border-subtle overflow-hidden relative group"
+          >
+            <div class="relative z-10">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p
+                    class="text-secondary font-bold text-label-md uppercase tracking-widest mb-1"
+                  >
+                    Thời tiết hiện tại
+                  </p>
+                  <h2 class="font-headline-lg text-headline-lg text-primary">
+                    TP. Hồ Chí Minh
+                  </h2>
+                </div>
+                <span
+                  class="material-symbols-outlined text-6xl text-accent-gold"
+                  style="font-variation-settings: &quot;FILL&quot; 1"
+                  >wb_sunny</span
+                >
+              </div>
+              <div class="mt-8 flex items-end gap-2">
+                <span class="text-7xl font-bold tracking-tighter text-primary"
+                  >32°</span
+                >
+                <div class="mb-3">
+                  <p class="text-label-md font-bold text-on-surface-variant">
+                    Nắng ráo
+                  </p>
+                  <p class="text-label-sm text-text-muted">Cảm giác như 35°</p>
+                </div>
+              </div>
+              <div
+                class="mt-8 grid grid-cols-3 gap-4 border-t border-border-subtle pt-6"
+              >
+                <div class="text-center">
+                  <p class="text-label-sm text-text-muted mb-1">Độ ẩm</p>
+                  <p class="font-bold text-primary">65%</p>
+                </div>
+                <div class="text-center border-x border-border-subtle">
+                  <p class="text-label-sm text-text-muted mb-1">UV</p>
+                  <p class="font-bold text-secondary">Cao</p>
+                </div>
+                <div class="text-center">
+                  <p class="text-label-sm text-text-muted mb-1">Gió</p>
+                  <p class="font-bold text-primary">12km/h</p>
+                </div>
+              </div>
+            </div>
+            <!-- Subtle background decoration -->
+            <div
+              class="absolute -bottom-10 -right-10 w-48 h-48 bg-accent-gold/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700"
+            ></div>
+          </div>
+          <!-- Personal Calendar View -->
+          <div
+            class="bg-white rounded-3xl border border-border-subtle overflow-hidden shadow-sm flex flex-col h-[500px]"
+          >
+            <div
+              class="p-6 border-b border-border-subtle flex justify-between items-center"
+            >
+              <h3 class="font-headline-md text-headline-md text-primary">
+                Lịch trình cá nhân
+              </h3>
+              <button
+                class="p-2 hover:bg-surface-container-low rounded-full transition-colors"
+              >
+                <span class="material-symbols-outlined">calendar_today</span>
+              </button>
+            </div>
+            <div class="flex-grow overflow-hidden relative">
+              <!-- Referencing IMAGE_9 style: A vertical calendar/timeline view -->
+              <div class="absolute inset-0">
+                <img
+                  alt="Calendar View"
+                  class="w-full h-full object-cover calendar-mask"
+                  src="https://lh3.googleusercontent.com/aida/AP1WRLsFlccw96PtfyQY8U0DP2hWuNfJaRnlcf7UCDXU3lArmKbZJdxSXCxTpJ7uXNLyrieo3OIKUAPt1BaxV0C0l8D5qli7IULm92cKRLIBxNeYLR38CsXR_dlHURlIth5eJfZ-SBKCdxwhuF7qkU70lFUGJIDUUB_5Id4Fok6iByQqxQOUf9tCf9dfoEBnMsDtrpua1Ms6zNQBZ3FbfQmG05u_m33pbzH4n6vX_RHIRJ4xg7D7_Llv9-oQVXI"
+                />
+              </div>
+              <!-- Overlay interactive elements simulated -->
+              <div
+                class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white/90 to-transparent"
+              >
+                <div
+                  class="flex items-center gap-4 bg-surface-container-low p-4 rounded-2xl border border-border-subtle mb-4"
+                >
+                  <div
+                    class="bg-secondary text-white w-12 h-12 rounded-xl flex flex-col items-center justify-center font-bold"
+                  >
+                    <span class="text-[10px] leading-none uppercase">Oct</span>
+                    <span class="text-lg leading-tight">24</span>
+                  </div>
+                  <div class="flex-grow">
+                    <h4 class="font-bold text-primary text-label-md">
+                      Tiệc tối cùng bạn bè
+                    </h4>
+                    <p class="text-label-sm text-text-muted">
+                      19:00 • District 1
+                    </p>
+                  </div>
+                  <span
+                    class="material-symbols-outlined text-on-surface-variant"
+                    >chevron_right</span
+                  >
+                </div>
+                <button
+                  class="w-full py-3 border-2 border-dashed border-border-subtle rounded-2xl text-on-surface-variant font-label-md hover:border-secondary hover:text-secondary transition-all"
+                >
+                  + Thêm lịch trình mới
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right Column: AI Suggestion -->
+        <div class="col-span-12 lg:col-span-7">
+          <div
+            class="bg-surface-container-lowest rounded-[40px] border border-border-subtle p-8 h-full flex flex-col overflow-hidden relative shadow-xl shadow-primary/5"
+          >
+            <div class="relative z-10 flex flex-col h-full">
+              <div class="flex justify-between items-start mb-8">
+                <div>
+                  <div class="flex items-center gap-2 text-secondary mb-2">
+                    <span
+                      class="material-symbols-outlined"
+                      style="font-variation-settings: &quot;FILL&quot; 1"
+                      >auto_awesome</span
+                    >
+                    <span
+                      class="font-bold text-label-md tracking-widest uppercase"
+                      >Gợi ý AI Stylist</span
+                    >
+                  </div>
+                  <h2
+                    class="font-headline-lg text-headline-lg text-primary max-w-md"
+                  >
+                    Outfit hoàn hảo cho ngày nắng đẹp
+                  </h2>
+                </div>
+                <div
+                  class="bg-surface-container-high px-4 py-2 rounded-full flex items-center gap-2"
+                >
+                  <span
+                    class="material-symbols-outlined text-secondary text-sm"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >energy_savings_leaf</span
+                  >
+                  <span class="text-label-sm font-bold text-on-surface-variant"
+                    >Số lượt thử còn lại: 5</span
+                  >
+                </div>
+              </div>
+              <!-- Outfit Visualizer -->
+              <div class="flex-grow flex gap-8 items-stretch">
+                <!-- Main Visual based on IMAGE_13 -->
+                <div
+                  class="w-2/3 rounded-3xl overflow-hidden shadow-2xl relative group"
+                >
+                  <img
+                    alt="AI Suggestion Outfit"
+                    class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    src="https://lh3.googleusercontent.com/aida/AP1WRLt_4ArApErRGsCwHFUb7-QGNuPRR1joexr0BLF9Cn_zNUukp3xhmun9GHHhAHzgbbzDq4BJboA38rT_LXC50WPjw7mtGmo_dHaXGepHbrlajn1H0JHMTGks46RMvfPcCFaDOrppWsUUqe99NznR4ai9B0C6xhC7dZsLfco_mPD2KAlEJW-Sj3BAd-fvJ7u_PkL8OH52drYep08QsDae9fM4EgnQGJfvk-qrMJqrxJZjcwrE1Rt9TPJTcABe"
+                  />
+                  <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-8"
+                  >
+                    <p class="text-white text-body-md italic font-light">
+                      "Sự kết hợp giữa nét cổ điển và hiện đại, phù hợp cho
+                      những buổi cafe cuối tuần."
+                    </p>
+                  </div>
+                </div>
+                <!-- Outfit Breakdown -->
+                <div class="w-1/3 flex flex-col gap-4">
+                  <div class="flex-grow space-y-4">
+                    <div
+                      class="p-4 bg-surface rounded-2xl border border-border-subtle hover:border-secondary transition-colors cursor-pointer group"
+                    >
+                      <p
+                        class="text-[10px] text-text-muted uppercase font-bold mb-1"
+                      >
+                        Áo sơ mi
+                      </p>
+                      <p
+                        class="text-label-md font-bold group-hover:text-secondary"
+                      >
+                        Silk White Blouse
+                      </p>
+                    </div>
+                    <div
+                      class="p-4 bg-surface rounded-2xl border border-border-subtle hover:border-secondary transition-colors cursor-pointer group"
+                    >
+                      <p
+                        class="text-[10px] text-text-muted uppercase font-bold mb-1"
+                      >
+                        Quần
+                      </p>
+                      <p
+                        class="text-label-md font-bold group-hover:text-secondary"
+                      >
+                        Beige Tailored Trousers
+                      </p>
+                    </div>
+                    <div
+                      class="p-4 bg-surface rounded-2xl border border-border-subtle hover:border-secondary transition-colors cursor-pointer group"
+                    >
+                      <p
+                        class="text-[10px] text-text-muted uppercase font-bold mb-1"
+                      >
+                        Phụ kiện
+                      </p>
+                      <p
+                        class="text-label-md font-bold group-hover:text-secondary"
+                      >
+                        Gold Hoops & Belt
+                      </p>
+                    </div>
+                  </div>
+                  <div class="space-y-3 pt-6 border-t border-border-subtle">
+                    <button
+                      class="w-full bg-primary text-white py-5 px-6 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-secondary active:scale-[0.98] transition-all group"
+                    >
+                      <span
+                        class="material-symbols-outlined group-hover:rotate-12 transition-transform"
+                        >checkroom</span
+                      >
+                      <span class="font-label-md text-label-md"
+                        >Bận thử ngay</span
+                      >
+                    </button>
+                    <button
+                      class="w-full bg-white border border-border-subtle text-on-surface py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-all"
+                    >
+                      <span class="material-symbols-outlined">refresh</span>
+                      <span class="font-label-md text-label-md"
+                        >Đổi gợi ý khác</span
+                      >
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Background abstract shape -->
+            <div
+              class="absolute top-0 right-0 w-96 h-96 bg-secondary/5 rounded-full -mr-48 -mt-48 blur-[100px]"
+            ></div>
+          </div>
+        </div>
+        <!-- Bottom Bento Row: Quick Stats & Trends -->
+        <div class="col-span-12 grid grid-cols-1 md:grid-cols-3 gap-gutter">
+          <div
+            class="bg-surface-container-low p-6 rounded-3xl border border-border-subtle flex items-center gap-5"
+          >
+            <div
+              class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-secondary shadow-sm"
+            >
+              <span class="material-symbols-outlined text-3xl"
+                >inventory_2</span
+              >
+            </div>
+            <div>
+              <p class="text-label-sm text-text-muted">Tổng số món đồ</p>
+              <p class="text-2xl font-bold text-primary">128</p>
+            </div>
+          </div>
+          <div
+            class="bg-surface-container-low p-6 rounded-3xl border border-border-subtle flex items-center gap-5"
+          >
+            <div
+              class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-secondary shadow-sm"
+            >
+              <span class="material-symbols-outlined text-3xl"
+                >trending_up</span
+              >
+            </div>
+            <div>
+              <p class="text-label-sm text-text-muted">Tỉ lệ sử dụng</p>
+              <p class="text-2xl font-bold text-primary">74%</p>
+            </div>
+          </div>
+          <div
+            class="bg-surface-container-low p-6 rounded-3xl border border-border-subtle flex items-center gap-5"
+          >
+            <div
+              class="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-accent-gold shadow-sm"
+            >
+              <span class="material-symbols-outlined text-3xl">star</span>
+            </div>
+            <div>
+              <p class="text-label-sm text-text-muted">Phong cách tuần này</p>
+              <p class="text-2xl font-bold text-primary">Minimalist</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Micro-interactions for dashboard
+      document.querySelectorAll(".rounded-2xl, .rounded-3xl").forEach((el) => {
+        el.addEventListener("mousedown", () => {
+          el.style.transform = "scale(0.995)";
+        });
+        el.addEventListener("mouseup", () => {
+          el.style.transform = "scale(1)";
+        });
+        el.addEventListener("mouseleave", () => {
+          el.style.transform = "scale(1)";
+        });
+      });
+
+      // Simple notification toggle simulation
+      const notifyBtn = document.querySelector("header button");
+      notifyBtn.addEventListener("click", () => {
+        alert("Thông báo: Bạn có 2 gợi ý trang phục mới cho sự kiện ngày mai!");
+      });
+    </script>
+  </body>
+</html>
