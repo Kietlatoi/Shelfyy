@@ -70,6 +70,12 @@ services:
       VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
     ports:
       - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     networks:
       - shelfy-net
 
@@ -82,7 +88,8 @@ services:
     container_name: shelfy_frontend
     restart: unless-stopped
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     ports:
       - "5173:80"
     networks:
