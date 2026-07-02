@@ -93,6 +93,35 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String plan = "FREE";
+
+    @Column(name = "plan_expires_at")
+    private LocalDateTime planExpiresAt;
+
+    @Column(name = "storage_used", nullable = false)
+    @Builder.Default
+    private Integer storageUsed = 0;
+
+    /** -1 means unlimited storage. */
+    @Column(name = "storage_limit", nullable = false)
+    @Builder.Default
+    private Integer storageLimit = 100;
+
+    @Column(name = "try_on_count_today", nullable = false)
+    @Builder.Default
+    private Integer tryOnCountToday = 0;
+
+    /** FREE = 5/day, PRO/PREMIUM = 100/month. */
+    @Column(name = "try_on_limit", nullable = false)
+    @Builder.Default
+    private Integer tryOnLimit = 5;
+
+    @Column(name = "try_on_reset_at")
+    private LocalDateTime tryOnResetAt;
+
+
     // ── Relations (chỉ khai báo phía owner) ─────────────────────
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private AuthCredential authCredential;

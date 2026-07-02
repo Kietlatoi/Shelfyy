@@ -18,14 +18,14 @@ public interface AuthCredentialRepository extends JpaRepository<AuthCredential, 
     /** Tăng failed_login_count lên 1 */
     @Modifying
     @Query("UPDATE AuthCredential a SET a.failedLoginCount = a.failedLoginCount + 1 " +
-           "WHERE a.user.userId = :userId")
+            "WHERE a.user.userId = :userId")
     int incrementFailedCount(@Param("userId") Long userId);
 
     /** Reset failed count sau khi đăng nhập thành công */
     @Modifying
     @Query("UPDATE AuthCredential a " +
-           "SET a.failedLoginCount = 0, a.lockedUntil = null, a.lastLoginAt = :now " +
-           "WHERE a.user.userId = :userId")
+            "SET a.failedLoginCount = 0, a.lockedUntil = null, a.lastLoginAt = :now " +
+            "WHERE a.user.userId = :userId")
     int resetFailedCountAndUpdateLastLogin(@Param("userId") Long userId,
                                            @Param("now") LocalDateTime now);
 
@@ -37,9 +37,9 @@ public interface AuthCredentialRepository extends JpaRepository<AuthCredential, 
     /** Đổi mật khẩu */
     @Modifying
     @Query("UPDATE AuthCredential a " +
-           "SET a.passwordHash = :hash, a.passwordChangedAt = :now, " +
-           "    a.mustChangePassword = false, a.failedLoginCount = 0 " +
-           "WHERE a.user.userId = :userId")
+            "SET a.passwordHash = :hash, a.passwordChangedAt = :now, " +
+            "    a.mustChangePassword = false, a.failedLoginCount = 0 " +
+            "WHERE a.user.userId = :userId")
     int updatePassword(@Param("userId") Long userId,
                        @Param("hash") String hash,
                        @Param("now") LocalDateTime now);

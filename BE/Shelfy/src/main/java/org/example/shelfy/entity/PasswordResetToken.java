@@ -50,6 +50,13 @@ public class PasswordResetToken {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
     public boolean isUsed()    { return usedAt != null; }
     public boolean isExpired() { return LocalDateTime.now().isAfter(expiresAt); }
     public boolean isValid()   { return !isUsed() && !isExpired(); }

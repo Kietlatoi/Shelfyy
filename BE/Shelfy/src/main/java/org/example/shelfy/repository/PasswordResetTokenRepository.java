@@ -1,6 +1,7 @@
 package org.example.shelfy.repository;
 
 import org.example.shelfy.entity.PasswordResetToken;
+import org.example.shelfy.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,17 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
     @Modifying
     @Query("DELETE FROM PasswordResetToken t WHERE t.expiresAt < :before")
     int deleteExpiredBefore(@Param("before") LocalDateTime before);
+
+    Optional<PasswordResetToken> findByTokenHashAndUsedAtIsNullAndExpiresAtAfter(
+            String tokenHash,
+            LocalDateTime now
+    );
+
+    @Query("""
+            SELECT t FROM PasswordResetToken t
+            WHERE t.tokenHash = :tokenHash
+              AND t.usedAt IS NULL
+              AND t.expiresAt > :now
+            """)
+    Optional<PasswordResetToken> findValidToken(String tokenHash, LocalDateTime now);
 }

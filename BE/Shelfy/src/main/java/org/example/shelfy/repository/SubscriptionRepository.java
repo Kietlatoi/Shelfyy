@@ -1,6 +1,7 @@
 package org.example.shelfy.repository;
 
 import org.example.shelfy.entity.Subscription;
+import org.example.shelfy.entity.User;
 import org.example.shelfy.enums.SubscriptionStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -46,4 +47,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     int markExpired(@Param("now") LocalDateTime now);
 
     boolean existsByUserUserIdAndStatus(Long userId, SubscriptionStatus status);
+
 }

@@ -22,12 +22,12 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(
-    name = "try_on_sessions",
-    indexes = {
-        @Index(name = "IX_try_on_sessions_user",       columnList = "user_id"),
-        @Index(name = "IX_try_on_sessions_status",     columnList = "status"),
-        @Index(name = "IX_try_on_sessions_created_at", columnList = "created_at")
-    }
+        name = "try_on_sessions",
+        indexes = {
+                @Index(name = "IX_try_on_sessions_user",       columnList = "user_id"),
+                @Index(name = "IX_try_on_sessions_status",     columnList = "status"),
+                @Index(name = "IX_try_on_sessions_created_at", columnList = "created_at")
+        }
 )
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor
@@ -42,26 +42,31 @@ public class TryOnSession {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false,
-                foreignKey = @ForeignKey(name = "FK_try_on_sessions_user"))
+            foreignKey = @ForeignKey(name = "FK_try_on_sessions_user"))
     private User user;
 
     /** Outfit được thử — null nếu người dùng thử đơn lẻ từng item */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "outfit_id",
-                foreignKey = @ForeignKey(name = "FK_try_on_sessions_outfit"))
+            foreignKey = @ForeignKey(name = "FK_try_on_sessions_outfit"))
     private Outfit outfit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "clothing_item_id",
+            foreignKey = @ForeignKey(name = "FK_try_on_sessions_clothing_item"))
+    private WardrobeItem clothingItem;
 
     /** Ảnh chân dung người dùng tải lên (FK → file_assets) */
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_file_id", nullable = false,
-                foreignKey = @ForeignKey(name = "FK_try_on_sessions_input_file"))
+            foreignKey = @ForeignKey(name = "FK_try_on_sessions_input_file"))
     private FileAsset inputFile;
 
     /** Ảnh kết quả AI tạo ra (FK → file_assets) — null khi chưa xong */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "result_file_id",
-                foreignKey = @ForeignKey(name = "FK_try_on_sessions_result_file"))
+            foreignKey = @ForeignKey(name = "FK_try_on_sessions_result_file"))
     private FileAsset resultFile;
 
     @NotNull
@@ -81,9 +86,19 @@ public class TryOnSession {
     @Column(name = "error_message", length = 500)
     private String errorMessage;
 
+    @Column(name = "prediction_id", length = 255)
+    private String predictionId;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+
+    @Column(name = "processing_started_at")
+    private LocalDateTime processingStartedAt;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;

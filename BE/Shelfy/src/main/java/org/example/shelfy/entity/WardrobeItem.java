@@ -9,6 +9,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,6 +93,35 @@ public class WardrobeItem {
     /** Họa tiết — VD: "Trơn", "Kẻ sọc", "Hoa văn" */
     @Column(length = 100)
     private String pattern;
+
+    @Column(name = "sub_category", length = 100)
+    private String subCategory;
+
+    @Column(name = "thumbnail_url", length = 1000)
+    private String thumbnailUrl;
+
+    @Column(name = "background_removed_url", length = 1000)
+    private String backgroundRemovedUrl;
+
+    /** Comma-separated tags for simple FE use. */
+    @Column(columnDefinition = "TEXT")
+    private String tags;
+
+    @Column(name = "wear_count", nullable = false)
+    @Builder.Default
+    private Integer wearCount = 0;
+
+    @Column(name = "last_worn_at")
+    private LocalDateTime lastWornAt;
+
+    @Column(name = "purchase_price", precision = 12, scale = 0)
+    private BigDecimal purchasePrice;
+
+    @Column(name = "purchase_date")
+    private LocalDate purchaseDate;
+
+    @Column(name = "source_url", columnDefinition = "TEXT")
+    private String sourceUrl;
 
     // ── AI Metadata ─────────────────────────────────────────────
     /** true nếu thông tin phân loại do AI tự phát hiện */
