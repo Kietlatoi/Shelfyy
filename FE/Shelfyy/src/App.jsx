@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HomePage } from './pages/HomePage'
 import { LandingPage } from './pages/LandingPage'
 import { PremiumPage } from './pages/PremiumPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SuggestPage } from './pages/SuggestPage'
 import { TrialPage } from './pages/TrialPage'
 import { WardrobePage } from './pages/WardrobePage'
@@ -21,7 +23,7 @@ function App() {
       const timer = setTimeout(() => {
         setRoute(getRouteFromHash())
         setIsPageLoading(false)
-      }, 700)
+      }, 300)
       return () => clearTimeout(timer)
     }
 
@@ -32,6 +34,14 @@ function App() {
   const renderRoute = () => {
     if (route === '/' || route === '') {
       return <LandingPage />
+    }
+
+    if (route === '/forgot-password') {
+      return <ForgotPasswordPage />
+    }
+
+    if (route.startsWith('/reset-password')) {
+      return <ResetPasswordPage />
     }
 
     if (route === '/home') {

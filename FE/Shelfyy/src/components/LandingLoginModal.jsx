@@ -1,7 +1,21 @@
+import { useState } from 'react'
 import { MaterialIcon } from './MaterialIcon'
 import { LoadingButton } from './LoadingButton'
 
-export function LandingLoginModal({ onClose, onSubmit, isLoading = false }) {
+export function LandingLoginModal({ onClose, onSubmit, isLoading = false, error = '' }) {
+  // FIX #13: Hardcode credentials trong source code sẽ bị lộ khi deploy
+  // production (bundle JS ai cũng đọc được). Chỉ prefill demo credentials
+  // khi build ở chế độ dev (import.meta.env.DEV), production luôn để trống.
+  const isDev = import.meta.env.DEV
+  const [email, setEmail] = useState(isDev ? 'demo@shelfy.app' : '')
+  const [password, setPassword] = useState(isDev ? '123456' : '')
+  const [rememberMe, setRememberMe] = useState(false)
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    onSubmit({ email: email.trim(), password, rememberMe })
+  }
+
   return (
     <div
       aria-labelledby="landing-login-title"
@@ -33,13 +47,15 @@ export function LandingLoginModal({ onClose, onSubmit, isLoading = false }) {
           </button>
         </div>
 
-        <form className="space-y-4" onSubmit={onSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-gray-700">Email</span>
             <input
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-[#b83c44] focus:ring-[#b83c44]/20"
-              defaultValue="demo@Shelfy.app"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
               disabled={isLoading}
             />
           </label>
@@ -48,21 +64,35 @@ export function LandingLoginModal({ onClose, onSubmit, isLoading = false }) {
             <span className="mb-2 block text-sm font-semibold text-gray-700">Mật khẩu</span>
             <input
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-[#b83c44] focus:ring-[#b83c44]/20"
-              defaultValue="123456"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
               disabled={isLoading}
             />
           </label>
 
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600">
-              <input className="rounded border-gray-300 text-[#b83c44] focus:ring-[#b83c44]" type="checkbox" disabled={isLoading} />
+            <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
+              <input
+                className="rounded border-gray-300 text-[#b83c44] focus:ring-[#b83c44]"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                disabled={isLoading}
+              />
               Ghi nhớ đăng nhập
             </label>
-            <a className="font-semibold text-[#b83c44]" href="#">
+            <a className="font-semibold text-[#b83c44]" href="#/forgot-password">
               Quên mật khẩu?
             </a>
           </div>
+
+          {error && (
+            <p className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-600">
+              {error}
+            </p>
+          )}
 
           <LoadingButton
             isLoading={isLoading}
