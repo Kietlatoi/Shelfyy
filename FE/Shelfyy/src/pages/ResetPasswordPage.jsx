@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { resetPassword } from '../api/authApi'
+import { goToRootRoute } from '../utils/navigation'
 
 export function ResetPasswordPage() {
   const token = useMemo(() => {
@@ -36,7 +37,7 @@ export function ResetPasswordPage() {
       const response = await resetPassword({ token, newPassword })
       setMessage(response?.message || 'Đặt lại mật khẩu thành công.')
       setTimeout(() => {
-        window.location.hash = '/'
+        goToRootRoute()
       }, 1500)
     } catch (err) {
       setError(err.message || 'Không đặt lại được mật khẩu')

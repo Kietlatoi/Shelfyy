@@ -121,6 +121,7 @@ public interface WardrobeItemRepository extends JpaRepository<WardrobeItem, Long
                       AND (:category IS NULL OR w.category = CAST(:category AS varchar))
                       AND (:season IS NULL OR LOWER(COALESCE(w.season, '')) LIKE LOWER(CONCAT('%', CAST(:season AS varchar), '%')))
                       AND (:color IS NULL OR LOWER(COALESCE(w.color, '')) LIKE LOWER(CONCAT('%', CAST(:color AS varchar), '%')))
+                    ORDER BY w.created_at DESC
                     """,
             countQuery = """
                     SELECT COUNT(*)

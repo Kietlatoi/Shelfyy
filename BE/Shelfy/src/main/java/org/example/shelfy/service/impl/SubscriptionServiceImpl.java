@@ -54,6 +54,24 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     public PlanResponse upgrade(UpgradeRequest request) {
         User user = currentUserService.getCurrentUser();
         String planType = normalizePlan(request.getPlanType());
+        activateForUser(user, planType);
+        return toUserPlan(user);
+    }
+
+    @Override
+    @Transactional
+    public Subscription activatePaidPlanForUser(Long userId, String planType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return activateForUser(user, normalizePlan(planType));
+    }
+
+    /**
+     * Logic kích hoạt gói trả phí dùng chung cho cả 2 luồng:
+     *  - upgrade() (demo mode, kích hoạt ngay không cần thanh toán thật)
+     *  - activatePaidPlanForUser() (sau khi VNPay xác nhận thanh toán thành công)
+     */
+    private Subscription activateForUser(User user, String planType) {
         if ("FREE".equals(planType)) throw new AppException(ErrorCode.SUBSCRIPTION_INVALID_PLAN);
         LocalDateTime now = LocalDateTime.now();
         boolean hasActivePaidPlan = user.getPlanExpiresAt() != null
@@ -74,7 +92,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         user.setPlanExpiresAt(expiryBase.plusDays(days));
         user.setStorageLimit(-1);
         user.setTryOnLimit(100);
-        user = userRepository.save(user);
+        userRepository.save(user);
 
         // FIX #9: KHÔNG tự tạo Plan mới nếu không tìm thấy. V2__seed_base_data.sql
         // đã seed sẵn các plan; nếu seed chạy đúng, findByPlanName luôn tìm được.
@@ -84,14 +102,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         // người dùng — throw để báo rõ thay vì âm thầm tạo dữ liệu rác.
         Plan plan = planRepository.findByPlanName(planType)
                 .orElseThrow(() -> new AppException(ErrorCode.SUBSCRIPTION_INVALID_PLAN));
-        subscriptionRepository.save(Subscription.builder()
+        return subscriptionRepository.save(Subscription.builder()
                 .user(user)
                 .plan(plan)
                 .startDate(now)
                 .endDate(user.getPlanExpiresAt())
                 .status(SubscriptionStatus.ACTIVE)
                 .build());
-        return toUserPlan(user);
     }
 
     @Override

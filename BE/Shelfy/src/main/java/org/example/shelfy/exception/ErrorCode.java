@@ -36,6 +36,12 @@ public enum ErrorCode {
     SUBSCRIPTION_DOWNGRADE_NOT_ALLOWED("SUBSCRIPTION_003","Không thể chuyển từ gói cao về gói thấp hơn khi đang còn hạn",HttpStatus.BAD_REQUEST),
     EVENT_NOT_FOUND("EVENT_001", "Không tìm thấy sự kiện", HttpStatus.NOT_FOUND),
 
+    PAYMENT_NOT_FOUND("PAYMENT_001", "Không tìm thấy giao dịch thanh toán", HttpStatus.NOT_FOUND),
+    PAYMENT_SIGNATURE_INVALID("PAYMENT_002", "Chữ ký giao dịch không hợp lệ", HttpStatus.BAD_REQUEST),
+    PAYMENT_ALREADY_PROCESSED("PAYMENT_003", "Giao dịch đã được xử lý trước đó", HttpStatus.CONFLICT),
+    PAYMENT_PROVIDER_NOT_CONFIGURED("PAYMENT_004", "Cổng thanh toán VNPay chưa được cấu hình", HttpStatus.SERVICE_UNAVAILABLE),
+    PAYMENT_AMOUNT_MISMATCH("PAYMENT_005", "Số tiền giao dịch không khớp", HttpStatus.BAD_REQUEST),
+
     VALIDATION_ERROR("COMMON_001", "Dữ liệu không hợp lệ", HttpStatus.BAD_REQUEST),
     INTERNAL_ERROR("COMMON_999", "Lỗi hệ thống", HttpStatus.INTERNAL_SERVER_ERROR);
 

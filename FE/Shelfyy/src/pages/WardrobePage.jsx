@@ -10,6 +10,7 @@ import { WardrobeGrid } from "../components/WardrobeGrid";
 import { LoadingComponent } from "../components/LoadingComponent";
 import { WardrobeUploadModal } from "../components/WardrobeUploadModal";
 import { sidebarData, topNavData } from "../const/homeData";
+import { useTopNavUser } from "../hooks/useTopNavUser";
 import {
   aiUploadData,
   featuredCollection,
@@ -21,6 +22,7 @@ import {
 } from "../const/wardrobeData";
 
 export function WardrobePage() {
+  const nav = useTopNavUser();
   const [items, setItems] = useState(wardrobeItems);
   const [aiUpload, setAiUpload] = useState(aiUploadData);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -121,7 +123,7 @@ export function WardrobePage() {
   return (
     <>
       <Sidebar activeKey="wardrobe" data={sidebarData} />
-      <TopNav data={topNavData} onNotify={handleNotify} />
+      <TopNav data={nav} onNotify={handleNotify} />
 
       <main className="ml-64 pt-24 pb-12 px-10 max-w-[1400px] mx-auto">
         {error && (

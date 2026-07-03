@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-shelfy_db}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env}
     ports:
       - "5432:5432"
     volumes:
@@ -34,13 +34,13 @@ services:
 
       DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-shelfy_db}
       DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env}
 
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-shelfy_db}
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env}
 
-      JWT_SECRET: ${JWT_SECRET:-ShelfySecretKey2024VeryLongSecretKeyForJWTAt256Bits!!}
+      JWT_SECRET: ${JWT_SECRET:?Thiếu JWT_SECRET trong .env — xem .env.example}
       JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-900000}
       JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-2592000000}
       JWT_REMEMBER_ME_REFRESH_EXPIRY: ${JWT_REMEMBER_ME_REFRESH_EXPIRY:-7776000000}

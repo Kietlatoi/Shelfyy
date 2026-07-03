@@ -8,6 +8,7 @@ import { SuggestOutfitCarousel } from '../components/SuggestOutfitCarousel'
 import { TopNav } from '../components/TopNav'
 import { LoadingComponent } from '../components/LoadingComponent'
 import { sidebarData, topNavData } from '../const/homeData'
+import { useTopNavUser } from '../hooks/useTopNavUser'
 import {
   aiInsightData,
   outfitSuggestionsData,
@@ -27,6 +28,7 @@ function getBrowserLocation() {
 }
 
 export function SuggestPage() {
+  const nav = useTopNavUser()
   const [hero, setHero] = useState(suggestHeroData)
   const [carousel, setCarousel] = useState(outfitSuggestionsData)
   const [insight, setInsight] = useState(aiInsightData)
@@ -63,7 +65,7 @@ export function SuggestPage() {
   return (
     <>
       <Sidebar activeKey="suggestions" data={sidebarData} />
-      <TopNav data={topNavData} onNotify={handleNotify} />
+      <TopNav data={nav} onNotify={handleNotify} />
       <main className="ml-64 pt-16 min-h-screen">
         <div className="max-w-container-max mx-auto py-12 px-margin-desktop space-y-8">
           {error && (

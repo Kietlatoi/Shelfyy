@@ -68,13 +68,19 @@ public class WardrobeServiceImpl implements WardrobeService {
                     .map(mapper::toClothingItem);
         }
 
+        // FIX: findWithFilters là native query đã tự ORDER BY w.created_at DESC
+        // trong SQL. Không truyền kèm Sort của Pageable vào đây nữa, vì Hibernate
+        // sẽ nối thêm "order by w.createdAt" (tên field Java, không map được
+        // sang cột DB created_at cho native query) → lỗi "column w.createdat
+        // does not exist". Dùng Pageable không Sort cho query native này.
+        Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         return wardrobeItemRepository
                 .findWithFilters(
                         user.getUserId(),
                         cat == null ? null : cat.name(),
                         season == null || season.isBlank() ? null : season.trim(),
                         color == null || color.isBlank() ? null : color.trim(),
-                        pageable
+                        unsortedPageable
                 )
                 .map(mapper::toClothingItem);
     }

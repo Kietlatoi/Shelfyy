@@ -74,6 +74,10 @@ public class Payment {
     @Builder.Default
     private PaymentStatus paymentStatus = PaymentStatus.PENDING;
 
+    /** Gói đang mua: PRO | PREMIUM — dùng để kích hoạt Subscription khi VNPay báo thành công. */
+    @Column(name = "plan_type", length = 50)
+    private String planType;
+
     /**
      * Mã giao dịch VNPay (vnp_TxnRef) — cũng dùng làm mã đơn hàng.
      * Phải unique để tránh VNPay duplicate.

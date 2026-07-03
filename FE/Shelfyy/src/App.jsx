@@ -10,7 +10,12 @@ import { WardrobePage } from './pages/WardrobePage'
 import { LoadingPage } from './components/LoadingPage'
 
 function getRouteFromHash() {
-  return window.location.hash.replace(/^#/, '') || window.location.pathname || '/'
+  const raw = window.location.hash.replace(/^#/, '') || window.location.pathname || '/'
+  // Bỏ phần query string (?payment=success&plan=PRO...) khi so khớp route —
+  // nếu không, hash dạng "#/up-premium?payment=success" sẽ không khớp với
+  // bất kỳ route nào bên dưới (so sánh strict equality) và rơi về LandingPage.
+  const [path] = raw.split('?')
+  return path || '/'
 }
 
 function App() {

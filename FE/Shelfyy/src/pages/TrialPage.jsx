@@ -17,6 +17,7 @@ import {
 } from '../const/trialData'
 import { TopNav } from '../components/TopNav'
 import { topNavData } from '../const/homeData'
+import { useTopNavUser } from '../hooks/useTopNavUser'
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -31,6 +32,7 @@ function isFailed(status) {
 }
 
 export function TrialPage() {
+  const nav = useTopNavUser()
   const [isUploaded, setIsUploaded] = useState(false)
   const [personFile, setPersonFile] = useState(null)
   const [view, setView] = useState('placeholder')
@@ -140,7 +142,7 @@ export function TrialPage() {
 
   return (
     <>
-      <TopNav data={topNavData} onNotify={handleNotify} />
+      <TopNav data={nav} onNotify={handleNotify} />
       <main className="pt-24 pb-12 px-margin-desktop max-w-container-max mx-auto h-full min-h-screen">
         {error && (
           <div className="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">

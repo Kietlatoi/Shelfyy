@@ -44,6 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/api/subscription/plans",
+                                "/api/payments/vnpay/callback",
+                                "/api/payments/vnpay/ipn",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

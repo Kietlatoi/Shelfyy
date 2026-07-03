@@ -110,7 +110,8 @@ export async function apiRequest(path, options = {}) {
     }
     clearAuth();
     if (window.location.hash !== '#/' && window.location.hash !== '') {
-      window.location.hash = '/';
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      window.dispatchEvent(new Event('hashchange'));
     }
   }
 
