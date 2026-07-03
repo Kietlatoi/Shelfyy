@@ -1,5 +1,26 @@
 import { MaterialIcon } from './MaterialIcon'
 
+const PLAN_RANK = { FREE: 0, PRO: 1, PREMIUM: 2 }
+
+function rankOf(planType) {
+  return PLAN_RANK[String(planType || '').toUpperCase()] ?? 0
+}
+
+function formatDate(isoString) {
+  if (!isoString) return null
+  const d = new Date(isoString)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function daysRemaining(isoString) {
+  if (!isoString) return null
+  const expiry = new Date(isoString)
+  if (Number.isNaN(expiry.getTime())) return null
+  const diffMs = expiry.getTime() - Date.now()
+  return Math.ceil(diffMs / (1000 * 60 * 60 * 24))
+}
+
 function PlanFeature({ feature }) {
   if (feature.premium) {
     return (
@@ -29,7 +50,55 @@ function PlanFeature({ feature }) {
   )
 }
 
-function PricingCard({ plan }) {
+// Hiển thị "Đã mua ngày X · còn Y ngày · hết hạn Z" cho gói trả phí đang active.
+function CurrentPlanStatus({ myPlan }) {
+  const started = formatDate(myPlan.planStartedAt)
+  const expires = formatDate(myPlan.planExpiresAt)
+  const remaining = daysRemaining(myPlan.planExpiresAt)
+
+  return (
+    <div className="w-full rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-left">
+      <p className="flex items-center gap-2 font-bold text-green-700">
+        <MaterialIcon name="check_circle" filled size={18} />
+        Gói hiện tại của bạn
+      </p>
+      <dl className="mt-2 space-y-1 text-xs text-green-700/90">
+        {started && (
+          <div className="flex justify-between">
+            <dt>Ngày mua</dt>
+            <dd className="font-semibold">{started}</dd>
+          </div>
+        )}
+        {expires && (
+          <div className="flex justify-between">
+            <dt>Ngày hết hạn</dt>
+            <dd className="font-semibold">{expires}</dd>
+          </div>
+        )}
+        {remaining !== null && (
+          <div className="flex justify-between">
+            <dt>Còn lại</dt>
+            <dd className="font-semibold">
+              {remaining > 0 ? `${remaining} ngày` : remaining === 0 ? 'Hết hạn hôm nay' : 'Đã hết hạn'}
+            </dd>
+          </div>
+        )}
+      </dl>
+    </div>
+  )
+}
+
+function PricingCard({ plan, onPlanSelect, loadingPlan, myPlan }) {
+  const isLoading = loadingPlan === plan.planType
+  const isFree = plan.planType === 'FREE'
+
+  const currentRank = myPlan ? rankOf(myPlan.currentPlan) : 0
+  const cardRank = rankOf(plan.planType)
+  const isCurrentPlan = myPlan && myPlan.currentPlan === plan.planType
+  // Có gói trả phí đang active thì không cho "hạ" xuống gói thấp hơn (khớp rule
+  // SUBSCRIPTION_DOWNGRADE_NOT_ALLOWED bên BE) — disable thay vì cho bấm rồi lỗi.
+  const isDowngrade = !isFree && myPlan && currentRank > 0 && cardRank < currentRank && !isCurrentPlan
+
   const content = (
     <>
       {plan.badge && (
@@ -56,16 +125,38 @@ function PricingCard({ plan }) {
           <PlanFeature feature={feature} key={feature.label} />
         ))}
       </ul>
-      <button
-        className={
-          plan.featured
-            ? 'w-full py-4 bg-secondary text-white font-bold rounded-lg hover:opacity-90 transition-all shadow-lg shadow-secondary/20'
-            : 'w-full py-4 border border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-all'
-        }
-        type="button"
-      >
-        {plan.action}
-      </button>
+
+      {isCurrentPlan && !isFree ? (
+        <CurrentPlanStatus myPlan={myPlan} />
+      ) : (
+        <button
+          className={
+            plan.featured
+              ? 'w-full py-4 bg-secondary text-white font-bold rounded-lg hover:opacity-90 transition-all shadow-lg shadow-secondary/20 disabled:opacity-60 disabled:cursor-not-allowed'
+              : 'w-full py-4 border border-primary text-primary font-bold rounded-lg hover:bg-primary hover:text-white transition-all disabled:opacity-60 disabled:cursor-not-allowed'
+          }
+          type="button"
+          disabled={
+            isDowngrade || (!isFree && (isLoading || (loadingPlan && loadingPlan !== plan.planType)))
+          }
+          title={isDowngrade ? 'Không thể chuyển về gói thấp hơn khi gói hiện tại còn hạn' : undefined}
+          onClick={() => {
+            if (isFree) {
+              window.location.hash = '/home'
+              return
+            }
+            onPlanSelect?.(plan)
+          }}
+        >
+          {isDowngrade
+            ? 'Gói hiện tại cao hơn'
+            : isLoading
+              ? 'Đang chuyển sang VNPay...'
+              : isFree && myPlan && myPlan.currentPlan === 'FREE'
+                ? 'Đang dùng gói này'
+                : plan.action}
+        </button>
+      )}
     </>
   )
 
@@ -84,7 +175,7 @@ function PricingCard({ plan }) {
   )
 }
 
-export function PremiumPricing({ hero, plans }) {
+export function PremiumPricing({ hero, plans, onPlanSelect, loadingPlan, myPlan }) {
   return (
     <>
       <section className="text-center mb-16">
@@ -95,7 +186,13 @@ export function PremiumPricing({ hero, plans }) {
       </section>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-20">
         {plans.map((plan) => (
-          <PricingCard key={plan.name} plan={plan} />
+          <PricingCard
+            key={plan.name}
+            plan={plan}
+            onPlanSelect={onPlanSelect}
+            loadingPlan={loadingPlan}
+            myPlan={myPlan}
+          />
         ))}
       </div>
     </>

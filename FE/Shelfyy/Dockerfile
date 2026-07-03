@@ -31,6 +31,13 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # FIX: nginx mặc định chỉ cho phép body tối đa 1MB (client_max_body_size),
+    # nhỏ hơn nhiều so với giới hạn 10-15MB mà BE (application.properties:
+    # spring.servlet.multipart.max-file-size/max-request-size) cho phép — nên
+    # upload ảnh tủ đồ luôn bị nginx chặn trước với lỗi "413 Request Entity
+    # Too Large" trước khi request kịp tới Spring Boot. Nâng lên 15M cho khớp.
+    client_max_body_size 15M;
+
     # React Router / Hash Router fallback
     location / {
         try_files $uri $uri/ /index.html;

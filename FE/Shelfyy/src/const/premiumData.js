@@ -16,6 +16,7 @@ export const premiumHeroData = {
 
 export const premiumPlans = [
   {
+    planType: "FREE",
     name: "Miễn phí",
     tier: "Cơ bản",
     price: "0đ",
@@ -28,9 +29,10 @@ export const premiumPlans = [
     ],
   },
   {
+    planType: "PREMIUM",
     name: "Gói Premium",
     tier: "Tiết kiệm năm",
-    price: "590.000đ",
+    price: "599.000đ",
     suffix: "/1 năm",
     action: "Nâng cấp Premium",
     featured: false,
@@ -40,6 +42,7 @@ export const premiumPlans = [
     ],
   },
   {
+    planType: "PRO",
     name: "Gói Pro",
     tier: "Cá nhân",
     price: "59.000đ",

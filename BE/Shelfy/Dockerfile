@@ -26,4 +26,5 @@ EXPOSE 8080
 
 ENTRYPOINT ["java", \
   "-Djava.security.egd=file:/dev/./urandom", \
+  "-Duser.timezone=Asia/Ho_Chi_Minh", \
   "-jar", "app.jar"]

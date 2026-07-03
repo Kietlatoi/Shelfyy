@@ -56,14 +56,41 @@ const REASON_MESSAGES = {
 export function PremiumPage() {
   const nav = useTopNavUser();
   const [plans, setPlans] = useState(premiumPlans);
+  const [myPlan, setMyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  const loadMyPlan = () => {
+    if (!isAuthenticated()) return;
+    subscriptionApi.getMyPlan()
+      .then(setMyPlan)
+      .catch(() => setMyPlan(null));
+  };
+
+  // FIX: sau khi bấm "Nâng cấp", trang chuyển hẳn sang VNPay bằng
+  // window.location.href — nếu người dùng đổi ý và bấm nút Back của trình
+  // duyệt để quay lại, trình duyệt thường phục hồi trang từ bfcache (bộ nhớ
+  // đệm) NGUYÊN TRẠNG lúc rời đi, tức là nút vẫn đứng yên ở trạng thái "Đang
+  // chuyển sang VNPay..." (loadingPlan) mãi mãi vì component không re-mount,
+  // không có cơ hội chạy lại logic reset nào. Sự kiện "pageshow" với
+  // event.persisted === true là cách chuẩn để phát hiện đúng tình huống này
+  // và chủ động reset lại state.
+  useEffect(() => {
+    const handlePageShow = (event) => {
+      if (event.persisted) {
+        setLoadingPlan("");
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
 
   useEffect(() => {
     subscriptionApi.getPlans()
       .then((data) => setPlans(toPremiumPlans(data)))
       .catch(() => setPlans(premiumPlans));
+    loadMyPlan();
   }, []);
 
   // Đọc kết quả thanh toán VNPay (nếu vừa được redirect về từ cổng thanh toán).
@@ -73,6 +100,9 @@ export function PremiumPage() {
 
     if (result.success) {
       setMessage(`Thanh toán thành công! Gói ${result.plan || ""} đã được kích hoạt.`);
+      // Gói vừa được BE kích hoạt xong — load lại để cập nhật trạng thái
+      // "đã đăng ký" + hạn dùng ngay, không cần người dùng tự F5 trang.
+      loadMyPlan();
     } else {
       const reasonText = REASON_MESSAGES[result.reason] || "Vui lòng thử lại hoặc dùng phương thức khác.";
       setError(`Thanh toán không thành công. ${reasonText}`);
@@ -115,7 +145,13 @@ export function PremiumPage() {
           {message && <p className="rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">{message}</p>}
           {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p>}
           <LoadingComponent delay={400}>
-            <PremiumPricing hero={premiumHeroData} plans={plans} onPlanSelect={handlePlanSelect} loadingPlan={loadingPlan} />
+            <PremiumPricing
+              hero={premiumHeroData}
+              plans={plans}
+              onPlanSelect={handlePlanSelect}
+              loadingPlan={loadingPlan}
+              myPlan={myPlan}
+            />
           </LoadingComponent>
 
           <LoadingComponent delay={600}>

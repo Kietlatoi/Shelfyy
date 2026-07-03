@@ -144,12 +144,20 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     }
 
     private PlanResponse toUserPlan(User user) {
+        // Lấy ngày bắt đầu (ngày mua) của gói đang active, để FE hiển thị
+        // "Đã mua ngày X, còn Y ngày nữa hết hạn" thay vì chỉ có ngày hết hạn.
+        LocalDateTime startedAt = subscriptionRepository
+                .findActiveByUserId(user.getUserId(), LocalDateTime.now())
+                .map(Subscription::getStartDate)
+                .orElse(null);
+
         return PlanResponse.builder()
                 .currentPlan(user.getPlan())
                 .planName(user.getPlan())
                 .displayName(displayName(user.getPlan()))
                 .price(priceOf(user.getPlan()))
                 .currency("VND")
+                .planStartedAt(startedAt)
                 .planExpiresAt(user.getPlanExpiresAt())
                 .storageUsed(user.getStorageUsed())
                 .storageLimit(user.getStorageLimit())

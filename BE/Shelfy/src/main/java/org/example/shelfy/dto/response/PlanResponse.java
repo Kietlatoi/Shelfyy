@@ -14,6 +14,7 @@ public class PlanResponse {
     private String displayName;
     private BigDecimal price;
     private String currency;
+    private LocalDateTime planStartedAt;
     private LocalDateTime planExpiresAt;
     private Integer storageUsed;
     private Integer storageLimit;

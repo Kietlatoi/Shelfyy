@@ -1,6 +1,7 @@
 package org.example.shelfy.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.shelfy.config.VNPayConfig;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +12,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.SortedMap;
@@ -26,11 +28,18 @@ import java.util.TreeMap;
  *  3. Nối thành chuỗi "key1=value1&key2=value2..." với value đã URL-encode.
  *  4. HMAC-SHA512(chuỗi trên, hashSecret) → vnp_SecureHash (hex, chữ thường).
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class VNPayService {
 
     private static final DateTimeFormatter VNP_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    // FIX: eclipse-temurin:17-jre-alpine (base image ở BE/Shelfy/Dockerfile) mặc
+    // định chạy múi giờ UTC, không phải giờ Việt Nam. Nếu dùng LocalDateTime.now()
+    // trần, vnp_CreateDate/vnp_ExpireDate gửi cho VNPay sẽ lệch 7 tiếng so với giờ
+    // thật VNPay đang dùng để so sánh — khiến giao dịch bị coi là "quá hạn" ngay
+    // khi vừa tạo (dù hashSecret/TmnCode hoàn toàn đúng). Luôn ép rõ Asia/Ho_Chi_Minh.
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private final VNPayConfig config;
 
     /**
@@ -56,7 +65,7 @@ public class VNPayService {
         params.put("vnp_ReturnUrl", config.getReturnUrl());
         params.put("vnp_IpAddr", clientIp == null || clientIp.isBlank() ? "127.0.0.1" : clientIp);
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(VN_ZONE);
         params.put("vnp_CreateDate", now.format(VNP_DATE_FORMAT));
         params.put("vnp_ExpireDate", now.plusMinutes(15).format(VNP_DATE_FORMAT));
 
@@ -93,6 +102,8 @@ public class VNPayService {
     private String buildSignedQuery(SortedMap<String, String> params) {
         String hashData = buildHashData(params);
         String secureHash = hmacSHA512(config.getHashSecret(), hashData);
+        log.debug("[VNPay] Chuỗi ký (hashData): {}", hashData);
+        log.debug("[VNPay] vnp_SecureHash tạo ra: {}", secureHash);
 
         StringBuilder query = new StringBuilder(hashData);
         query.append("&vnp_SecureHash=").append(secureHash);
