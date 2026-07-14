@@ -159,5 +159,5 @@ export const landingFooterData = {
       "Looko Inc. 10F, 506 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
   },
   legal: ["Chính sách bảo mật", "Điều khoản dịch vụ"],
-  copyright: "© 2024 Looko Inc. Mọi quyền được bảo lưu.",
+  copyright: "© 2026 Looko Inc. Mọi quyền được bảo lưu.",
 };
