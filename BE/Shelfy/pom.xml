@@ -23,6 +23,7 @@
         <jjwt.version>0.12.6</jjwt.version>
         <cloudinary.version>1.38.0</cloudinary.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <lombok.version>1.18.34</lombok.version>
     </properties>
 
     <dependencies>
