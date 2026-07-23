@@ -1,10 +1,8 @@
-import React from 'react';
-
-export function LoadingButton({ children, isLoading, onClick, className = '', type = "button", ...props }) {
+export function LoadingButton({ children, disabled = false, isLoading, onClick, className = '', type = "button", ...props }) {
   return (
     <button
       type={type}
-      disabled={isLoading}
+      disabled={disabled || isLoading}
       onClick={onClick}
       className={`relative inline-flex items-center justify-center transition-all ${className} ${isLoading ? 'cursor-not-allowed opacity-80' : ''}`}
       {...props}

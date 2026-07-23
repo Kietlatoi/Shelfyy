@@ -1,0 +1,24 @@
+{
+  "name": "nodejs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "nodemon ./bin/www",
+    "migrate": "node scripts/migrate.js",
+    "check": "node --check app.js && node --check bin/www && node --check db.js && node --check middleware/auth.js && node --check routes/weather.js && node --check routes/calendar.js && node --check routes/dailyOutfits.js && node --check routes/suggestions.js && node --check routes/wardrobePreferences.js && node --check routes/trial.js && node --check routes/payments.js && node --check scripts/migrate.js && node --check services/openMeteoClient.js && node --check services/reverseGeocodeClient.js && node --check services/weatherCodes.js && node --check services/cryptoBox.js && node --check services/googleOAuthClient.js && node --check services/geminiStylistClient.js && node --check services/ruleBasedStylist.js && node --check services/replicateTryOnClient.js && node --check services/vnpayClient.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "debug": "^4.4.3",
+    "dotenv": "^17.2.3",
+    "express": "^4.22.2",
+    "helmet": "^8.0.0",
+    "http-errors": "^2.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.11.0",
+    "nodemon": "^3.1.14",
+    "pg": "^8.13.1",
+    "replicate": "^1.4.0"
+  }
+}

@@ -1,7 +1,31 @@
 import { clearAuth, getAccessToken, getRefreshToken, saveAuth } from './tokenStore';
 
 const DEFAULT_API_BASE = '/api';
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/$/, '');
+const ACCESS_TOKEN_REFRESH_WINDOW_MS = 60 * 1000;
+
+let refreshPromise = null;
+
+function normalizeApiBase(value) {
+  const raw = String(value || DEFAULT_API_BASE).trim();
+  const withoutTrailingSlash = raw.replace(/\/+$/, '');
+
+  if (!withoutTrailingSlash) return DEFAULT_API_BASE;
+  if (!/^https?:\/\//i.test(withoutTrailingSlash)) return withoutTrailingSlash;
+
+  try {
+    const url = new URL(withoutTrailingSlash);
+    if (!url.pathname || url.pathname === '/') {
+      url.pathname = '/api';
+      return url.toString().replace(/\/+$/, '');
+    }
+  } catch {
+    return withoutTrailingSlash;
+  }
+
+  return withoutTrailingSlash;
+}
+
+export const API_BASE_URL = normalizeApiBase(import.meta.env.VITE_API_BASE_URL);
 
 function buildUrl(path, query) {
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
@@ -52,7 +76,36 @@ function extractErrorMessage(data, fallback) {
   return fallback;
 }
 
-async function refreshAccessToken() {
+function decodeJwtPayload(token) {
+  if (!token) return null;
+
+  const [, payload] = String(token).split('.');
+  if (!payload) return null;
+
+  try {
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function shouldRefreshAccessToken(token) {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return false;
+  return payload.exp * 1000 - Date.now() <= ACCESS_TOKEN_REFRESH_WINDOW_MS;
+}
+
+export function handleAuthExpired() {
+  clearAuth();
+  if (window.location.hash !== '#/' && window.location.hash !== '') {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    window.dispatchEvent(new Event('hashchange'));
+  }
+}
+
+async function performRefreshAccessToken() {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return null;
 
@@ -63,13 +116,41 @@ async function refreshAccessToken() {
   });
 
   if (!response.ok) {
-    clearAuth();
+    handleAuthExpired();
     return null;
   }
 
   const data = await parseResponse(response);
+  if (!data?.accessToken || !data?.refreshToken) {
+    handleAuthExpired();
+    return null;
+  }
+
   saveAuth(data);
-  return data?.accessToken || null;
+  return data.accessToken;
+}
+
+export async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = performRefreshAccessToken().finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
+}
+
+export async function getValidAccessToken() {
+  const token = getAccessToken();
+  if (!token) {
+    return getRefreshToken() ? refreshAccessToken() : null;
+  }
+
+  if (shouldRefreshAccessToken(token)) {
+    return refreshAccessToken();
+  }
+
+  return token;
 }
 
 export async function apiRequest(path, options = {}) {
@@ -89,7 +170,7 @@ export async function apiRequest(path, options = {}) {
     requestHeaders['Content-Type'] = 'application/json';
   }
 
-  const token = getAccessToken();
+  const token = auth ? await getValidAccessToken() : null;
   if (auth && token) {
     requestHeaders.Authorization = `Bearer ${token}`;
   }
@@ -108,11 +189,7 @@ export async function apiRequest(path, options = {}) {
         retryOnUnauthorized: false,
       });
     }
-    clearAuth();
-    if (window.location.hash !== '#/' && window.location.hash !== '') {
-      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      window.dispatchEvent(new Event('hashchange'));
-    }
+    handleAuthExpired();
   }
 
   const data = await parseResponse(response);

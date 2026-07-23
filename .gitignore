@@ -14,7 +14,14 @@ Thumbs.db
 
 # Backend build output
 BE/Shelfy/target/
+BE/Shelfy/.env
 
 # Frontend
-FE/Shelfyy/node_modules/
-FE/Shelfyy/dist/
+FE/Shelfy/node_modules/
+FE/Shelfy/dist/
+FE/Shelfyy/.env
+
+# Node services
+Nodejs/node_modules/
+Nodejs/.env
+*.log

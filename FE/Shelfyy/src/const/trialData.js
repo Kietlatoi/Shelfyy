@@ -9,35 +9,35 @@ export const trialTopNavData = {
 };
 
 export const selectedOutfitData = {
-  header: "Trang phục đã chọn",
+  header: "Món chính đang thử",
   image: outfitMainImage,
-  title: "Minimal Urban Set",
-  description: "Blazer, T-shirt, Trousers",
+  title: "Chưa chọn món chính",
+  description: "Chọn áo, áo khoác, quần hoặc váy trong tủ đồ",
 };
 
 export const uploadData = {
-  defaultTitle: "Tải ảnh gương mặt của bạn",
-  uploadedTitle: "Ảnh đã được tải lên thành công!",
+  defaultTitle: "Tải ảnh toàn thân của bạn",
+  uploadedTitle: "Ảnh toàn thân đã sẵn sàng",
   helper: "Định dạng JPG, PNG (Tối đa 10MB)",
   buttonLabel: "Chọn ảnh",
 };
 
 export const trialTipData = {
   icon: "lightbulb",
-  text: "Để có kết quả tốt nhất, hãy sử dụng ảnh chân dung rõ nét, ánh sáng tự nhiên và phông nền đơn giản.",
+  text: "Kết quả tốt nhất khi ảnh người là ảnh toàn thân, ánh sáng rõ, dáng đứng thẳng và ít vật che người.",
 };
 
 export const trialActionData = {
-  label: "Thử đồ ngay với AI",
+  label: "Thử món này với AI",
   alert: "Vui lòng tải lên ảnh của bạn trước khi thử đồ.",
 };
 
 export const trialShowcaseData = {
   placeholder: {
     image: trialBaseImage,
-    title: "Sẵn sàng để biến đổi",
+    title: "Sẵn sàng thử món chính",
     description:
-      "Kết quả thử đồ AI sẽ xuất hiện tại đây sau khi bạn tải ảnh và nhấn nút 'Thử đồ ngay'.",
+      "Sau mỗi kết quả, Shelfy sẽ dùng ảnh mới nhất để thử món tiếp theo trong cùng phiên.",
   },
   processing: {
     image: trialAiResultImage,
@@ -46,14 +46,14 @@ export const trialShowcaseData = {
   result: {
     image: trialLookImage,
     badge: "AI Generation Complete",
-    saveLabel: "Lưu vào Tủ đồ",
+    saveLabel: "Lưu kết quả",
   },
 };
 
 export const trialMetricsData = {
   metrics: [
-    { label: "Độ chính xác AI", value: "98.4%" },
-    { label: "Thời gian tạo", value: "4.2s" },
+    { label: "Món AI xử lý", value: "1 món chính" },
+    { label: "Thời gian tạo", value: "-" },
   ],
   historyLabel: "Xem lịch sử thử đồ",
 };

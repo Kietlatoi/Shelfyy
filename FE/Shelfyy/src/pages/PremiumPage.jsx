@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { subscriptionApi } from "../api/subscriptionApi";
 import { paymentApi } from "../api/paymentApi";
 import { toPremiumPlans } from "../api/adapters";
@@ -22,7 +22,7 @@ import {
   premiumTrustData,
 } from "../const/premiumData";
 
-// Sau khi thanh toán VNPay xong, BE redirect trình duyệt về đây kèm
+// Sau khi thanh toán VNPay xong, Nodejs payment service redirect trình duyệt về đây kèm
 // "#/up-premium?payment=success&plan=PRO" (hoặc payment=failed&reason=...).
 function readPaymentResultFromHash() {
   const hash = window.location.hash || "";
@@ -55,18 +55,27 @@ const REASON_MESSAGES = {
 
 export function PremiumPage() {
   const nav = useTopNavUser();
+  const [paymentResult] = useState(() => readPaymentResultFromHash());
   const [plans, setPlans] = useState(premiumPlans);
   const [myPlan, setMyPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState("");
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState(() => (
+    paymentResult?.success
+      ? `Thanh toán thành công! Gói ${paymentResult.plan || ""} đã được kích hoạt.`
+      : ""
+  ));
+  const [error, setError] = useState(() => {
+    if (!paymentResult || paymentResult.success) return "";
+    const reasonText = REASON_MESSAGES[paymentResult.reason] || "Vui lòng thử lại hoặc dùng phương thức khác.";
+    return `Thanh toán không thành công. ${reasonText}`;
+  });
 
-  const loadMyPlan = () => {
+  const loadMyPlan = useCallback(() => {
     if (!isAuthenticated()) return;
     subscriptionApi.getMyPlan()
       .then(setMyPlan)
       .catch(() => setMyPlan(null));
-  };
+  }, []);
 
   // FIX: sau khi bấm "Nâng cấp", trang chuyển hẳn sang VNPay bằng
   // window.location.href — nếu người dùng đổi ý và bấm nút Back của trình
@@ -91,24 +100,19 @@ export function PremiumPage() {
       .then((data) => setPlans(toPremiumPlans(data)))
       .catch(() => setPlans(premiumPlans));
     loadMyPlan();
-  }, []);
+  }, [loadMyPlan]);
 
   // Đọc kết quả thanh toán VNPay (nếu vừa được redirect về từ cổng thanh toán).
   useEffect(() => {
-    const result = readPaymentResultFromHash();
-    if (!result) return;
+    if (!paymentResult) return;
 
-    if (result.success) {
-      setMessage(`Thanh toán thành công! Gói ${result.plan || ""} đã được kích hoạt.`);
-      // Gói vừa được BE kích hoạt xong — load lại để cập nhật trạng thái
+    if (paymentResult.success) {
+      // Gói vừa được Nodejs kích hoạt xong — load lại để cập nhật trạng thái
       // "đã đăng ký" + hạn dùng ngay, không cần người dùng tự F5 trang.
       loadMyPlan();
-    } else {
-      const reasonText = REASON_MESSAGES[result.reason] || "Vui lòng thử lại hoặc dùng phương thức khác.";
-      setError(`Thanh toán không thành công. ${reasonText}`);
     }
     clearPaymentResultFromHash();
-  }, []);
+  }, [loadMyPlan, paymentResult]);
 
   const handleNotify = () => {
     window.alert(topNavData.notificationMessage);

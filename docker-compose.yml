@@ -53,9 +53,6 @@ services:
       REPLICATE_API_TOKEN: ${REPLICATE_API_TOKEN:-}
       REPLICATE_MODEL_VERSION: ${REPLICATE_MODEL_VERSION:-}
 
-      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
-      WEATHER_API_URL: ${WEATHER_API_URL:-https://api.openweathermap.org/data/2.5}
-
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}
       MAIL_USERNAME: ${MAIL_USERNAME:-}
@@ -79,16 +76,66 @@ services:
     networks:
       - shelfy-net
 
+  node:
+    build:
+      context: ./Nodejs
+      dockerfile: Dockerfile
+    container_name: shelfy_node
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-shelfy_db}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env}
+      JWT_SECRET: ${JWT_SECRET:?Thiếu JWT_SECRET trong .env — xem .env.example}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL:-http://localhost:5173}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-Asia/Ho_Chi_Minh}
+      APP_TIME_ZONE_OFFSET: ${APP_TIME_ZONE_OFFSET:-+07:00}
+      OPEN_METEO_API_URL: ${OPEN_METEO_API_URL:-https://api.open-meteo.com/v1/forecast}
+      WEATHER_REQUEST_TIMEOUT_MS: ${WEATHER_REQUEST_TIMEOUT_MS:-8000}
+      REVERSE_GEOCODING_API_URL: ${REVERSE_GEOCODING_API_URL:-https://nominatim.openstreetmap.org/reverse}
+      REVERSE_GEOCODING_USER_AGENT: ${REVERSE_GEOCODING_USER_AGENT:-ShelfyWeatherService/0.1 (local-dev)}
+      REVERSE_GEOCODING_LANGUAGE: ${REVERSE_GEOCODING_LANGUAGE:-vi,en}
+      REVERSE_GEOCODING_ZOOM: ${REVERSE_GEOCODING_ZOOM:-10}
+      REVERSE_GEOCODING_TIMEOUT_MS: ${REVERSE_GEOCODING_TIMEOUT_MS:-5000}
+      REVERSE_GEOCODING_MIN_INTERVAL_MS: ${REVERSE_GEOCODING_MIN_INTERVAL_MS:-1100}
+      REVERSE_GEOCODING_CACHE_TTL_MS: ${REVERSE_GEOCODING_CACHE_TTL_MS:-86400000}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALENDAR_REDIRECT_URI: ${GOOGLE_CALENDAR_REDIRECT_URI:-http://localhost:3000/api/calendar/google/callback}
+      GOOGLE_CALENDAR_SCOPES: ${GOOGLE_CALENDAR_SCOPES:-https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/userinfo.email}
+      GOOGLE_OAUTH_PROMPT: ${GOOGLE_OAUTH_PROMPT:-consent}
+      GOOGLE_OAUTH_STATE_TTL_MS: ${GOOGLE_OAUTH_STATE_TTL_MS:-600000}
+      GOOGLE_CALENDAR_TIMEOUT_MS: ${GOOGLE_CALENDAR_TIMEOUT_MS:-10000}
+      CALENDAR_TOKEN_ENCRYPTION_KEY: ${CALENDAR_TOKEN_ENCRYPTION_KEY:-}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    networks:
+      - shelfy-net
+
   frontend:
     build:
       context: ./FE/Shelfyy
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_NODE_API_BASE_URL: ${VITE_NODE_API_BASE_URL:-http://localhost:3000/api}
     container_name: shelfy_frontend
     restart: unless-stopped
     depends_on:
       app:
+        condition: service_healthy
+      node:
         condition: service_healthy
     ports:
       - "5173:80"

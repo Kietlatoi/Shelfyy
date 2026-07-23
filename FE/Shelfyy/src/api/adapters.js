@@ -1,22 +1,13 @@
 import { calendarData, outfitData, topNavData, weatherData } from '../const/homeData';
 import { premiumPlans } from '../const/premiumData';
 import { aiUploadData, wardrobeStorageData } from '../const/wardrobeData';
+import { normalizeItemStatus } from '../const/wardrobeItemPreferences';
 
 const fallbackImage = '/image/wardrobe-tee.png';
 
 function formatCurrency(value) {
   const amount = Number(value || 0);
   return `${amount.toLocaleString('vi-VN')}đ`;
-}
-
-function formatDateParts(dateValue) {
-  if (!dateValue) return { month: calendarData.event.month, day: calendarData.event.day };
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return { month: calendarData.event.month, day: calendarData.event.day };
-  return {
-    month: date.toLocaleString('en-US', { month: 'short' }),
-    day: String(date.getDate()).padStart(2, '0'),
-  };
 }
 
 function readableCategory(category = '') {
@@ -46,25 +37,12 @@ export function toWeatherCard(weather) {
     temperature: weather.temperature != null ? `${Math.round(weather.temperature)}°` : weatherData.temperature,
     condition: weather.condition || weatherData.condition,
     feelsLike: weather.feelsLike != null ? `Cảm giác như ${Math.round(weather.feelsLike)}°` : weatherData.feelsLike,
+    icon: weather.icon || weatherData.icon,
     metrics: [
       { label: 'Độ ẩm', value: weather.humidity != null ? `${weather.humidity}%` : '-' },
-      { label: 'UV', value: weather.uvIndex || '-', emphasis: true },
-      { label: 'Dự đoán 5 giờ nữa', value: weather.forecastIn5Hours || '-' },
+      { label: 'Gió', value: weather.windSpeed != null ? `${weather.windSpeed} km/h` : '-', emphasis: true },
+      { label: 'Mây', value: weather.cloudCover != null ? `${weather.cloudCover}%` : '-' },
     ],
-  };
-}
-
-export function toCalendarCard(event) {
-  if (!event) return calendarData;
-  const parts = formatDateParts(event.eventDate);
-  return {
-    ...calendarData,
-    event: {
-      month: parts.month,
-      day: parts.day,
-      title: event.title || calendarData.event.title,
-      meta: `${event.eventTime || '09:00'}${event.location ? ` • ${event.location}` : ''}`,
-    },
   };
 }
 
@@ -89,6 +67,8 @@ export function toWardrobeCard(item) {
     meta: `Size: ${item.size || '-'} | ${item.material || '-'}`,
     category: readableCategory(item.category),
     image: item.thumbnailUrl || item.imageUrl || item.backgroundRemovedUrl || fallbackImage,
+    favorite: Boolean(item.favorite),
+    itemStatus: normalizeItemStatus(item.itemStatus || item.status),
     raw: item,
   };
 }
@@ -152,6 +132,37 @@ export function toTrialOutfit(item, fallback) {
     title: item.name || fallback.title,
     description: [item.brand, item.category, item.color].filter(Boolean).join(' • ') || fallback.description,
     itemId: item.id,
+  };
+}
+
+export function toCalendarCard(data) {
+  if (!data) return calendarData;
+
+  const connected = Boolean(data.connected);
+  const events = Array.isArray(data.events) ? data.events : [];
+  return {
+    ...calendarData,
+    connected,
+    providerEmail: data.email || '',
+    calendarUrl: data.calendarUrl || calendarData.calendarUrl,
+    statusTitle: data.status === 'GOOGLE_CALENDAR_RECONNECT_REQUIRED'
+      ? 'Cần kết nối lại Google Calendar'
+      : calendarData.statusTitle,
+    statusDescription: data.status === 'GOOGLE_CALENDAR_RECONNECT_REQUIRED'
+      ? 'Phiên Google Calendar đã hết hạn hoặc đã bị thu hồi quyền.'
+      : calendarData.statusDescription,
+    actionLabel: connected ? 'Mở Google Calendar' : 'Kết nối Google Calendar',
+    events: events.map((event) => ({
+      id: event.id,
+      title: event.title || 'Không có tiêu đề',
+      startTime: event.startTime,
+      endTime: event.endTime,
+      time: event.time,
+      allDay: Boolean(event.allDay),
+      location: event.location || '',
+      description: event.description || '',
+      htmlLink: event.htmlLink || '',
+    })),
   };
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export function LoadingComponent({ children, delay = 600, className = '' }) {
   const [isLoading, setIsLoading] = useState(true);

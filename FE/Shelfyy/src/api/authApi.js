@@ -1,5 +1,5 @@
-import { apiRequest } from './apiClient';
-import { clearAuth, saveAuth } from './tokenStore';
+import { apiRequest, refreshAccessToken } from './apiClient';
+import { clearAuth, getRefreshToken, saveAuth } from './tokenStore';
 
 export async function login({ email, password, rememberMe = false }) {
   const data = await apiRequest('/auth/login', {
@@ -37,12 +37,17 @@ export async function resetPassword({ token, newPassword }) {
   });
 }
 
+export async function refresh() {
+  return refreshAccessToken();
+}
+
 export async function logout() {
-  const refreshToken = localStorage.getItem('shelfy_refresh_token');
+  const refreshToken = getRefreshToken();
   try {
     if (refreshToken) {
       await apiRequest('/auth/logout', {
         method: 'POST',
+        auth: false,
         body: { refreshToken },
       });
     }

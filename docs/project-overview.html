@@ -1,0 +1,1902 @@
+<!doctype html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shelfy - Tổng Quan Dự Án</title>
+  <meta name="description" content="Tài liệu onboarding dành cho team dev Shelfy.">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f8f5;
+      --surface: #ffffff;
+      --surface-raised: #fbfcfa;
+      --text: #1d211f;
+      --text-muted: #616c66;
+      --border: #dce3dd;
+      --border-strong: #b8c5bd;
+      --brand: #116149;
+      --brand-strong: #0b4636;
+      --brand-soft: #dff2ea;
+      --blue: #1f5c99;
+      --blue-soft: #e6f0fb;
+      --amber: #90610d;
+      --amber-soft: #fff4d9;
+      --red: #a33a32;
+      --red-soft: #fde9e7;
+      --ink: #111817;
+      --code-bg: #121b19;
+      --code-text: #dbeee8;
+      --shadow: 0 20px 50px rgba(23, 38, 34, 0.08);
+      --radius: 8px;
+      --sidebar-width: 292px;
+      --content-width: 1120px;
+      --focus: 0 0 0 3px rgba(17, 97, 73, 0.22);
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121614;
+      --surface: #191f1c;
+      --surface-raised: #202722;
+      --text: #edf4ef;
+      --text-muted: #aebcb4;
+      --border: #303a34;
+      --border-strong: #4e5d54;
+      --brand: #77d8b2;
+      --brand-strong: #9fe9c9;
+      --brand-soft: #19362c;
+      --blue: #98c9ff;
+      --blue-soft: #17304c;
+      --amber: #ffd27a;
+      --amber-soft: #443218;
+      --red: #ffaea8;
+      --red-soft: #47231f;
+      --ink: #f5fbf7;
+      --code-bg: #0d1211;
+      --code-text: #ddf1eb;
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+      --focus: 0 0 0 3px rgba(119, 216, 178, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--brand);
+    }
+
+    code,
+    pre,
+    kbd {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.92em;
+    }
+
+    code {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-raised);
+      padding: 0.1rem 0.3rem;
+      color: var(--ink);
+    }
+
+    pre {
+      margin: 0;
+      overflow: auto;
+      white-space: pre;
+      tab-size: 2;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    a:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 50;
+      transform: translateY(-140%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.65rem 0.85rem;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: transform 160ms ease;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 60;
+      height: 3px;
+      width: 0%;
+      background: var(--brand);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface) 88%, var(--bg));
+      padding: 1.1rem;
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: var(--radius);
+      background: var(--brand);
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 750;
+      line-height: 1.2;
+    }
+
+    .brand-subtitle {
+      margin: 0.15rem 0 0;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.35;
+    }
+
+    .tools {
+      display: grid;
+      gap: 0.7rem;
+      margin: 1rem 0;
+    }
+
+    .search-wrap {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .search-wrap label {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0.72rem 0.75rem;
+    }
+
+    .search-meta {
+      min-height: 1.25rem;
+      color: var(--text-muted);
+      font-size: 0.83rem;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      min-height: 38px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0.45rem 0.6rem;
+      font-size: 0.9rem;
+      font-weight: 650;
+      transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .button:hover,
+    .button[aria-pressed="true"],
+    .filter-button.is-active {
+      border-color: var(--brand);
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .toc-title {
+      margin: 1.1rem 0 0.45rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .toc {
+      display: grid;
+      gap: 0.15rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .toc a {
+      display: block;
+      border-radius: 6px;
+      padding: 0.46rem 0.55rem;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    .toc a:hover,
+    .toc a[aria-current="true"] {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .content {
+      width: min(100%, var(--content-width));
+      margin: 0 auto;
+      padding: 2rem clamp(1rem, 4vw, 3rem) 5rem;
+    }
+
+    .hero {
+      display: grid;
+      gap: 1.4rem;
+      border-bottom: 1px solid var(--border);
+      padding: 1.6rem 0 2rem;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--brand);
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      color: var(--ink);
+      line-height: 1.18;
+    }
+
+    h1 {
+      max-width: 820px;
+      font-size: clamp(2.2rem, 7vw, 4.8rem);
+      font-weight: 820;
+    }
+
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.25rem);
+      font-weight: 780;
+    }
+
+    h3 {
+      font-size: 1.08rem;
+      font-weight: 760;
+    }
+
+    p {
+      margin: 0;
+    }
+
+    .lead {
+      max-width: 780px;
+      color: var(--text-muted);
+      font-size: clamp(1.02rem, 2vw, 1.25rem);
+      line-height: 1.68;
+    }
+
+    .meta-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      padding: 0.22rem 0.65rem;
+      color: var(--text-muted);
+      font-size: 0.86rem;
+      font-weight: 650;
+    }
+
+    .section {
+      display: grid;
+      gap: 1rem;
+      scroll-margin-top: 1.5rem;
+      padding: 2.25rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .section-kicker {
+      margin: 0 0 0.35rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .section-copy {
+      max-width: 860px;
+      color: var(--text-muted);
+    }
+
+    .grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .summary-card,
+    .note,
+    .architecture,
+    .timeline-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 1rem;
+      box-shadow: 0 1px 0 rgba(17, 24, 39, 0.02);
+    }
+
+    .summary-card {
+      display: grid;
+      gap: 0.45rem;
+      min-height: 132px;
+    }
+
+    .summary-card strong {
+      color: var(--ink);
+      font-size: 1.02rem;
+    }
+
+    .summary-card span {
+      color: var(--text-muted);
+      font-size: 0.94rem;
+    }
+
+    .note {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .note.warning {
+      border-color: color-mix(in srgb, var(--amber) 35%, var(--border));
+      background: var(--amber-soft);
+    }
+
+    .note.danger {
+      border-color: color-mix(in srgb, var(--red) 35%, var(--border));
+      background: var(--red-soft);
+    }
+
+    .note.info {
+      border-color: color-mix(in srgb, var(--blue) 35%, var(--border));
+      background: var(--blue-soft);
+    }
+
+    .note-title {
+      color: var(--ink);
+      font-weight: 760;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 0.85rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--surface-raised);
+      color: var(--ink);
+      font-size: 0.83rem;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td {
+      color: var(--text-muted);
+    }
+
+    td strong,
+    td code {
+      color: var(--ink);
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0.16rem 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .status.live {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .status.future {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .status.pending {
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+
+    .arch-flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    .arch-node {
+      display: grid;
+      align-content: center;
+      gap: 0.25rem;
+      min-height: 92px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-raised);
+      padding: 0.9rem;
+    }
+
+    .arch-node.primary {
+      border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+      background: var(--brand-soft);
+    }
+
+    .arch-node strong {
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .arch-node span {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.35;
+    }
+
+    .arch-arrow {
+      display: grid;
+      place-items: center;
+      min-height: 92px;
+      color: var(--text-muted);
+      font-weight: 800;
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .service-grid.external-services {
+      margin-top: 0.9rem;
+    }
+
+    .service {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface-raised);
+      padding: 0.85rem;
+    }
+
+    .service strong {
+      display: block;
+      color: var(--ink);
+    }
+
+    .service span {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .code-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--code-bg);
+      color: var(--code-text);
+      overflow: hidden;
+    }
+
+    .code-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 0.65rem 0.75rem;
+      color: #ecfbf6;
+      font-size: 0.85rem;
+      font-weight: 720;
+    }
+
+    .code-card pre {
+      padding: 0.9rem;
+      color: var(--code-text);
+    }
+
+    .code-card code {
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+
+    .copy-button {
+      flex: 0 0 auto;
+      min-height: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 760;
+    }
+
+    .copy-button:hover {
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .inline-copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      max-width: 100%;
+    }
+
+    .inline-copy code {
+      overflow-wrap: anywhere;
+    }
+
+    .mini-copy {
+      min-height: 26px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text-muted);
+      padding: 0.1rem 0.42rem;
+      font-size: 0.76rem;
+      font-weight: 740;
+      white-space: nowrap;
+    }
+
+    .mini-copy:hover {
+      border-color: var(--brand);
+      color: var(--brand-strong);
+    }
+
+    .api-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .filter-button {
+      min-height: 34px;
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--text-muted);
+      padding: 0.25rem 0.7rem;
+      font-size: 0.86rem;
+      font-weight: 720;
+    }
+
+    .endpoint-section {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .method {
+      display: inline-flex;
+      min-width: 62px;
+      justify-content: center;
+      border-radius: 6px;
+      padding: 0.12rem 0.38rem;
+      color: #ffffff;
+      font-size: 0.75rem;
+      font-weight: 820;
+    }
+
+    .method.get {
+      background: #1f5c99;
+    }
+
+    .method.post {
+      background: #116149;
+    }
+
+    .method.put {
+      background: #7551a6;
+    }
+
+    .method.patch {
+      background: #90610d;
+    }
+
+    .method.delete {
+      background: #a33a32;
+    }
+
+    .auth {
+      display: inline-flex;
+      min-width: 48px;
+      justify-content: center;
+      border-radius: 999px;
+      padding: 0.1rem 0.46rem;
+      font-size: 0.78rem;
+      font-weight: 740;
+    }
+
+    .auth.yes {
+      background: var(--brand-soft);
+      color: var(--brand-strong);
+    }
+
+    .auth.no {
+      background: var(--surface-raised);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .list {
+      display: grid;
+      gap: 0.5rem;
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--text-muted);
+    }
+
+    .list li::marker {
+      color: var(--brand);
+    }
+
+    .db-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+    }
+
+    .db-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 0.85rem;
+    }
+
+    .db-item code {
+      display: inline-block;
+      margin-bottom: 0.35rem;
+    }
+
+    .db-item p {
+      color: var(--text-muted);
+      font-size: 0.94rem;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 0.8rem;
+    }
+
+    .timeline-item {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .timeline-item p {
+      color: var(--text-muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 70;
+      transform: translateY(1rem);
+      opacity: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      padding: 0.7rem 0.85rem;
+      box-shadow: var(--shadow);
+      pointer-events: none;
+      transition: transform 160ms ease, opacity 160ms ease;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .footer {
+      padding-top: 2rem;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 1040px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .toc {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .content {
+        padding-top: 1.2rem;
+      }
+
+      .arch-flow {
+        grid-template-columns: 1fr;
+      }
+
+      .arch-arrow {
+        min-height: 26px;
+      }
+
+      .service-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .grid.two,
+      .grid.three,
+      .db-grid,
+      .service-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        display: grid;
+      }
+
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 2.15rem;
+      }
+
+      table {
+        min-width: 680px;
+      }
+    }
+
+    @media print {
+      .sidebar,
+      .scroll-progress,
+      .toast,
+      .copy-button,
+      .mini-copy,
+      .api-filter {
+        display: none !important;
+      }
+
+      body {
+        background: #ffffff;
+        color: #111111;
+      }
+
+      .layout {
+        display: block;
+      }
+
+      .content {
+        width: 100%;
+        padding: 0;
+      }
+
+      .section {
+        break-inside: avoid;
+      }
+
+      .summary-card,
+      .note,
+      .table-wrap,
+      .code-card,
+      .db-item,
+      .architecture {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Bỏ qua mục lục</a>
+  <div class="scroll-progress" aria-hidden="true"></div>
+
+  <div class="layout">
+    <aside class="sidebar" aria-label="Mục lục tài liệu">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">S</div>
+        <div>
+          <p class="brand-title">Shelfy</p>
+          <p class="brand-subtitle">Onboarding dev team</p>
+        </div>
+      </div>
+
+      <div class="tools">
+        <div class="search-wrap">
+          <label for="doc-search">Tìm trong tài liệu</label>
+          <input id="doc-search" type="search" placeholder="Ví dụ: wardrobe, Replicate, VNPay" autocomplete="off">
+          <div id="search-meta" class="search-meta" aria-live="polite"></div>
+        </div>
+        <div class="button-row">
+          <button class="button" type="button" id="theme-toggle" aria-pressed="false">Đổi theme</button>
+          <button class="button" type="button" id="print-button">In PDF</button>
+        </div>
+      </div>
+
+      <p class="toc-title">Mục lục</p>
+      <nav>
+        <ul class="toc">
+          <li><a href="#purpose">Mục đích</a></li>
+          <li><a href="#product">Sản phẩm</a></li>
+          <li><a href="#status">Trạng thái</a></li>
+          <li><a href="#architecture">Kiến trúc</a></li>
+          <li><a href="#service-boundaries">Microservice</a></li>
+          <li><a href="#frontend">Frontend</a></li>
+          <li><a href="#backend">Backend</a></li>
+          <li><a href="#deployment">Deployment</a></li>
+          <li><a href="#api">API chính</a></li>
+          <li><a href="#database">Database</a></li>
+          <li><a href="#integrations">AI và dịch vụ</a></li>
+          <li><a href="#security">Bảo mật</a></li>
+          <li><a href="#notes">Lưu ý</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main id="main" class="main" tabindex="-1">
+      <div class="content">
+        <header class="hero section" id="purpose" data-search-block>
+          <p class="eyebrow">Tài liệu đọc cho người</p>
+          <h1>Shelfy - Tổng Quan Dự Án</h1>
+          <p class="lead">
+            Tài liệu này giúp team dev onboarding nhanh vào Shelfy: hiểu sản phẩm, kiến trúc, API, database, deployment và các phần đang chờ triển khai tiếp.
+          </p>
+          <div class="meta-strip" aria-label="Thông tin nhanh">
+            <span class="pill">Nguồn: docs/project-overview.md</span>
+            <span class="pill">Ngôn ngữ: Tiếng Việt</span>
+            <span class="pill">Đối tượng: Team dev</span>
+            <span class="pill">Trạng thái: Production đang chạy</span>
+          </div>
+        </header>
+
+        <section class="section" id="product" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Sản phẩm</p>
+              <h2>Shelfy là gì?</h2>
+            </div>
+          </div>
+          <p class="section-copy">
+            Shelfy là ứng dụng quản lý tủ đồ cá nhân. Người dùng có thể đăng ký, đăng nhập, lưu trữ món đồ trong tủ, upload ảnh trang phục, xem thống kê tủ đồ và nhận gợi ý phối đồ.
+          </p>
+          <div class="note info">
+            <div class="note-title">Kiến trúc microservice-oriented</div>
+            <p><code>BE/Shelfy</code> hiện là Core API Service đang chạy production, không phải toàn bộ hệ thống cuối cùng. Các năng lực mới từ thời điểm hiện tại sẽ ưu tiên triển khai trong <code>Nodejs</code>; không mở rộng thêm code Java nếu không có quyết định kiến trúc riêng.</p>
+          </div>
+          <div class="grid three">
+            <article class="summary-card">
+              <strong>Quản lý tủ đồ</strong>
+              <span>Lưu món đồ, ảnh, màu sắc, category, size, chất liệu, tag, số lần mặc và trạng thái yêu thích.</span>
+            </article>
+            <article class="summary-card">
+              <strong>Gợi ý theo ngữ cảnh</strong>
+              <span>Mặc định dùng rule-based stylist để phối đồ theo tủ đồ, thời tiết thật và lịch trình từ calendar.</span>
+            </article>
+            <article class="summary-card">
+              <strong>AI try-on</strong>
+              <span>Tạo ảnh mô phỏng người dùng khi mặc một trang phục bằng Replicate IDM-VTON.</span>
+            </article>
+          </div>
+          <ul class="list">
+            <li>Người dùng mục tiêu: cá nhân muốn quản lý tủ đồ và chọn trang phục hằng ngày hiệu quả hơn.</li>
+            <li>Tên chính thức của dự án: <strong>Shelfy</strong>.</li>
+            <li>Ưu tiên hiện tại: login, register, profile cá nhân, lưu trữ đồ, weather/calendar Nodejs, outfit mặc hôm nay và nối FE với các service production.</li>
+          </ul>
+        </section>
+
+        <section class="section" id="status" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Hiện trạng</p>
+              <h2>Trạng thái chức năng</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nhóm chức năng</th>
+                  <th>Trạng thái</th>
+                  <th>Ghi chú</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Login</strong></td>
+                  <td><span class="status live">Production</span></td>
+                  <td>FE đã gọi Core API Service thật.</td>
+                </tr>
+                <tr>
+                  <td><strong>Register</strong></td>
+                  <td><span class="status live">Production</span></td>
+                  <td>FE đã gọi Core API Service thật.</td>
+                </tr>
+                <tr>
+                  <td><strong>Profile cá nhân</strong></td>
+                  <td><span class="status live">Production</span></td>
+                  <td>FE có màn riêng để xem hồ sơ, cập nhật tên hiển thị và đổi mật khẩu qua user-controller.</td>
+                </tr>
+                <tr>
+                  <td><strong>Lưu trữ đồ</strong></td>
+                  <td><span class="status live">Production</span></td>
+                  <td>Wardrobe item, upload ảnh, stats, filter, xem chi tiết, sửa, xóa, yêu thích, trang danh sách yêu thích và trạng thái món đồ đã có API. Core data vẫn ở Java, preference/status mở rộng nằm ở Nodejs.</td>
+                </tr>
+                <tr>
+                  <td><strong>Outfit library riêng</strong></td>
+                  <td><span class="status pending">Đã gỡ khỏi FE</span></td>
+                  <td>Không còn route <code>/outfits</code> và không còn sidebar item Outfit. Core API <code>/api/outfits</code> vẫn tồn tại nhưng FE không expose màn quản lý outfit riêng.</td>
+                </tr>
+                <tr>
+                  <td><strong>Outfit mặc hôm nay</strong></td>
+                  <td><span class="status live">Nodejs</span></td>
+                  <td>FE cho phép người dùng tự chọn món trong tủ, xác nhận bộ sẽ mặc trong ngày, xem lịch sử outfit đã mặc ở <code>/wear-history</code>; Nodejs lưu/list <code>daily_outfits</code>, tạo outfit nếu cần và cập nhật <code>wear_count</code>.</td>
+                </tr>
+                <tr>
+                  <td><strong>Gợi ý đồ theo ngữ cảnh</strong></td>
+                  <td><span class="status live">Nodejs rule-based</span></td>
+                  <td>FE <code>/suggest</code> gọi Nodejs <code>POST /api/suggestions/today</code> để tạo gợi ý bằng rule-based stylist, lưu kết quả vào Postgres chung và cho phép xác nhận outfit mặc hôm nay.</td>
+                </tr>
+                <tr>
+                  <td><strong>Thử đồ bằng AI</strong></td>
+                  <td><span class="status future">Model thật</span></td>
+                  <td>Dùng Replicate model <code>cuuupid/idm-vton:0513734a452173b8173e907e3a59d19a36266e55b48528559432bd21c7d7e985</code>.</td>
+                </tr>
+                <tr>
+                  <td><strong>Thời tiết</strong></td>
+                  <td><span class="status live">Nodejs</span></td>
+                  <td>Java đã bỏ <code>/api/home</code> và weather hard-code. FE gọi Nodejs, Nodejs gọi Open-Meteo để lấy thời tiết, gọi Nominatim reverse geocoding để lấy tên địa điểm và lưu snapshot vào Postgres chung.</td>
+                </tr>
+                <tr>
+                  <td><strong>Calendar</strong></td>
+                  <td><span class="status live">Nodejs</span></td>
+                  <td><code>/home</code> không dùng <code>/api/events</code> của Java. FE gọi Nodejs để kết nối Google Calendar thật qua OAuth và lấy lịch trình hôm nay từ Google Calendar API.</td>
+                </tr>
+                <tr>
+                  <td><strong>Payment/Premium</strong></td>
+                  <td><span class="status pending">Làm sau</span></td>
+                  <td>Có module VNPay ở Core API Service nhưng chưa test end-to-end; flow production chưa chốt.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="architecture" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Kiến trúc</p>
+              <h2>Luồng hệ thống production</h2>
+            </div>
+          </div>
+          <div class="architecture" aria-label="Sơ đồ kiến trúc Shelfy">
+            <div class="arch-flow">
+              <div class="arch-node primary">
+                <strong>Người dùng</strong>
+                <span>Web browser</span>
+              </div>
+              <div class="arch-arrow" aria-hidden="true">→</div>
+              <div class="arch-node primary">
+                <strong>FE React/Vite</strong>
+                <span>Deploy Vercel</span>
+              </div>
+              <div class="arch-arrow" aria-hidden="true">→</div>
+              <div class="arch-node primary">
+                <strong>Core API Service</strong>
+                <span>Spring Boot · Railway</span>
+              </div>
+              <div class="arch-arrow" aria-hidden="true">→</div>
+              <div class="arch-node primary">
+                <strong>Nodejs Service</strong>
+                <span>Weather · Calendar · Daily outfit · Preference</span>
+              </div>
+            </div>
+            <div class="service-grid external-services">
+              <div class="service">
+                <strong>PostgreSQL</strong>
+                <span>Railway database</span>
+              </div>
+              <div class="service">
+                <strong>Cloudinary</strong>
+                <span>Lưu ảnh upload</span>
+              </div>
+              <div class="service">
+                <strong>Open-Meteo</strong>
+                <span>Thời tiết thật</span>
+              </div>
+              <div class="service">
+                <strong>Nominatim</strong>
+                <span>Tên địa điểm từ tọa độ</span>
+              </div>
+              <div class="service">
+                <strong>Replicate</strong>
+                <span>AI try-on</span>
+              </div>
+              <div class="service">
+                <strong>Rule-based Stylist</strong>
+                <span>Styling suggestion</span>
+              </div>
+              <div class="service">
+                <strong>VNPay</strong>
+                <span>Payment provider</span>
+              </div>
+            </div>
+          </div>
+          <div class="note info">
+            <div class="note-title">Định hướng service</div>
+            <p>Core API Service giữ auth và core domain hiện có. Nodejs Service hiện sở hữu weather, calendar sync thật, outfit mặc hôm nay, lịch sử outfit đã mặc và metadata mở rộng của wardrobe item, dùng chung Postgres và JWT với Core API. Tính năng mới từ hiện tại ưu tiên đi qua Nodejs, không dùng Java event API làm nguồn cho <code>/home</code>.</p>
+          </div>
+        </section>
+
+        <section class="section" id="service-boundaries" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Microservice</p>
+              <h2>Ranh giới service</h2>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Service</th>
+                  <th>Trạng thái</th>
+                  <th>Vai trò</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>FE Web App</strong></td><td><span class="status live">Đang có</span></td><td>React + Vite UI, deploy Vercel, gọi REST API.</td></tr>
+                <tr><td><strong>Core API Service</strong></td><td><span class="status live">Đang có</span></td><td><code>BE/Shelfy</code>, Spring Boot, xử lý auth, user, wardrobe, outfit, subscription/payment hiện tại. Không còn sở hữu weather, không còn <code>/api/home</code>, FE không dùng Java event API cho lịch trình thật, và không ưu tiên thêm feature mới vào Java.</td></tr>
+                <tr><td><strong>Nodejs Service</strong></td><td><span class="status live">Weather + Calendar + Daily outfit + Preference + Suggestion</span></td><td><code>Nodejs</code>, Express API, verify JWT do Core API phát hành, xử lý weather, Google Calendar, daily outfit, wardrobe preference và tạo gợi ý outfit bằng rule-based stylist.</td></tr>
+                <tr><td><strong>Styling Suggestion Service</strong></td><td><span class="status live">Trong Nodejs</span></td><td>Node.js service chấm điểm item bằng luật dựa trên weather snapshot, calendar context, favorite/trạng thái item, chất liệu/màu/mùa và lịch sử mặc gần đây. Gemini chỉ còn là hướng tùy chọn nếu cần phân tích ảnh hoặc viết lại lời gợi ý.</td></tr>
+                <tr><td><strong>AI Try-On Service</strong></td><td><span class="status future">Dự kiến</span></td><td>Gọi Replicate IDM-VTON, quản lý job/poll/result cho thử đồ ảo.</td></tr>
+                <tr><td><strong>Weather Service</strong></td><td><span class="status live">Trong Nodejs</span></td><td>Gọi Open-Meteo thật, reverse geocode tọa độ thành tên địa điểm, chuẩn hóa dữ liệu thời tiết cho FE và lưu snapshot cho suggestion sau này.</td></tr>
+                <tr><td><strong>Calendar Sync Service</strong></td><td><span class="status live">Trong Nodejs</span></td><td>Kết nối Google Calendar qua OAuth, lưu token đã mã hóa, fetch sự kiện trong ngày và lưu vào Postgres chung để FE và suggestion dùng lại.</td></tr>
+                <tr><td><strong>Payment Service</strong></td><td><span class="status pending">Làm sau</span></td><td>Có thể tách VNPay/payment flow ra khỏi Core API khi chốt luồng production.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note warning">
+            <div class="note-title">Contract hiện tại</div>
+            <p>FE đang gọi thẳng Core API Service và Nodejs Service. Chưa có API Gateway riêng. Khi tách service mới, ưu tiên giữ contract REST rõ ràng, mỗi service có env riêng và không để FE gọi thẳng Gemini, Replicate, Open-Meteo, Nominatim hoặc payment provider.</p>
+          </div>
+        </section>
+
+        <section class="section" id="frontend" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Frontend</p>
+              <h2>React + Vite</h2>
+            </div>
+          </div>
+          <p class="section-copy">FE nằm tại <code>FE/Shelfyy</code>. Production API base hiện trỏ tới Core API Service trên Railway:</p>
+          <div class="code-card">
+            <div class="code-title">
+              <span>VITE_API_BASE_URL</span>
+              <button class="copy-button" type="button" data-copy="https://shelfyy-production-4f6e.up.railway.app/api">Copy</button>
+            </div>
+            <pre><code>https://shelfyy-production-4f6e.up.railway.app/api</code></pre>
+          </div>
+          <p class="section-copy">Weather, Calendar, Daily Outfit và Wardrobe Preference gọi Nodejs Service qua <code>VITE_NODE_API_BASE_URL</code>. Local mặc định là <code>http://localhost:3000/api</code>; production cần cấu hình URL Nodejs thật trên Vercel.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Vai trò</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>apiClient.js</code></td><td>Fetch wrapper, build URL, parse response, proactive refresh khi access token sắp hết hạn, single-flight refresh khi gặp <code>401</code>.</td></tr>
+                <tr><td><code>nodeApiClient.js</code></td><td>Fetch wrapper riêng cho Nodejs Service, dùng <code>VITE_NODE_API_BASE_URL</code>.</td></tr>
+                <tr><td><code>authApi.js</code></td><td>Login, register, refresh token, forgot password, reset password, logout.</td></tr>
+                <tr><td><code>userApi.js</code></td><td>Profile hiện tại, update profile, đổi mật khẩu.</td></tr>
+                <tr><td><code>weatherApi.js</code></td><td>Gọi Nodejs Weather API, tạo weather snapshot và lấy snapshot mới nhất.</td></tr>
+                <tr><td><code>calendarApi.js</code></td><td>Gọi Nodejs Calendar API để lấy lịch hôm nay, kiểm tra trạng thái và bắt đầu OAuth Google Calendar.</td></tr>
+                <tr><td><code>dailyOutfitApi.js</code></td><td>Gọi Nodejs Daily Outfit API để xác nhận outfit sẽ mặc hôm nay, lấy outfit đã xác nhận và list lịch sử outfit đã mặc.</td></tr>
+                <tr><td><code>suggestionApi.js</code></td><td>Gọi Nodejs Suggestion API để lấy gợi ý mới nhất, tạo gợi ý rule-based mới và đánh dấu gợi ý đã được xác nhận mặc hôm nay.</td></tr>
+                <tr><td><code>wardrobePreferenceApi.js</code></td><td>Gọi Nodejs Wardrobe Preference API để đọc/cập nhật yêu thích và trạng thái món đồ.</td></tr>
+                <tr><td><code>wardrobeApi.js</code></td><td>Wardrobe items, chi tiết món đồ, cập nhật, xóa mềm, stats, pairings, mark worn.</td></tr>
+                <tr><td><code>uploadApi.js</code></td><td>Upload clothing/avatar bằng multipart form-data.</td></tr>
+                <tr><td><code>trialApi.js</code></td><td>Generate try-on job, status, history.</td></tr>
+                <tr><td><code>subscriptionApi.js</code></td><td>Plans, current plan, upgrade, cancel.</td></tr>
+                <tr><td><code>paymentApi.js</code></td><td>Tạo VNPay payment URL.</td></tr>
+                <tr><td><code>adapters.js</code></td><td>Map response Core API sang shape UI đang dùng.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid two">
+            <div class="summary-card">
+              <strong>Page đã có</strong>
+              <span>Landing, login, register, home, profile, wardrobe, yêu thích, lịch sử outfit đã mặc, trial, suggest, premium, forgot/reset password.</span>
+            </div>
+            <div class="summary-card">
+              <strong>Cách gọi API</strong>
+              <span>FE production gọi Core API Service và Nodejs Service trực tiếp qua env public tương ứng.</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="backend" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Backend</p>
+              <h2>Core API Service</h2>
+            </div>
+          </div>
+          <p class="section-copy"><code>BE/Shelfy</code> là Core API Service hiện tại trong kiến trúc microservice của Shelfy. Service này dùng Spring Boot 3.3.5, Java 17. Database migration dùng Flyway.</p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Package</th>
+                  <th>Vai trò</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>controller</code></td><td>REST endpoints.</td></tr>
+                <tr><td><code>service</code> / <code>service.impl</code></td><td>Business logic.</td></tr>
+                <tr><td><code>repository</code></td><td>Spring Data JPA repositories.</td></tr>
+                <tr><td><code>entity</code></td><td>Entity mapping database.</td></tr>
+                <tr><td><code>dto.request</code></td><td>Request DTO.</td></tr>
+                <tr><td><code>dto.response</code></td><td>Response DTO.</td></tr>
+                <tr><td><code>security</code></td><td>JWT, UserDetails, auth filter, token hash.</td></tr>
+                <tr><td><code>config</code></td><td>Security, Cloudinary, VNPay, OpenAPI, REST client.</td></tr>
+                <tr><td><code>exception</code></td><td>Error code và global exception handler.</td></tr>
+                <tr><td><code>resources/db/migration</code></td><td>Flyway migrations.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="grid two">
+            <div class="note info">
+              <div class="note-title">JWT security</div>
+              <p>Access token gửi qua <code>Authorization: Bearer &lt;token&gt;</code>. Refresh token raw trả về FE, bản hash SHA-256 lưu trong DB. FE gọi <code>/api/auth/refresh</code> bằng refresh token body, lưu access token và refresh token mới vì Core API đang dùng refresh token rotation. FE dùng single-flight refresh để nhiều request đồng thời không cùng dùng một refresh token cũ và tự làm hỏng session.</p>
+            </div>
+            <div class="note warning">
+              <div class="note-title">Demo account đang lỗi</div>
+              <p><code>demo@shelfy.app / 123456</code> hiện không login được trên Railway. Nghi ngờ migration seed tạo user <code>demo@shelfy.app</code> nhưng credential insert cho <code>user@shelfy.app</code>.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="deployment" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Production</p>
+              <h2>Deployment</h2>
+            </div>
+          </div>
+          <div class="grid two">
+            <article class="summary-card">
+              <strong>Frontend</strong>
+              <span>Deploy Vercel.</span>
+            </article>
+            <article class="summary-card">
+              <strong>Core API Service</strong>
+              <span>Deploy Railway tại <code>https://shelfyy-production-4f6e.up.railway.app/api</code>.</span>
+            </article>
+            <article class="summary-card">
+              <strong>Database</strong>
+              <span>PostgreSQL Railway.</span>
+            </article>
+            <article class="summary-card">
+              <strong>Image storage</strong>
+              <span>Cloudinary đã cấu hình.</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="api" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">REST API</p>
+              <h2>API chính</h2>
+            </div>
+          </div>
+          <div class="api-filter" aria-label="Lọc nhóm API">
+            <button class="filter-button is-active" type="button" data-api-filter="all">Tất cả</button>
+            <button class="filter-button" type="button" data-api-filter="auth">Auth</button>
+            <button class="filter-button" type="button" data-api-filter="user">User</button>
+            <button class="filter-button" type="button" data-api-filter="wardrobe">Wardrobe</button>
+            <button class="filter-button" type="button" data-api-filter="upload">Upload</button>
+            <button class="filter-button" type="button" data-api-filter="weather">Weather</button>
+            <button class="filter-button" type="button" data-api-filter="calendar">Calendar</button>
+            <button class="filter-button" type="button" data-api-filter="outfit">Outfit</button>
+            <button class="filter-button" type="button" data-api-filter="ai">Suggestion</button>
+            <button class="filter-button" type="button" data-api-filter="trial">Trial</button>
+            <button class="filter-button" type="button" data-api-filter="payment">Payment</button>
+          </div>
+
+          <article class="endpoint-section" data-api-group="auth">
+            <h3>Auth</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/auth/register</code><button class="mini-copy" type="button" data-copy="/api/auth/register">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>AuthResponse</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/auth/login</code><button class="mini-copy" type="button" data-copy="/api/auth/login">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>AuthResponse</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/auth/refresh</code><button class="mini-copy" type="button" data-copy="/api/auth/refresh">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>AuthResponse</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/auth/logout</code><button class="mini-copy" type="button" data-copy="/api/auth/logout">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>204 No Content</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/auth/forgot-password</code><button class="mini-copy" type="button" data-copy="/api/auth/forgot-password">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>{ message }</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/auth/reset-password</code><button class="mini-copy" type="button" data-copy="/api/auth/reset-password">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>{ message }</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note info">
+              <div class="note-title">Chi tiết món đồ</div>
+              <p>FE <code>/wardrobe</code> có drawer xem chi tiết món đồ. Khi user click vào card hoặc ảnh món đồ, FE gọi <code>GET /api/wardrobe/items/{id}</code> để lấy dữ liệu mới nhất và hiển thị ảnh lớn, phân loại, màu sắc, size, chất liệu, mùa, họa tiết, tags, số lần mặc, lần mặc gần nhất, ngày thêm/cập nhật và thông tin mua sắm nếu có.</p>
+              <p>Trong drawer, user có thể bấm <code>Sửa</code> để mở modal sửa metadata và gọi <code>PUT /api/wardrobe/items/{id}</code>, bấm <code>Xóa</code> để mở dialog xác nhận và gọi <code>DELETE /api/wardrobe/items/{id}</code>, hoặc chọn món đồ cho outfit hôm nay. FE giữ ảnh hiện tại khi sửa metadata, xóa item khỏi grid sau khi delete, bỏ item khỏi outfit hôm nay nếu đang được chọn và refresh stats.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="user">
+            <h3>User</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/users/me</code><button class="mini-copy" type="button" data-copy="/api/users/me">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>UserProfileResponse</code></td></tr>
+                  <tr><td><span class="method put">PUT</span></td><td><span class="inline-copy"><code>/api/users/me</code><button class="mini-copy" type="button" data-copy="/api/users/me">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>UserProfileResponse</code></td></tr>
+                  <tr><td><span class="method put">PUT</span></td><td><span class="inline-copy"><code>/api/users/me/password</code><button class="mini-copy" type="button" data-copy="/api/users/me/password">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>204 No Content</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="wardrobe">
+            <h3>Wardrobe</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/wardrobe/items</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>Page&lt;ClothingItemResponse&gt;</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/wardrobe/items</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>ClothingItemResponse</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/wardrobe/items/{id}</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items/{id}">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>ClothingItemResponse</code></td></tr>
+                  <tr><td><span class="method put">PUT</span></td><td><span class="inline-copy"><code>/api/wardrobe/items/{id}</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items/{id}">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>ClothingItemResponse</code></td></tr>
+                  <tr><td><span class="method delete">DELETE</span></td><td><span class="inline-copy"><code>/api/wardrobe/items/{id}</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items/{id}">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>204 No Content</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/wardrobe/items/{id}/pairings</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items/{id}/pairings">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>List&lt;PairingSuggestionResponse&gt;</code></td></tr>
+                  <tr><td><span class="method patch">PATCH</span></td><td><span class="inline-copy"><code>/api/wardrobe/items/{id}/wear</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items/{id}/wear">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>ClothingItemResponse</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/wardrobe/stats</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/stats">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>WardrobeStatsResponse</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note info">
+              <div class="note-title">Trang yêu thích</div>
+              <p>FE <code>/favorites</code> lấy wardrobe item từ Java, gọi Nodejs <code>GET /api/wardrobe/preferences</code> để merge favorite/status, sau đó chỉ hiển thị item có <code>favorite=true</code>. User có thể tìm kiếm, lọc theo trạng thái, mở drawer chi tiết, đổi trạng thái, sửa/xóa item hoặc bỏ yêu thích để item biến khỏi danh sách.</p>
+            </div>
+            <div class="note info">
+              <div class="note-title">Wardrobe Preference - Nodejs Service</div>
+              <p>Core API Service Java vẫn sở hữu dữ liệu chính của <code>wardrobe_items</code>. FE lấy item từ Java, sau đó gọi Nodejs để merge yêu thích và trạng thái item. Nodejs kiểm tra item thuộc user hiện tại trước khi ghi.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/wardrobe/preferences?itemIds=1,2,3</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/preferences?itemIds=1,2,3">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>{ items: WardrobePreference[] }</code></td></tr>
+                  <tr><td><span class="method put">PUT</span></td><td><span class="inline-copy"><code>/api/wardrobe/items/{id}/preferences</code><button class="mini-copy" type="button" data-copy="/api/wardrobe/items/{id}/preferences">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>WardrobePreference</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note info">
+              <div class="note-title">Status enum</div>
+              <p><code>IN_USE</code>: đang dùng. <code>RARELY_USED</code>: ít mặc. <code>STORED</code>: cất kho. <code>TO_SELL</code>: muốn thanh lý.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="upload">
+            <h3>Upload</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Request</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/upload/clothing</code><button class="mini-copy" type="button" data-copy="/api/upload/clothing">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Multipart <code>file</code></td><td><code>ImageUploadResult</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/upload/avatar</code><button class="mini-copy" type="button" data-copy="/api/upload/avatar">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Multipart <code>file</code></td><td><code>ImageUploadResult</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="weather">
+            <h3>Weather - Nodejs Service</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/weather/snapshots</code><button class="mini-copy" type="button" data-copy="/api/weather/snapshots">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>WeatherSnapshotResponse</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/weather/snapshots/latest</code><button class="mini-copy" type="button" data-copy="/api/weather/snapshots/latest">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>WeatherSnapshotResponse</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note info">
+              <div class="note-title">Weather contract</div>
+              <p><code>POST /api/weather/snapshots</code> nhận body <code>{ lat, lon }</code>, gọi Open-Meteo để lấy thời tiết, gọi Nominatim để lấy <code>location_label</code>, chuẩn hóa dữ liệu và lưu snapshot theo user hiện tại.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="calendar">
+            <h3>Calendar - Nodejs Service</h3>
+            <div class="note warning">
+              <div class="note-title">Nguồn calendar đúng</div>
+              <p>FE không dùng <code>/api/events</code> của Java cho <code>/home</code> nữa. Calendar thật đi qua Nodejs Service và Google OAuth. FE không nhận access token/refresh token của Google; token được Nodejs mã hóa và lưu trong Postgres chung.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/calendar/status</code><button class="mini-copy" type="button" data-copy="/api/calendar/status">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Trạng thái kết nối Google Calendar.</td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/calendar/google/connect</code><button class="mini-copy" type="button" data-copy="/api/calendar/google/connect">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>{ authorizationUrl, expiresAt }</code> để FE redirect sang Google consent.</td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/calendar/google/callback</code><button class="mini-copy" type="button" data-copy="/api/calendar/google/callback">Copy</button></span></td><td><span class="auth no">Không</span></td><td>Callback OAuth từ Google, sau đó redirect về FE <code>/home</code>.</td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/calendar/today</code><button class="mini-copy" type="button" data-copy="/api/calendar/today">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Lịch trình hôm nay từ Google Calendar API và snapshot đã lưu DB.</td></tr>
+                  <tr><td><span class="method delete">DELETE</span></td><td><span class="inline-copy"><code>/api/calendar/google/disconnect</code><button class="mini-copy" type="button" data-copy="/api/calendar/google/disconnect">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>204 No Content</code>, xóa token đã lưu.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="outfit">
+            <h3>Outfit</h3>
+            <div class="note warning">
+              <div class="note-title">FE page đã gỡ</div>
+              <p>FE đã gỡ trang <code>/outfits</code>. Các endpoint Core API dưới đây vẫn tồn tại ở backend nhưng hiện không còn màn quản lý outfit riêng trong sidebar/router.</p>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/outfits</code><button class="mini-copy" type="button" data-copy="/api/outfits">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>Page&lt;OutfitResponse&gt;</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/outfits</code><button class="mini-copy" type="button" data-copy="/api/outfits">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>OutfitResponse</code></td></tr>
+                  <tr><td><span class="method delete">DELETE</span></td><td><span class="inline-copy"><code>/api/outfits/{id}</code><button class="mini-copy" type="button" data-copy="/api/outfits/{id}">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>204 No Content</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="outfit">
+            <h3>Daily Outfit - Nodejs Service</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/daily-outfits</code><button class="mini-copy" type="button" data-copy="/api/daily-outfits">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Lịch sử daily outfit dạng phân trang, hỗ trợ <code>page</code>, <code>size</code>, <code>from</code>, <code>to</code>.</td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/daily-outfits/today</code><button class="mini-copy" type="button" data-copy="/api/daily-outfits/today">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Daily outfit đã xác nhận cho hôm nay hoặc ngày truyền qua <code>?date=YYYY-MM-DD</code>.</td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/daily-outfits</code><button class="mini-copy" type="button" data-copy="/api/daily-outfits">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Xác nhận outfit sẽ mặc trong ngày.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note info">
+              <div class="note-title">Daily outfit contract</div>
+              <p><code>POST /api/daily-outfits</code> nhận <code>itemIds</code> hoặc <code>outfitId</code>. Nếu nhận <code>itemIds</code>, Nodejs tự tạo outfit, tạo <code>outfit_items</code>, upsert <code>daily_outfits</code> theo <code>user_id + worn_date</code>, rồi cập nhật <code>wear_count</code> theo phần item thêm/bỏ so với lần xác nhận trước trong cùng ngày. <code>GET /api/daily-outfits</code> trả lịch sử dạng phân trang cho màn FE <code>/wear-history</code>.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="ai">
+            <h3>Suggestion - Nodejs Service</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/suggestions/today/latest</code><button class="mini-copy" type="button" data-copy="/api/suggestions/today/latest">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Gợi ý mới nhất trong ngày, kèm context weather/calendar/wardrobe count.</td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/suggestions/today</code><button class="mini-copy" type="button" data-copy="/api/suggestions/today">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Tạo gợi ý mới bằng rule-based stylist và lưu vào Postgres chung.</td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/suggestions/{id}/confirm</code><button class="mini-copy" type="button" data-copy="/api/suggestions/{id}/confirm">Copy</button></span></td><td><span class="auth yes">Có</span></td><td>Đánh dấu suggestion đã được xác nhận mặc hôm nay.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="note info">
+              <div class="note-title">Gemini optional</div>
+              <p>Flow hiện tại không cần <code>GEMINI_API_KEY</code>. Các biến Gemini chỉ dùng nếu sau này bật lại provider AI để phân tích ảnh hoặc viết lại lời gợi ý.</p>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="trial">
+            <h3>Trial / AI Try-On</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/trial/generate</code><button class="mini-copy" type="button" data-copy="/api/trial/generate">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>TryOnJobResponse</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/trial/{jobId}/status</code><button class="mini-copy" type="button" data-copy="/api/trial/{jobId}/status">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>TryOnStatusResponse</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/trial/history</code><button class="mini-copy" type="button" data-copy="/api/trial/history">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>Page&lt;TryOnHistoryResponse&gt;</code></td></tr>
+                  <tr><td><span class="method delete">DELETE</span></td><td><span class="inline-copy"><code>/api/trial/history/{id}</code><button class="mini-copy" type="button" data-copy="/api/trial/history/{id}">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>204 No Content</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="endpoint-section" data-api-group="payment">
+            <h3>Subscription và Payment</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Response chính</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/subscription/plans</code><button class="mini-copy" type="button" data-copy="/api/subscription/plans">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>List&lt;PlanResponse&gt;</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/subscription/me</code><button class="mini-copy" type="button" data-copy="/api/subscription/me">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>PlanResponse</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/subscription/upgrade</code><button class="mini-copy" type="button" data-copy="/api/subscription/upgrade">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>PlanResponse</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/subscription/cancel</code><button class="mini-copy" type="button" data-copy="/api/subscription/cancel">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>PlanResponse</code></td></tr>
+                  <tr><td><span class="method post">POST</span></td><td><span class="inline-copy"><code>/api/payments/vnpay/create</code><button class="mini-copy" type="button" data-copy="/api/payments/vnpay/create">Copy</button></span></td><td><span class="auth yes">Có</span></td><td><code>PaymentUrlResponse</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/payments/vnpay/callback</code><button class="mini-copy" type="button" data-copy="/api/payments/vnpay/callback">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>302 Redirect</code></td></tr>
+                  <tr><td><span class="method get">GET</span></td><td><span class="inline-copy"><code>/api/payments/vnpay/ipn</code><button class="mini-copy" type="button" data-copy="/api/payments/vnpay/ipn">Copy</button></span></td><td><span class="auth no">Không</span></td><td><code>{ RspCode, Message }</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="grid two">
+            <div class="code-card">
+              <div class="code-title">
+                <span>AuthResponse</span>
+                <button class="copy-button" type="button" data-copy-target="auth-response">Copy</button>
+              </div>
+              <pre><code id="auth-response">{
+  "accessToken": "...",
+  "refreshToken": "...",
+  "expiresIn": 900000,
+  "user": {
+    "id": 1,
+    "publicId": "uuid",
+    "email": "user@example.com",
+    "fullName": "User Name",
+    "avatarUrl": null,
+    "status": "ACTIVE",
+    "plan": "FREE",
+    "planExpiresAt": null,
+    "storageUsed": 0,
+    "storageLimit": 100,
+    "tryOnCountToday": 0,
+    "tryOnLimit": 5
+  }
+}</code></pre>
+            </div>
+            <div class="code-card">
+              <div class="code-title">
+                <span>ImageUploadResult</span>
+                <button class="copy-button" type="button" data-copy-target="upload-response">Copy</button>
+              </div>
+              <pre><code id="upload-response">{
+  "fileId": 1,
+  "originalUrl": "https://...",
+  "thumbnailUrl": "https://...",
+  "backgroundRemovedUrl": null,
+  "publicId": "cloudinary-public-id"
+}</code></pre>
+            </div>
+            <div class="code-card">
+              <div class="code-title">
+                <span>TryOnJobResponse</span>
+                <button class="copy-button" type="button" data-copy-target="tryon-job-response">Copy</button>
+              </div>
+              <pre><code id="tryon-job-response">{
+  "jobId": 1,
+  "predictionId": "replicate-prediction-id",
+  "status": "PENDING"
+}</code></pre>
+            </div>
+            <div class="code-card">
+              <div class="code-title">
+                <span>TryOnStatusResponse</span>
+                <button class="copy-button" type="button" data-copy-target="tryon-status-response">Copy</button>
+              </div>
+              <pre><code id="tryon-status-response">{
+  "jobId": 1,
+  "status": "DONE",
+  "resultImageUrl": "https://...",
+  "processingTimeMs": 4200,
+  "accuracy": "98.4%",
+  "createdAt": "2026-07-21T00:00:00"
+}</code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section class="section" id="database" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Persistence</p>
+              <h2>Database chính</h2>
+            </div>
+          </div>
+          <p class="section-copy">Core API migrations đang nằm tại <code>BE/Shelfy/src/main/resources/db/migration</code>. Các bảng do Nodejs service sở hữu mới thêm nằm trong <code>Nodejs/migrations</code> và chạy bằng <code>npm run migrate</code> trong thư mục <code>Nodejs</code>. Production DB dùng PostgreSQL Railway.</p>
+          <div class="db-grid">
+            <div class="db-item"><code>users</code><p>Tài khoản, plan, quota lưu trữ, quota try-on.</p></div>
+            <div class="db-item"><code>auth_credentials</code><p>Password hash, login failure count, lock state.</p></div>
+            <div class="db-item"><code>roles</code>, <code>permissions</code><p>RBAC qua user roles và role permissions.</p></div>
+            <div class="db-item"><code>refresh_tokens</code><p>Refresh token hash, revoke/replace token.</p></div>
+            <div class="db-item"><code>password_reset_tokens</code><p>Token reset password đã hash.</p></div>
+            <div class="db-item"><code>file_assets</code><p>Metadata ảnh trên Cloudinary.</p></div>
+            <div class="db-item"><code>wardrobe_items</code><p>Món đồ trong tủ.</p></div>
+            <div class="db-item"><code>wardrobe_item_preferences</code><p>Metadata mở rộng của món đồ theo từng user, do Nodejs quản lý: yêu thích và trạng thái item.</p></div>
+            <div class="db-item"><code>outfits</code>, <code>outfit_items</code><p>Outfit và item thuộc outfit.</p></div>
+            <div class="db-item"><code>daily_outfits</code><p>Outfit người dùng xác nhận mặc theo từng ngày; do Nodejs quản lý, unique theo <code>user_id + worn_date</code>, có thể gắn weather snapshot/calendar event để phục vụ suggestion sau này.</p></div>
+            <div class="db-item"><code>calendar_events</code><p>Lưu snapshot sự kiện đã fetch từ Google Calendar để FE và suggestion dùng lại. Không dùng Java <code>/api/events</code> làm nguồn lịch trình thật cho <code>/home</code>.</p></div>
+            <div class="db-item"><code>calendar_connections</code><p>Lưu trạng thái kết nối Google Calendar, provider email, scope và Google token đã mã hóa.</p></div>
+            <div class="db-item"><code>calendar_oauth_states</code><p>Lưu OAuth state đã hash để chống CSRF/replay trong callback Google.</p></div>
+            <div class="db-item"><code>weather_snapshots</code><p>Snapshot thời tiết theo user/vị trí, do Nodejs lưu để FE hiển thị và suggestion dùng lại.</p></div>
+            <div class="db-item"><code>ai_suggestions</code><p>Bảng gợi ý AI cũ từ Core schema, chưa dùng cho flow FE <code>/suggest</code> mới.</p></div>
+            <div class="db-item"><code>ai_style_suggestions</code>, <code>ai_style_suggestion_items</code><p>Gợi ý stylist do Nodejs quản lý: lưu output rule engine hoặc provider AI tùy cấu hình, context đã dùng, các item được chọn, trạng thái confirm và liên kết tới <code>daily_outfits</code>.</p></div>
+            <div class="db-item"><code>try_on_sessions</code><p>Job thử đồ AI, trạng thái, prediction id, result file.</p></div>
+            <div class="db-item"><code>plans</code>, <code>subscriptions</code><p>Gói và đăng ký.</p></div>
+            <div class="db-item"><code>payments</code><p>Giao dịch thanh toán.</p></div>
+            <div class="db-item"><code>audit_logs</code><p>Log hành động hệ thống.</p></div>
+          </div>
+          <div class="note info">
+            <div class="note-title">Constraint cần nhớ</div>
+            <p><code>wardrobe_items.category</code> nhận các nhóm như <code>TOP</code>, <code>BOTTOM</code>, <code>DRESS</code>, <code>SHOES</code>, <code>BAG</code>, <code>ACCESSORY</code>, <code>OUTERWEAR</code>, <code>OTHER</code>. <code>wardrobe_item_preferences.item_status</code> gồm <code>IN_USE</code>, <code>RARELY_USED</code>, <code>STORED</code>, <code>TO_SELL</code>. <code>try_on_sessions.status</code> gồm <code>PENDING</code>, <code>PROCESSING</code>, <code>COMPLETED</code>, <code>FAILED</code>. <code>users.storage_limit = -1</code> nghĩa là không giới hạn.</p>
+          </div>
+        </section>
+
+        <section class="section" id="integrations" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">AI và dịch vụ ngoài</p>
+              <h2>Tích hợp sắp triển khai</h2>
+            </div>
+          </div>
+          <div class="timeline">
+            <article class="timeline-item">
+              <h3>Rule-Based Stylist</h3>
+              <p>Gợi ý trang phục hiện dùng rule engine trong Nodejs Service. Nodejs chấm điểm item theo thời tiết, lịch trình, chất liệu, màu, mùa, favorite/trạng thái và lịch sử mặc gần đây để trả structured JSON. Gemini có thể được bật lại sau cho phân tích ảnh hoặc viết lại text.</p>
+            </article>
+            <article class="timeline-item">
+              <h3>Replicate IDM-VTON</h3>
+              <p>Try-on dùng Replicate API với model <code>cuuupid/idm-vton:0513734a452173b8173e907e3a59d19a36266e55b48528559432bd21c7d7e985</code>. Input là ảnh người dùng và ảnh trang phục; output là ảnh mô phỏng người dùng mặc trang phục.</p>
+            </article>
+            <article class="timeline-item">
+              <h3>Open-Meteo và Nominatim</h3>
+              <p>Weather dùng Open-Meteo trong Nodejs Service. FE gửi tọa độ hiện tại lên Nodejs; Nodejs gọi Open-Meteo, map <code>weather_code</code> sang mô tả tiếng Việt, gọi Nominatim reverse geocoding để lấy <code>location_label</code>, lưu snapshot vào Postgres và trả dữ liệu chuẩn hóa. Nếu reverse geocoding lỗi hoặc không tìm được tên địa điểm, Nodejs vẫn trả dữ liệu thời tiết thật và dùng nhãn <code>Vị trí hiện tại</code>, không tự sinh tên thành phố giả. Nếu user không cấp quyền vị trí, FE báo lỗi rõ và không dùng dữ liệu giả.</p>
+            </article>
+            <article class="timeline-item">
+              <h3>Google Calendar</h3>
+              <p>Calendar thật do Nodejs xử lý. FE không gọi trực tiếp Google Calendar API và không dùng <code>/api/events</code> của Java cho màn <code>/home</code>. Luồng hiện tại là OAuth, lưu token đã mã hóa, gọi Google Calendar API, chuẩn hóa dữ liệu, lưu lại cho suggestion và trả qua Nodejs API như <code>/api/calendar/today</code>. Các biến chính gồm <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>, <code>GOOGLE_CALENDAR_REDIRECT_URI</code>, <code>GOOGLE_CALENDAR_SCOPES</code> và <code>CALENDAR_TOKEN_ENCRYPTION_KEY</code>.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="security" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Secrets</p>
+              <h2>Bảo mật và env</h2>
+            </div>
+          </div>
+          <div class="note danger">
+            <div class="note-title">Không commit file chứa secret</div>
+            <p>Không commit <code>.env</code>, <code>.env.local</code>, <code>*.env</code> hoặc file copy như <code>BE/.env (1)</code>. Các giá trị như JWT secret, database password, Cloudinary key, Replicate token và VNPay secret phải nằm trong môi trường deploy hoặc env local không commit.</p>
+          </div>
+          <div class="note info">
+            <div class="note-title">Biến public FE</div>
+            <p>FE chỉ được commit biến public kiểu <code>VITE_API_BASE_URL</code>, <code>VITE_NODE_API_BASE_URL</code> khi giá trị không phải secret. URL production là public endpoint nên có thể nằm trong env deploy.</p>
+          </div>
+        </section>
+
+        <section class="section" id="notes" data-search-block>
+          <div class="section-header">
+            <div>
+              <p class="section-kicker">Ghi nhớ</p>
+              <h2>Lưu ý hiện trạng</h2>
+            </div>
+          </div>
+          <ul class="list">
+            <li>FE production dự kiến deploy Vercel.</li>
+            <li>Core API Service production đang deploy Railway.</li>
+            <li>Database production dùng PostgreSQL Railway.</li>
+            <li>FE gọi thẳng Core API Service trên Railway và gọi thẳng Nodejs Service qua <code>VITE_NODE_API_BASE_URL</code>.</li>
+            <li>Profile cá nhân đã có màn riêng ở FE và dùng các endpoint <code>/api/users/me</code>, <code>/api/users/me/password</code>.</li>
+            <li>Java đã xóa <code>/api/home</code>; weather thuộc Nodejs Service.</li>
+            <li>Tính năng mới từ hiện tại ưu tiên triển khai bằng Nodejs; không thêm code Java cho feature mới nếu không có quyết định riêng.</li>
+            <li><code>demo@shelfy.app / 123456</code> hiện không login được trên Railway; cần sửa seed credential nếu muốn dùng demo account.</li>
+            <li>Payment chưa chốt flow production.</li>
+            <li>Weather dùng Open-Meteo và Nominatim, không cần API key ở giai đoạn hiện tại.</li>
+            <li>Calendar trên <code>/home</code> đã bỏ nguồn <code>/api/events</code> Java; hiện gọi Nodejs Calendar API để kết nối Google Calendar thật và lấy lịch hôm nay.</li>
+            <li>Outfit mặc hôm nay đã có boundary Nodejs: FE <code>/wardrobe</code> gọi <code>POST /api/daily-outfits</code> để xác nhận bộ đồ sẽ mặc; FE <code>/wear-history</code> gọi <code>GET /api/daily-outfits</code> để xem lịch sử mặc lưu trong <code>daily_outfits</code>.</li>
+            <li>Favorite và trạng thái món đồ đã có boundary Nodejs: FE <code>/wardrobe</code> và <code>/favorites</code> gọi <code>GET /api/wardrobe/preferences</code> để merge metadata vào item từ Java và gọi <code>PUT /api/wardrobe/items/{id}/preferences</code> khi user thích hoặc đổi trạng thái item.</li>
+            <li>Gợi ý hôm nay đã có boundary Nodejs: FE <code>/suggest</code> gọi <code>GET /api/suggestions/today/latest</code>, <code>POST /api/suggestions/today</code> và <code>POST /api/suggestions/{id}/confirm</code>; mặc định dùng rule-based stylist, không cần Gemini API key.</li>
+          </ul>
+        </section>
+
+        <footer class="footer">
+          <p>Bản HTML này được tạo từ <code>docs/project-overview.md</code>. Khi Markdown nguồn thay đổi, cần cập nhật bản đọc này để team dev luôn thấy cùng một bức tranh hệ thống.</p>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" role="status" aria-live="polite" id="toast">Đã copy</div>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const themeToggle = document.getElementById("theme-toggle");
+      const printButton = document.getElementById("print-button");
+      const searchInput = document.getElementById("doc-search");
+      const searchMeta = document.getElementById("search-meta");
+      const progress = document.querySelector(".scroll-progress");
+      const toast = document.getElementById("toast");
+      const navLinks = Array.from(document.querySelectorAll(".toc a"));
+      const sections = Array.from(document.querySelectorAll("[data-search-block]"));
+      const apiFilterButtons = Array.from(document.querySelectorAll("[data-api-filter]"));
+      const apiGroups = Array.from(document.querySelectorAll("[data-api-group]"));
+      let toastTimer = null;
+
+      function setTheme(theme) {
+        root.dataset.theme = theme;
+        localStorage.setItem("shelfy-doc-theme", theme);
+        const isDark = theme === "dark";
+        themeToggle.setAttribute("aria-pressed", String(isDark));
+        themeToggle.textContent = isDark ? "Theme sáng" : "Theme tối";
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          toast.classList.remove("show");
+        }, 1600);
+      }
+
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast("Đã copy");
+        } catch (error) {
+          const temp = document.createElement("textarea");
+          temp.value = text;
+          temp.setAttribute("readonly", "");
+          temp.style.position = "fixed";
+          temp.style.opacity = "0";
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand("copy");
+          temp.remove();
+          showToast("Đã copy");
+        }
+      }
+
+      function updateProgress() {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const percent = max > 0 ? Math.min(100, Math.max(0, (scrollTop / max) * 100)) : 0;
+        progress.style.width = percent + "%";
+      }
+
+      function updateSearch() {
+        const query = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        sections.forEach(function (section) {
+          if (!query) {
+            section.classList.remove("hidden");
+            visible += 1;
+            return;
+          }
+
+          const text = section.textContent.toLowerCase();
+          const matched = text.includes(query);
+          section.classList.toggle("hidden", !matched);
+          if (matched) visible += 1;
+        });
+
+        searchMeta.textContent = query ? visible + " phần phù hợp" : "";
+      }
+
+      function setApiFilter(filter) {
+        apiFilterButtons.forEach(function (button) {
+          const isActive = button.dataset.apiFilter === filter;
+          button.classList.toggle("is-active", isActive);
+          button.setAttribute("aria-pressed", String(isActive));
+        });
+
+        apiGroups.forEach(function (group) {
+          const show = filter === "all" || group.dataset.apiGroup === filter;
+          group.classList.toggle("hidden", !show);
+        });
+      }
+
+      const savedTheme = localStorage.getItem("shelfy-doc-theme");
+      const preferredTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      setTheme(savedTheme || preferredTheme);
+
+      themeToggle.addEventListener("click", function () {
+        setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+      });
+
+      printButton.addEventListener("click", function () {
+        window.print();
+      });
+
+      searchInput.addEventListener("input", updateSearch);
+
+      apiFilterButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          setApiFilter(button.dataset.apiFilter);
+        });
+      });
+
+      document.addEventListener("click", function (event) {
+        if (!(event.target instanceof Element)) return;
+        const button = event.target.closest("[data-copy], [data-copy-target]");
+        if (!button) return;
+
+        const direct = button.getAttribute("data-copy");
+        const targetId = button.getAttribute("data-copy-target");
+        const target = targetId ? document.getElementById(targetId) : null;
+        const text = direct || (target ? target.textContent : "");
+        if (text) copyText(text);
+      });
+
+      const observer = new IntersectionObserver(function (entries) {
+        const visible = entries
+          .filter(function (entry) { return entry.isIntersecting; })
+          .sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
+
+        if (!visible) return;
+
+        navLinks.forEach(function (link) {
+          const isCurrent = link.getAttribute("href") === "#" + visible.target.id;
+          if (isCurrent) {
+            link.setAttribute("aria-current", "true");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+      }, { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.2, 0.6] });
+
+      sections.forEach(function (section) {
+        observer.observe(section);
+      });
+
+      window.addEventListener("scroll", updateProgress, { passive: true });
+      updateProgress();
+      updateSearch();
+      setApiFilter("all");
+    })();
+  </script>
+</body>
+</html>

@@ -1,5 +1,4 @@
 const wardrobeAiUploadImage = new URL("../../image/wardrobe-ai-upload.png", import.meta.url).href;
-const outfitMainImage = new URL("../../image/outfit-main.png", import.meta.url).href;
 const wardrobeTeeImage = new URL("../../image/wardrobe-tee.png", import.meta.url).href;
 const wardrobePantsImage = new URL("../../image/wardrobe-pants.png", import.meta.url).href;
 const wardrobeBagImage = new URL("../../image/wardrobe-bag.png", import.meta.url).href;
@@ -72,13 +71,6 @@ export const wardrobeFilters = [
   { label: "Váy" },
   { label: "Phụ kiện" },
 ];
-
-export const featuredCollection = {
-  image: outfitMainImage,
-  title: "Bộ sưu tập Xuân Hè 2024",
-  count: "Tổng cộng 45 món đồ",
-  status: "ACTIVE",
-};
 
 export const wardrobeItems = [
   {

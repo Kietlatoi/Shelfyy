@@ -34,19 +34,25 @@ function ProcessingView({ data }) {
   )
 }
 
-function ResultView({ data }) {
+function ResultView({ data, isSaved, isSaving, onSave }) {
   return (
     <div className="absolute inset-0 z-20">
       <img className="w-full h-full object-cover" src={data.image} alt="Kết quả thử đồ AI" />
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 p-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-border-subtle">
-        <button className="p-3 rounded-full bg-primary text-white flex items-center justify-center hover:bg-secondary transition-colors">
+        <button className="p-3 rounded-full bg-primary text-white flex items-center justify-center hover:bg-secondary transition-colors" type="button">
           <MaterialIcon name="download" />
         </button>
-        <button className="p-3 rounded-full bg-surface-container-high text-primary flex items-center justify-center hover:bg-surface-variant transition-colors">
+        <button className="p-3 rounded-full bg-surface-container-high text-primary flex items-center justify-center hover:bg-surface-variant transition-colors" type="button">
           <MaterialIcon name="share" />
         </button>
-        <button className="px-6 py-2 rounded-full border border-primary font-label-md text-label-md hover:bg-primary hover:text-white transition-all">
-          {data.saveLabel}
+        <button
+          className="inline-flex items-center justify-center gap-2 rounded-full border border-primary px-6 py-2 font-label-md text-label-md transition-all hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:border-border-subtle disabled:bg-surface-container-high disabled:text-on-surface-variant"
+          disabled={isSaved || isSaving}
+          onClick={onSave}
+          type="button"
+        >
+          <MaterialIcon name={isSaved ? 'check_circle' : 'bookmark_add'} filled={isSaved} className="text-[18px]" />
+          {isSaving ? 'Đang lưu...' : isSaved ? 'Đã lưu' : data.saveLabel}
         </button>
       </div>
       <div className="absolute top-6 right-6 px-4 py-2 bg-secondary text-white font-label-sm text-label-sm rounded-lg shadow-md flex items-center gap-2">
@@ -57,13 +63,28 @@ function ResultView({ data }) {
   )
 }
 
-export function TrialShowcase({ metrics, showcase, view }) {
+export function TrialShowcase({
+  isResultSaved = false,
+  isSavingResult = false,
+  metrics,
+  onOpenHistory = () => {},
+  onSaveResult = () => {},
+  showcase,
+  view,
+}) {
   return (
     <div className="md:col-span-8 sticky top-24">
       <div className="relative bg-surface-container-lowest border border-border-subtle rounded-2xl overflow-hidden aspect-[3/4] md:aspect-[3/4] flex items-center justify-center shadow-xl">
         {view === 'placeholder' && <PlaceholderView data={showcase.placeholder} />}
         {view === 'processing' && <ProcessingView data={showcase.processing} />}
-        {view === 'result' && <ResultView data={showcase.result} />}
+        {view === 'result' && (
+          <ResultView
+            data={showcase.result}
+            isSaved={isResultSaved}
+            isSaving={isSavingResult}
+            onSave={onSaveResult}
+          />
+        )}
       </div>
 
       <div className="mt-6 flex justify-between items-center px-4">
@@ -78,7 +99,11 @@ export function TrialShowcase({ metrics, showcase, view }) {
             </div>
           ))}
         </div>
-        <button className="flex items-center gap-2 text-secondary bg-transparent border-0" type="button">
+        <button
+          className="flex items-center gap-2 text-secondary bg-transparent border-0"
+          onClick={onOpenHistory}
+          type="button"
+        >
           <MaterialIcon name="history" />
           <span className="font-label-md text-label-md font-bold underline cursor-pointer">
             {metrics.historyLabel}

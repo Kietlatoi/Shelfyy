@@ -9,8 +9,10 @@ RUN npm install
 
 COPY . .
 
-ARG VITE_API_BASE_URL=/api
+ARG VITE_API_BASE_URL=https://shelfyy-production-4f6e.up.railway.app/api
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ARG VITE_NODE_API_BASE_URL=
+ENV VITE_NODE_API_BASE_URL=$VITE_NODE_API_BASE_URL
 
 RUN npm run build
 

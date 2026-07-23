@@ -1,4 +1,3 @@
-const calendarImage = new URL("../../image/calendar.webp", import.meta.url).href;
 const outfitMainImage = new URL("../../image/outfit-main.png", import.meta.url).href;
 
 export const sidebarData = {
@@ -10,6 +9,8 @@ export const sidebarData = {
   navItems: [
     { key: "home", label: "Trang chủ", icon: "home", href: "#/home" },
     { key: "wardrobe", label: "Tủ đồ", icon: "checkroom", href: "#/wardrobe" },
+    { key: "favorites", label: "Yêu thích", icon: "favorite", href: "#/favorites" },
+    { key: "wearHistory", label: "Lịch sử mặc", icon: "history", href: "#/wear-history" },
     {
       key: "suggestions",
       label: "Gợi ý hôm nay",
@@ -23,7 +24,7 @@ export const sidebarData = {
     action: "Nâng cấp ngay",
   },
   utilityLinks: [
-    { label: "Settings", icon: "settings", href: "#" },
+    { label: "Settings", icon: "settings", href: "#/profile" },
     { label: "Help", icon: "help", href: "#" },
   ],
 };
@@ -40,28 +41,29 @@ export const topNavData = {
 
 export const weatherData = {
   eyebrow: "Thời tiết hiện tại",
-  location: "TP. Hồ Chí Minh",
-  icon: "wb_sunny",
-  temperature: "36°",
-  condition: "Nắng ráo",
-  feelsLike: "Cảm giác như 35°",
+  location: "Đang lấy vị trí",
+  icon: "location_searching",
+  temperature: "--",
+  condition: "Chưa có dữ liệu thời tiết",
+  feelsLike: "Cần cấp quyền vị trí",
   metrics: [
-    { label: "Độ ẩm", value: "65%" },
-    { label: "UV", value: "Trung bình", emphasis: true },
-    { label: "Dự đoán 5 giờ nữa", value: "Nắng ấm" },
+    { label: "Độ ẩm", value: "-" },
+    { label: "Gió", value: "-", emphasis: true },
+    { label: "Mây", value: "-" },
   ],
 };
 
 export const calendarData = {
-  title: "Lịch trình cá nhân",
-  image: calendarImage,
-  event: {
-    month: "Oct",
-    day: "24",
-    title: "Tiệc tối cùng bạn bè",
-    meta: "19:00 • District 1",
-  },
-  addLabel: "+ Thêm lịch trình mới",
+  title: "Lịch trình hôm nay của bạn",
+  sourceLabel: "Google Calendar",
+  calendarUrl: "https://calendar.google.com/calendar/u/0/r",
+  connected: false,
+  statusTitle: "Chưa kết nối Google Calendar",
+  statusDescription: "Kết nối Google Calendar để Shelfy hiển thị lịch trình hôm nay.",
+  emptyTitle: "Hôm nay chưa có sự kiện",
+  emptyDescription: "Lịch trình cá nhân đang trống.",
+  actionLabel: "Kết nối Google Calendar",
+  events: [],
 };
 
 export const outfitData = {

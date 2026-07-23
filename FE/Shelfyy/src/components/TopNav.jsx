@@ -32,7 +32,7 @@ export function TopNav({ data, onNotify }) {
   return (
     <header className="fixed top-0 right-0 left-64 h-16 z-40 bg-surface/80 backdrop-blur-md dark:bg-surface-dim/80 border-b border-border-subtle dark:border-outline-variant flex items-center justify-between px-gutter">
       <div className="flex items-center gap-4 w-1/2">
-        <label className="relative w-full max-w-md">
+        {/* <label className="relative w-full max-w-md">
           <span className="sr-only">Tìm kiếm trang phục</span>
           <MaterialIcon
             name="search"
@@ -43,7 +43,7 @@ export function TopNav({ data, onNotify }) {
             placeholder={data.searchPlaceholder}
             type="text"
           />
-        </label>
+        </label> */}
       </div>
 
       <div className="flex items-center gap-6">
@@ -53,7 +53,7 @@ export function TopNav({ data, onNotify }) {
           onClick={onNotify}
           type="button"
         >
-          <MaterialIcon name="notifications" />
+          {/* <MaterialIcon name="notifications" /> */}
         </button>
 
         <div className="relative" ref={menuRef}>
@@ -85,7 +85,7 @@ export function TopNav({ data, onNotify }) {
             >
               <a
                 role="menuitem"
-                href="#/home"
+                href="#/profile"
                 className="flex items-center gap-2 px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high"
               >
                 <MaterialIcon name="person" size={18} />

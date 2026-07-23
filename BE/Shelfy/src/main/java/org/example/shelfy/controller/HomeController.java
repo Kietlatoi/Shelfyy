@@ -5,7 +5,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.shelfy.dto.request.CalendarEventRequest;
 import org.example.shelfy.dto.response.CalendarEventResponse;
-import org.example.shelfy.dto.response.HomePageResponse;
 import org.example.shelfy.service.HomeService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +16,6 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class HomeController {
     private final HomeService homeService;
-
-    @Operation(summary = "Get aggregate HomePage data")
-    @GetMapping("/api/home")
-    public ResponseEntity<HomePageResponse> home(@RequestParam(required = false) Double lat,
-                                                 @RequestParam(required = false) Double lon) {
-        return ResponseEntity.ok(homeService.getHome(lat, lon));
-    }
 
     @Operation(summary = "Get user events")
     @GetMapping("/api/events")

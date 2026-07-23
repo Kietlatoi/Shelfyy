@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { FavoritesPage } from './pages/FavoritesPage'
 import { HomePage } from './pages/HomePage'
 import { LandingPage } from './pages/LandingPage'
 import { PremiumPage } from './pages/PremiumPage'
+import { ProfilePage } from './pages/ProfilePage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { SuggestPage } from './pages/SuggestPage'
 import { TrialPage } from './pages/TrialPage'
 import { WardrobePage } from './pages/WardrobePage'
+import { WearHistoryPage } from './pages/WearHistoryPage'
 import { LoadingPage } from './components/LoadingPage'
 
 function getRouteFromHash() {
@@ -55,6 +58,18 @@ function App() {
 
     if (route === '/wardrobe') {
       return <WardrobePage />
+    }
+
+    if (route === '/wear-history') {
+      return <WearHistoryPage />
+    }
+
+    if (route === '/favorites') {
+      return <FavoritesPage />
+    }
+
+    if (route === '/profile') {
+      return <ProfilePage />
     }
 
     if (route === '/trial') {

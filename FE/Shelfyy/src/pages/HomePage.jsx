@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { homeApi } from "../api/homeApi";
+import { calendarApi } from "../api/calendarApi";
 import { userApi } from "../api/userApi";
+import { weatherApi } from "../api/weatherApi";
 import { toCalendarCard, toOutfitSuggestion, toTopNav, toWeatherCard } from "../api/adapters";
 import { CalendarCard } from "../components/CalendarCard";
 import { OutfitSuggestion } from "../components/OutfitSuggestion";
@@ -15,18 +16,7 @@ import {
   topNavData,
   weatherData,
 } from "../const/homeData";
-
-function getBrowserLocation() {
-  if (!navigator.geolocation) return Promise.resolve({});
-
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => resolve({ lat: position.coords.latitude, lon: position.coords.longitude }),
-      () => resolve({}),
-      { enableHighAccuracy: false, timeout: 2500, maximumAge: 300000 }
-    );
-  });
-}
+import { getCurrentBrowserLocation } from "../utils/geolocation";
 
 export function HomePage() {
   const [weather, setWeather] = useState(weatherData);
@@ -34,22 +24,19 @@ export function HomePage() {
   const [outfit, setOutfit] = useState(outfitData);
   const [nav, setNav] = useState(topNavData);
   const [error, setError] = useState("");
+  const [weatherError, setWeatherError] = useState("");
+  const [calendarError, setCalendarError] = useState("");
+  const [calendarLoading, setCalendarLoading] = useState(false);
 
   useEffect(() => {
     let ignore = false;
 
-    async function loadHome() {
+    async function loadUserShell() {
       try {
-        const location = await getBrowserLocation();
-        const [home, profile] = await Promise.all([
-          homeApi.getHome(location),
-          userApi.me().catch(() => null),
-        ]);
+        const profile = await userApi.me().catch(() => null);
 
         if (ignore) return;
-        setWeather(toWeatherCard(home?.weather));
-        setCalendar(toCalendarCard(home?.upcomingEvent));
-        setOutfit(toOutfitSuggestion(home?.outfitSuggestion));
+        setOutfit(toOutfitSuggestion(null));
         setNav(toTopNav(profile));
         setError("");
       } catch (err) {
@@ -57,11 +44,64 @@ export function HomePage() {
       }
     }
 
-    loadHome();
+    async function loadWeather() {
+      try {
+        const location = await getCurrentBrowserLocation();
+        const snapshot = await weatherApi.createSnapshot(location);
+
+        if (ignore) return;
+        setWeather(toWeatherCard(snapshot));
+        setWeatherError("");
+      } catch (err) {
+        if (!ignore) {
+          setWeather(toWeatherCard(null));
+          setWeatherError(err.message || "Không tải được thời tiết hiện tại");
+        }
+      }
+    }
+
+    async function loadCalendar() {
+      try {
+        const today = await calendarApi.today();
+
+        if (ignore) return;
+        setCalendar(toCalendarCard(today));
+        setCalendarError("");
+      } catch (err) {
+        if (!ignore) {
+          setCalendar(toCalendarCard(null));
+          setCalendarError(err.message || "Không tải được lịch trình hôm nay");
+        }
+      }
+    }
+
+    loadUserShell();
+    loadWeather();
+    loadCalendar();
     return () => {
       ignore = true;
     };
   }, []);
+
+  const handleCalendarAction = async () => {
+    if (calendar.connected) {
+      window.location.href = calendar.calendarUrl;
+      return;
+    }
+
+    setCalendarLoading(true);
+    setCalendarError("");
+    try {
+      const result = await calendarApi.connect();
+      if (!result?.authorizationUrl) {
+        throw new Error("Nodejs service chưa trả URL kết nối Google Calendar");
+      }
+      window.location.href = result.authorizationUrl;
+    } catch (err) {
+      setCalendarLoading(false);
+      setCalendarError(err.message || "Không bắt đầu được kết nối Google Calendar");
+    }
+  };
 
   const handleNotify = () => {
     window.alert(topNavData.notificationMessage);
@@ -80,11 +120,21 @@ export function HomePage() {
         )}
         <div className="grid grid-cols-12 gap-gutter">
           <div className="col-span-12 lg:col-span-5 space-y-gutter">
+            {weatherError && (
+              <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700" role="alert">
+                {weatherError}
+              </div>
+            )}
             <LoadingComponent delay={500}>
               <WeatherCard weather={weather} />
             </LoadingComponent>
             <LoadingComponent delay={700}>
-              <CalendarCard calendar={calendar} />
+              <CalendarCard
+                calendar={calendar}
+                error={calendarError}
+                loading={calendarLoading}
+                onPrimaryAction={handleCalendarAction}
+              />
             </LoadingComponent>
           </div>
 

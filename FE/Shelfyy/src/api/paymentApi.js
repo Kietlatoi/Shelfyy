@@ -1,11 +1,10 @@
-import { apiRequest } from './apiClient';
+import { nodeApiRequest } from './nodeApiClient';
 
 export const paymentApi = {
   /**
-   * Tạo giao dịch VNPay cho gói `planType` (PRO | PREMIUM), trả về
-   * { paymentUrl, transactionCode }. Gọi xong thì redirect trình duyệt sang
-   * paymentUrl để người dùng thanh toán trên cổng VNPay Sandbox.
+   * Tạo giao dịch VNPay qua Nodejs service cho gói `planType` (PRO | PREMIUM),
+   * trả về { paymentUrl, transactionCode } để redirect sang VNPay Sandbox.
    */
   createVnpayPayment: (planType) =>
-    apiRequest('/payments/vnpay/create', { method: 'POST', body: { planType } }),
+    nodeApiRequest('/payments/vnpay/create', { method: 'POST', body: { planType } }),
 };
