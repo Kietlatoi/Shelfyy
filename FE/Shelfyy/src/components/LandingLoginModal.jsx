@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { BrandLogo } from './BrandLogo'
 import { MaterialIcon } from './MaterialIcon'
 import { LoadingButton } from './LoadingButton'
 
@@ -97,9 +98,12 @@ export function LandingLoginModal({ onClose, onSubmit, isLoading = false, error 
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#b83c44]">
-              Shelfy
-            </p>
+            <BrandLogo
+              className="mb-4"
+              markClassName="h-9 w-9"
+              tagline="Tủ đồ AI"
+              textClassName="max-w-[150px]"
+            />
             <h2 className="text-2xl font-bold text-[#111827]" id="landing-login-title">
               {isRegister ? 'Tạo tài khoản mới' : 'Đăng nhập tài khoản'}
             </h2>

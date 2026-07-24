@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
+import { dailyOutfitApi } from "../api/dailyOutfitApi";
 import { calendarApi } from "../api/calendarApi";
+import { pageContent } from "../api/apiClient";
+import { trialApi } from "../api/trialApi";
 import { userApi } from "../api/userApi";
 import { weatherApi } from "../api/weatherApi";
-import { toCalendarCard, toOutfitSuggestion, toTopNav, toWeatherCard } from "../api/adapters";
+import { toCalendarCard, toTopNav, toWeatherCard } from "../api/adapters";
 import { CalendarCard } from "../components/CalendarCard";
-import { OutfitSuggestion } from "../components/OutfitSuggestion";
 import { Sidebar } from "../components/Sidebar";
+import { HomeTodayOutfitPanel } from "../components/HomeTodayOutfitPanel";
 import { TopNav } from "../components/TopNav";
 import { WeatherCard } from "../components/WeatherCard";
 import { LoadingComponent } from "../components/LoadingComponent";
 import {
   calendarData,
-  outfitData,
   sidebarData,
   topNavData,
   weatherData,
@@ -21,12 +23,15 @@ import { getCurrentBrowserLocation } from "../utils/geolocation";
 export function HomePage() {
   const [weather, setWeather] = useState(weatherData);
   const [calendar, setCalendar] = useState(calendarData);
-  const [outfit, setOutfit] = useState(outfitData);
+  const [todayOutfit, setTodayOutfit] = useState(null);
+  const [latestTryOn, setLatestTryOn] = useState(null);
   const [nav, setNav] = useState(topNavData);
   const [error, setError] = useState("");
   const [weatherError, setWeatherError] = useState("");
   const [calendarError, setCalendarError] = useState("");
   const [calendarLoading, setCalendarLoading] = useState(false);
+  const [todayOutfitError, setTodayOutfitError] = useState("");
+  const [todayOutfitLoading, setTodayOutfitLoading] = useState(true);
 
   useEffect(() => {
     let ignore = false;
@@ -36,7 +41,6 @@ export function HomePage() {
         const profile = await userApi.me().catch(() => null);
 
         if (ignore) return;
-        setOutfit(toOutfitSuggestion(null));
         setNav(toTopNav(profile));
         setError("");
       } catch (err) {
@@ -75,9 +79,33 @@ export function HomePage() {
       }
     }
 
+    async function loadTodayOutfit() {
+      setTodayOutfitLoading(true);
+      try {
+        const [today, savedTryOnPage] = await Promise.all([
+          dailyOutfitApi.getToday(),
+          trialApi.getHistory({ page: 0, size: 1, saved: true }).catch(() => null),
+        ]);
+
+        if (ignore) return;
+        setTodayOutfit(today);
+        setLatestTryOn(pageContent(savedTryOnPage)[0] || null);
+        setTodayOutfitError("");
+      } catch (err) {
+        if (!ignore) {
+          setTodayOutfit(null);
+          setLatestTryOn(null);
+          setTodayOutfitError(err.message || "Không tải được outfit hôm nay");
+        }
+      } finally {
+        if (!ignore) setTodayOutfitLoading(false);
+      }
+    }
+
     loadUserShell();
     loadWeather();
     loadCalendar();
+    loadTodayOutfit();
     return () => {
       ignore = true;
     };
@@ -140,7 +168,12 @@ export function HomePage() {
 
           <div className="col-span-12 lg:col-span-7">
             <LoadingComponent delay={600}>
-              <OutfitSuggestion outfit={outfit} />
+              <HomeTodayOutfitPanel
+                dailyOutfit={todayOutfit}
+                error={todayOutfitError}
+                isLoading={todayOutfitLoading}
+                latestTryOn={latestTryOn}
+              />
             </LoadingComponent>
           </div>
         </div>

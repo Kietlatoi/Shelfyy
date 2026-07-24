@@ -76,6 +76,50 @@ async function authenticate(req, res, next) {
   }
 }
 
+async function getRoleContext(userId) {
+  var result = await query(
+    `SELECT COALESCE(json_agg(DISTINCT r.role_name) FILTER (WHERE r.role_name IS NOT NULL), '[]'::json) AS roles,
+            COALESCE(json_agg(DISTINCT p.permission_code) FILTER (WHERE p.permission_code IS NOT NULL), '[]'::json) AS permissions
+     FROM users u
+     LEFT JOIN user_roles ur ON ur.user_id = u.user_id
+     LEFT JOIN roles r ON r.role_id = ur.role_id
+     LEFT JOIN role_permissions rp ON rp.role_id = r.role_id
+     LEFT JOIN permissions p ON p.permission_id = rp.permission_id
+     WHERE u.user_id = $1
+       AND u.deleted_at IS NULL`,
+    [userId]
+  );
+
+  var row = result.rows[0] || {};
+  return {
+    roles: Array.isArray(row.roles) ? row.roles : [],
+    permissions: Array.isArray(row.permissions) ? row.permissions : [],
+  };
+}
+
+async function requireAdmin(req, res, next) {
+  try {
+    if (!req.user || !req.user.userId) {
+      return next(unauthorized());
+    }
+
+    var context = await getRoleContext(req.user.userId);
+    if (!context.roles.includes('ADMIN')) {
+      var forbidden = new Error('Bạn không có quyền truy cập trang quản trị.');
+      forbidden.status = 403;
+      forbidden.code = 'ADMIN_FORBIDDEN';
+      return next(forbidden);
+    }
+
+    req.user.roles = context.roles;
+    req.user.permissions = context.permissions;
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   authenticate: authenticate,
+  requireAdmin: requireAdmin,
 };

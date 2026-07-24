@@ -2,13 +2,10 @@ const t_Shelfy = new URL("../../image/landing-wardrobe.png", import.meta.url).hr
 const g_i_h_m_nay_Shelfy = new URL("../../image/landing-ai-stylist.png", import.meta.url).href;
 const th_o_Shelfy = new URL("../../image/landing-add-smart.png", import.meta.url).href;
 const screenImg = new URL("../../image/app-screen.png", import.meta.url).href;
-const landingLogo = new URL("../../image/landing-logo.png", import.meta.url).href;
-const landingFooterLogo = new URL("../../image/landing-footer-logo.png", import.meta.url).href;
 const landingAppStoreBadge = new URL("../../image/landing-app-store.png", import.meta.url).href;
 const landingGooglePlayBadge = new URL("../../image/landing-google-play.png", import.meta.url).href;
 
 export const landingHeaderData = {
-  logo: landingLogo,
   nav: ["Tính năng", "Tạp chí", "Giới thiệu", "FAQ", "Thông báo"],
   actions: ["Tải ứng dụng", "Đăng nhập"],
 };
@@ -128,7 +125,6 @@ export const landingSteps = [
 ];
 
 export const landingFooterData = {
-  logo: landingFooterLogo,
   description:
     "Tủ đồ thông minh của AI. Số hóa tủ quần áo, nhận gợi ý trang phục thực tế và mặc đẹp hơn mỗi ngày.",
   badges: [

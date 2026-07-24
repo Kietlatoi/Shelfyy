@@ -1,27 +1,63 @@
-# Secrets — KHÔNG commit
+# ============================================================
+# Shelfy gitignore
+# Giữ source, config mẫu và migration trong Git.
+# Không commit secrets, dependencies local, build output, logs.
+# ============================================================
+
+# Secrets / environment files
 .env
-.env.local
+.env.*
 *.env
-!.env.example
+**/.env
+**/.env.*
+!*.env.example
+!**/.env.example
 
-# IDE
-.idea/
-.vscode/
+# Dependencies
+node_modules/
+**/node_modules/
 
-# OS
+# Frontend build/cache output
+dist/
+**/dist/
+.vite/
+**/.vite/
+.vercel/
+**/.vercel/
+
+# Java / Maven build output
+target/
+**/target/
+.mvn/timing.properties
+
+# Logs
+*.log
+*.out.log
+*.err.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Backend build output
-BE/Shelfy/target/
-BE/Shelfy/.env
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# Frontend
-FE/Shelfy/node_modules/
-FE/Shelfy/dist/
-FE/Shelfyy/.env
+# Runtime temp files
+tmp/
+temp/
+*.tmp
 
-# Node services
-Nodejs/node_modules/
-Nodejs/.env
-*.log
+# Local certificates / keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx

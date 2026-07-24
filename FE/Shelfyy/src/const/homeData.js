@@ -4,7 +4,6 @@ export const sidebarData = {
   brand: {
     name: "Shelfy",
     tagline: "Quản lí tủ đồ",
-    icon: "checkroom",
   },
   navItems: [
     { key: "home", label: "Trang chủ", icon: "home", href: "#/home" },

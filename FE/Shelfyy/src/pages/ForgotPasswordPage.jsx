@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { forgotPassword } from '../api/authApi'
+import { BrandLogo } from '../components/BrandLogo'
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -25,7 +26,7 @@ export function ForgotPasswordPage() {
   return (
     <main className="min-h-screen bg-surface-container-low flex items-center justify-center px-4">
       <section className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl border border-border-subtle">
-        <p className="text-xs font-bold uppercase tracking-widest text-[#b83c44] mb-2">Shelfy</p>
+        <BrandLogo className="mb-6" markClassName="h-10 w-10" tagline="Tủ đồ AI" />
         <h1 className="text-2xl font-bold text-primary mb-2">Quên mật khẩu</h1>
         <p className="text-sm text-text-muted mb-6">
           Nhập email tài khoản, hệ thống sẽ gửi link đặt lại mật khẩu cho bạn.

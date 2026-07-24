@@ -1,4 +1,5 @@
 var crypto = require('crypto');
+var querystring = require('qs');
 
 var DEFAULT_PAY_URL = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html';
 var VN_TIME_OFFSET_MS = 7 * 60 * 60 * 1000;
@@ -27,7 +28,12 @@ function getConfig() {
 
 function isConfigured() {
   var config = getConfig();
-  return Boolean(config.tmnCode && config.hashSecret);
+  return Boolean(
+    config.tmnCode &&
+    config.hashSecret &&
+    config.tmnCode !== '...' &&
+    config.hashSecret !== '...'
+  );
 }
 
 function normalizeClientIp(value) {
@@ -65,12 +71,9 @@ function parseVnpDate(value) {
   return new Date(Date.UTC(year, month - 1, day, hour, minute, second) - VN_TIME_OFFSET_MS);
 }
 
-function urlEncode(value) {
+function vnpEncode(value) {
   return encodeURIComponent(String(value || ''))
-    .replace(/[!'()]/g, function(char) {
-      return '%' + char.charCodeAt(0).toString(16).toUpperCase();
-    })
-    .replace(/\*/g, '%2A');
+    .replace(/%20/g, '+');
 }
 
 function sortedEntries(params) {
@@ -84,12 +87,16 @@ function sortedEntries(params) {
     });
 }
 
+function sortedEncodedParams(params) {
+  var encoded = {};
+  sortedEntries(params).forEach(function(entry) {
+    encoded[encodeURIComponent(entry[0])] = vnpEncode(entry[1]);
+  });
+  return encoded;
+}
+
 function buildHashData(params) {
-  return sortedEntries(params)
-    .map(function(entry) {
-      return entry[0] + '=' + urlEncode(entry[1]);
-    })
-    .join('&');
+  return querystring.stringify(sortedEncodedParams(params), { encode: false });
 }
 
 function hmacSHA512(key, data) {
@@ -140,13 +147,8 @@ function buildPaymentUrl(input) {
 
   var hashData = buildHashData(params);
   var secureHash = hmacSHA512(config.hashSecret, hashData);
-  var query = sortedEntries(params)
-    .map(function(entry) {
-      return urlEncode(entry[0]) + '=' + urlEncode(entry[1]);
-    })
-    .join('&');
 
-  return config.payUrl + '?' + query + '&vnp_SecureHash=' + secureHash;
+  return config.payUrl + '?' + hashData + '&vnp_SecureHash=' + secureHash;
 }
 
 function verifySignature(rawParams) {

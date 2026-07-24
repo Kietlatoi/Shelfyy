@@ -12,3 +12,4 @@ export * from './trialApi';
 export * from './subscriptionApi';
 export * from './userApi';
 export * from './tokenStore';
+export * from './adminApi';

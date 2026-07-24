@@ -91,6 +91,14 @@ export function TopNav({ data, onNotify }) {
                 <MaterialIcon name="person" size={18} />
                 Hồ sơ của tôi
               </a>
+              <a
+                role="menuitem"
+                href="#/admin"
+                className="flex items-center gap-2 px-4 py-2 text-sm text-on-surface hover:bg-surface-container-high"
+              >
+                <MaterialIcon name="admin_panel_settings" size={18} />
+                Bảng quản trị
+              </a>
               <button
                 role="menuitem"
                 type="button"

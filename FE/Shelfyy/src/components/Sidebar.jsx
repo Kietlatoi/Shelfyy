@@ -1,21 +1,17 @@
+import { BrandLogo } from './BrandLogo'
 import { MaterialIcon } from './MaterialIcon'
 
 export function Sidebar({ activeKey = 'home', data }) {
   return (
     <nav className="bg-surface dark:bg-surface-dim h-screen w-64 fixed left-0 top-0 border-r border-border-subtle dark:border-outline-variant flex flex-col py-8 px-4 z-50">
-      <div className="mb-10 px-2 flex items-center gap-3">
-        <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-          <MaterialIcon name={data.brand.icon} filled className="text-white" />
-        </div>
-        <div>
-          <h1 className="font-headline-md text-headline-md font-bold text-primary dark:text-on-primary-fixed leading-tight">
-            {data.brand.name}
-          </h1>
-          <p className="text-label-sm font-label-sm text-on-surface-variant uppercase tracking-widest">
-            {data.brand.tagline}
-          </p>
-        </div>
-      </div>
+      <a className="mb-10 px-2" href="#/home" aria-label="Shelfy home">
+        <BrandLogo
+          markClassName="h-10 w-10"
+          name={data.brand.name}
+          tagline={data.brand.tagline}
+          textClassName="max-w-[160px]"
+        />
+      </a>
 
       <div className="flex-grow space-y-2">
         {data.navItems.map((item) => {

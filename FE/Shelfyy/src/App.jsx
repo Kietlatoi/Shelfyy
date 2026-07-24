@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { AdminPage } from './pages/AdminPage'
 import { FavoritesPage } from './pages/FavoritesPage'
 import { HomePage } from './pages/HomePage'
 import { LandingPage } from './pages/LandingPage'
@@ -54,6 +55,10 @@ function App() {
 
     if (route === '/home') {
       return <HomePage />
+    }
+
+    if (route === '/admin') {
+      return <AdminPage />
     }
 
     if (route === '/wardrobe') {

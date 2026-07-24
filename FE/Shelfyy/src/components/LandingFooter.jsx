@@ -1,9 +1,18 @@
+import { BrandLogo } from './BrandLogo'
+
 export function LandingFooter({ data }) {
   return (
     <footer className="bg-[#0c0c14] text-white pt-20 pb-10">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
           <div>
+            <BrandLogo
+              className="mb-6"
+              markClassName="h-11 w-11"
+              tagline="Tủ đồ AI"
+              textClassName="max-w-[160px]"
+              tone="inverse"
+            />
             <p className="text-sm text-gray-400 leading-relaxed mb-6">{data.description}</p>
             {/* <div className="flex gap-4">
               {data.badges.map((badge) => (

@@ -274,7 +274,7 @@ router.post('/vnpay/create', authenticate, async function(req, res, next) {
     var paymentUrl = vnpay.buildPaymentUrl({
       amount: prepared.amount,
       clientIp: clientIp(req),
-      orderInfo: 'Thanh toan goi ' + planType + ' - Shelfy - ' + prepared.paymentId,
+      orderInfo: 'Thanh toan goi ' + planType + ' Shelfy ' + prepared.paymentId,
       txnRef: prepared.txnRef,
     });
 

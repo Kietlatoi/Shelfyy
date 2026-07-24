@@ -5,6 +5,7 @@ import { LandingFeatures } from '../components/LandingFeatures'
 import { LandingFooter } from '../components/LandingFooter'
 import { LandingHeader } from '../components/LandingHeader'
 import { LandingHero } from '../components/LandingHero'
+import { LandingAppNoticeModal } from '../components/LandingAppNoticeModal'
 import { LandingHowItWorks } from '../components/LandingHowItWorks'
 import { LandingLoginModal } from '../components/LandingLoginModal'
 import { LandingProblems } from '../components/LandingProblems'
@@ -20,6 +21,7 @@ import {
 
 export function LandingPage() {
   const [isLoginOpen, setIsLoginOpen] = useState(false)
+  const [isAppNoticeOpen, setIsAppNoticeOpen] = useState(false)
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [loginError, setLoginError] = useState('')
 
@@ -43,7 +45,11 @@ export function LandingPage() {
 
   return (
     <div className="font-sans bg-white text-[#111827] overflow-x-hidden">
-      <LandingHeader data={landingHeaderData} onLoginClick={() => { setLoginError(''); setIsLoginOpen(true) }} />
+      <LandingHeader
+        data={landingHeaderData}
+        onDownloadClick={() => setIsAppNoticeOpen(true)}
+        onLoginClick={() => { setLoginError(''); setIsLoginOpen(true) }}
+      />
       <main>
         <LandingHero data={landingHeroData} />
         <LandingProblems items={landingProblems} />
@@ -52,6 +58,10 @@ export function LandingPage() {
         <LandingHowItWorks steps={landingSteps} />
       </main>
       <LandingFooter data={landingFooterData} />
+
+      {isAppNoticeOpen && (
+        <LandingAppNoticeModal onClose={() => setIsAppNoticeOpen(false)} />
+      )}
 
       {isLoginOpen && (
         <LandingLoginModal

@@ -23,6 +23,7 @@ var suggestionsRouter = require('./routes/suggestions');
 var wardrobePreferencesRouter = require('./routes/wardrobePreferences');
 var trialRouter = require('./routes/trial');
 var paymentsRouter = require('./routes/payments');
+var adminRouter = require('./routes/admin');
 
 var app = express();
 
@@ -59,6 +60,7 @@ app.use('/api/suggestions', suggestionsRouter);
 app.use('/api/wardrobe', wardrobePreferencesRouter);
 app.use('/api/trial', trialRouter);
 app.use('/api/payments', paymentsRouter);
+app.use('/api/admin', adminRouter);
 
 app.get('/health', function(req, res) {
   res.json({ status: 'ok', service: 'shelfy-node' });

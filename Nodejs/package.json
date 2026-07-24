@@ -5,7 +5,7 @@
   "scripts": {
     "start": "nodemon ./bin/www",
     "migrate": "node scripts/migrate.js",
-    "check": "node --check app.js && node --check bin/www && node --check db.js && node --check middleware/auth.js && node --check routes/weather.js && node --check routes/calendar.js && node --check routes/dailyOutfits.js && node --check routes/suggestions.js && node --check routes/wardrobePreferences.js && node --check routes/trial.js && node --check routes/payments.js && node --check scripts/migrate.js && node --check services/openMeteoClient.js && node --check services/reverseGeocodeClient.js && node --check services/weatherCodes.js && node --check services/cryptoBox.js && node --check services/googleOAuthClient.js && node --check services/geminiStylistClient.js && node --check services/ruleBasedStylist.js && node --check services/replicateTryOnClient.js && node --check services/vnpayClient.js"
+    "check": "node --check app.js && node --check bin/www && node --check db.js && node --check middleware/auth.js && node --check routes/weather.js && node --check routes/calendar.js && node --check routes/dailyOutfits.js && node --check routes/suggestions.js && node --check routes/wardrobePreferences.js && node --check routes/trial.js && node --check routes/payments.js && node --check routes/admin.js && node --check scripts/migrate.js && node --check services/openMeteoClient.js && node --check services/reverseGeocodeClient.js && node --check services/weatherCodes.js && node --check services/cryptoBox.js && node --check services/googleOAuthClient.js && node --check services/geminiStylistClient.js && node --check services/ruleBasedStylist.js && node --check services/replicateTryOnClient.js && node --check services/vnpayClient.js"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
@@ -19,6 +19,7 @@
     "morgan": "^1.11.0",
     "nodemon": "^3.1.14",
     "pg": "^8.13.1",
+    "qs": "^6.15.3",
     "replicate": "^1.4.0"
   }
 }
