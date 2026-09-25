@@ -19,6 +19,23 @@ function frontendRedirectUrl(status) {
   return base + '/#/home?calendar=' + encodeURIComponent(status);
 }
 
+function completeAuthorization(res, destination, status) {
+  if (destination !== 'mobile') return res.redirect(frontendRedirectUrl(status));
+
+  var messages = {
+    connected: 'Đã kết nối Google Calendar. Đóng trang này và quay lại Shelfy để xem lịch.',
+    denied: 'Bạn chưa cấp quyền Google Calendar. Quay lại Shelfy nếu muốn thử lại.',
+    error: 'Chưa thể kết nối Google Calendar. Quay lại Shelfy và thử kết nối lại.',
+  };
+  var message = messages[status] || messages.error;
+  res.set('Cache-Control', 'no-store');
+  res.set('Referrer-Policy', 'no-referrer');
+  return res.type('html').send('<!doctype html><html lang="vi"><head>' +
+    '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Google Calendar · Shelfy</title></head><body>' +
+    '<main><h1>Google Calendar</h1><p>' + message + '</p></main></body></html>');
+}
+
 function publicGoogleError(message, status, code) {
   var error = new Error(message);
   error.status = status || 502;
@@ -387,6 +404,9 @@ router.get('/status', authenticate, async function(req, res, next) {
 router.post('/google/connect', authenticate, async function(req, res, next) {
   try {
     var state = crypto.randomBytes(32).toString('hex');
+    // Validate configuration before writing an OAuth attempt to the database.
+    var authorizationUrl = google.buildAuthorizationUrl(state);
+    var destination = req.body && req.body.client === 'mobile' ? 'mobile' : '/#/home';
     var ttlMs = Number(process.env.GOOGLE_OAUTH_STATE_TTL_MS || 10 * 60 * 1000);
     var expiresAt = new Date(Date.now() + ttlMs);
 
@@ -399,11 +419,11 @@ router.post('/google/connect', authenticate, async function(req, res, next) {
     await query(
       `INSERT INTO calendar_oauth_states (user_id, state_hash, redirect_after, expires_at)
        VALUES ($1, $2, $3, $4)`,
-      [req.user.userId, hashState(state), '/#/home', expiresAt]
+      [req.user.userId, hashState(state), destination, expiresAt]
     );
 
     return res.status(201).json({
-      authorizationUrl: google.buildAuthorizationUrl(state),
+      authorizationUrl: authorizationUrl,
       expiresAt: expiresAt.toISOString(),
     });
   } catch (err) {
@@ -412,14 +432,11 @@ router.post('/google/connect', authenticate, async function(req, res, next) {
 });
 
 router.get('/google/callback', async function(req, res) {
+  var destination = '/#/home';
   try {
-    if (req.query.error) {
-      return res.redirect(frontendRedirectUrl('denied'));
-    }
-
     var code = String(req.query.code || '');
     var state = String(req.query.state || '');
-    if (!code || !state) {
+    if (!state || (!code && !req.query.error)) {
       return res.redirect(frontendRedirectUrl('invalid'));
     }
 
@@ -430,7 +447,7 @@ router.get('/google/callback', async function(req, res) {
          WHERE state_hash = $1
            AND consumed_at IS NULL
            AND expires_at > NOW()
-         RETURNING user_id`,
+         RETURNING user_id, redirect_after`,
         [hashState(state)]
       );
 
@@ -440,6 +457,11 @@ router.get('/google/callback', async function(req, res) {
 
       return result.rows[0];
     });
+
+    destination = oauthState.redirect_after;
+    if (req.query.error) {
+      return completeAuthorization(res, destination, 'denied');
+    }
 
     var tokens = await google.exchangeCodeForTokens(code);
     var profile = null;
@@ -452,9 +474,9 @@ router.get('/google/callback', async function(req, res) {
     }
 
     await upsertConnection(oauthState.user_id, tokens, profile);
-    return res.redirect(frontendRedirectUrl('connected'));
+    return completeAuthorization(res, destination, 'connected');
   } catch (err) {
-    return res.redirect(frontendRedirectUrl(err.code || 'error'));
+    return completeAuthorization(res, destination, err.code || 'error');
   }
 });
 

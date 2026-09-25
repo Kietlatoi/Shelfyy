@@ -61,3 +61,21 @@ temp/
 *.crt
 *.p12
 *.pfx
+
+# Added by taw-commit
+credentials.json
+service-account*.json
+.next/
+out/
+build/
+*.tsbuildinfo
+.expo/
+.expo-shared/
+ios/build/
+android/build/
+android/.gradle/
+android/app/build/
+.eas/
+.claude/
+.claudebk/
+.taw/
