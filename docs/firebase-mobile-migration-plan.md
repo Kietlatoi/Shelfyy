@@ -1,4 +1,4 @@
-# Kế hoạch chuyển Shelfy sang Firebase, chỉ giữ mobile
+# Kế hoạch chuyển Shelfy sang Firebase, giữ mobile và landing page
 
 Ngày lập: 26/09/2026. Trạng thái: kế hoạch triển khai, chưa bắt đầu migration.
 
@@ -9,7 +9,9 @@ Ngày lập: 26/09/2026. Trạng thái: kế hoạch triển khai, chưa bắt �
 
 ## 1. Mục tiêu và phạm vi
 
-Giữ ứng dụng Expo tại `Mobile/Shelfy`; thay Spring Boot, Express và PostgreSQL bằng Firebase Authentication, Cloud Firestore và Cloud Functions. Cloudinary tiếp tục lưu ảnh, Firestore lưu metadata và đường dẫn. Kết thúc migration thì bỏ ứng dụng web, hai backend cũ và cấu hình triển khai tương ứng khỏi nhánh sản phẩm.
+Giữ ứng dụng Expo tại `Mobile/Shelfy`; thay Spring Boot, Express và PostgreSQL bằng Firebase Authentication, Cloud Firestore và Cloud Functions. Cloudinary tiếp tục lưu ảnh, Firestore lưu metadata và đường dẫn. Theo cập nhật của chủ dự án, **giữ landing page web tại `FE/Shelfyy`, xóa toàn bộ phần web còn lại**. Kết thúc migration thì gỡ hai backend cũ và cấu hình triển khai không còn dùng khỏi nhánh sản phẩm.
+
+Landing page giữ giao diện giới thiệu, nội dung, hình ảnh, logo, font, CSS, component và cấu hình build/hosting cần thiết. Gỡ đăng nhập/đăng ký web, khôi phục mật khẩu web, dashboard, tủ đồ, gợi ý, thử đồ, lịch sử, hồ sơ, Premium, thanh toán và admin web. Đổi các CTA đang dẫn vào ứng dụng web thành hướng dẫn tải/mở app; chỉ gắn link phát hành khi có URL thật. Landing page phải chạy độc lập với hai backend cũ và không giữ API client/JWT chỉ để phục vụ phần web đã bỏ.
 
 Giữ các luồng người dùng đang có: đăng ký/đăng nhập/khôi phục mật khẩu, hồ sơ/avatar, tủ đồ và bộ lọc, yêu thích/trạng thái quần áo, thống kê, phối đồ liên quan, thời tiết, Google Calendar, gợi ý hôm nay, xác nhận outfit, lịch sử mặc, thử đồ AI và lịch sử đã lưu, gói dịch vụ và thanh toán.
 
@@ -31,6 +33,7 @@ Chưa biết hệ thống có dữ liệu/người dùng thật hay chưa. Mặc
 | OAuth Calendar callback phía Node | `docs/mobile-google-calendar.md`, `Nodejs/routes/calendar.js` | Cần endpoint HTTPS thay thế dù bỏ web |
 | Mật khẩu Spring dùng BCrypt | `BE/Shelfy/.../config/SecurityConfig.java` | Có thể thử import BCrypt vào Firebase Auth, phải kiểm tra đăng nhập thực tế |
 | Web có trang admin riêng | `FE/Shelfyy/src/pages/AdminPage.jsx`, `Nodejs/routes/admin.js` | Phải có phương án quản trị tối thiểu khi bỏ web |
+| Landing hiện có đăng nhập/đăng ký gọi backend | `FE/Shelfyy/src/pages/LandingPage.jsx`, `components/LandingHeader.jsx` | Giữ phần giới thiệu, gỡ auth/modal login và chuyển CTA sang mobile; rà soát dependency trước khi xóa |
 | Có test Node và mobile | `Nodejs/tests/calendar-oauth.test.js`, `Mobile/Shelfy/tests/*.test.cjs` | Giữ ý nghĩa test, cập nhật mock/provider khi chuyển |
 | Mobile chưa có script lint/typecheck/test trong package | `Mobile/Shelfy/package.json` | Thiết lập kiểm tra phù hợp JSX trước khi dùng làm cổng nghiệm thu |
 
@@ -64,10 +67,13 @@ Các quyết định mặc định để triển khai:
 7. **Tách môi trường thử nghiệm và production.** Dùng Emulator Suite cho test; region Firestore/Functions được chốt trước khi tạo tài nguyên. Functions deploy cần Blaze; lập hạn mức sử dụng theo tài khoản và theo dõi chi phí. [Cloud Functions](https://firebase.google.com/docs/functions/get-started)
 8. **Không ghi song song SQL và Firestore mặc định.** Dùng môi trường Firebase thử nghiệm; chuyển production tại một mốc kiểm soát ghi dữ liệu. Nếu cần chuyển không gián đoạn thì phải bổ sung thiết kế đồng bộ riêng.
 
+Landing page là trang giới thiệu độc lập; không nằm trong đường đi dữ liệu nghiệp vụ của mobile trong sơ đồ trên. Giữ bộ build React/Vite hiện có ở phạm vi tối thiểu, không chuyển framework trong đợt này.
+
 Cấu trúc dự kiến sau migration:
 
 ```text
 Mobile/Shelfy/             # App hiện tại, lớp dữ liệu Firebase
+FE/Shelfyy/                # Chỉ landing page, asset và build/hosting cần thiết
 functions/                # Functions và logic nghiệp vụ chuyển từ Node/Java
 firebase.json             # Emulator và cấu hình triển khai
 .firebaserc               # Alias môi trường, không chứa secret
@@ -173,8 +179,8 @@ Mỗi task là một commit hoặc một nhóm commit nhỏ, khoảng 2–5 file
 
 ### Giai đoạn G — Gỡ hệ thống cũ
 
-- [ ] **28. Gỡ code và cấu hình cũ.** Phụ thuộc: checkpoint F và hết khoảng theo dõi đã thống nhất. Chia commit: 28a gỡ `FE/`; 28b gỡ `BE/` và `Nodejs/` sau khi logic/test cần thiết đã chuyển; 28c gỡ Docker/cấu hình URL JWT cũ, lệnh web và tài liệu lỗi thời. Nghiệm thu: repository chỉ cần mobile + Firebase + Cloudinary để chạy; không xóa asset mobile còn dùng. Kiểm tra: tìm import/URL/dependency mồ côi bằng `rg`, clean install và build mobile từ checkout mới.
-- [ ] **29. Ngừng dịch vụ và bàn giao vận hành.** Phụ thuộc: 28. File: README, hướng dẫn môi trường, runbook và release notes. Nghiệm thu: ghi rõ cách chạy/deploy/backup/khôi phục, quản trị, chi phí và secret rotation; dịch vụ cũ chỉ dừng khi dữ liệu/backup và quyền vận hành đã bàn giao. Kiểm tra: chạy theo README từ đầu; xác nhận không còn callback/traffic cần server cũ. Không xóa volume/database production chỉ vì đã xóa code.
+- [ ] **28. Giữ landing page, gỡ phần web và backend còn lại.** Phụ thuộc: checkpoint F và hết khoảng theo dõi đã thống nhất. Chia commit: 28a tách landing khỏi auth/API, giữ component/asset/style dùng chung còn cần và đổi CTA sang mobile; 28b gỡ mọi màn hình/route/chức năng web khác cùng dependency không còn dùng; 28c gỡ `BE/` và `Nodejs/` sau khi logic/test cần thiết đã chuyển; 28d gỡ Docker/cấu hình URL JWT và tài liệu lỗi thời, giữ cấu hình build/hosting landing cần thiết. Nghiệm thu: mobile dùng Firebase + Cloudinary, landing hoạt động độc lập; không xóa toàn bộ `FE/` hoặc asset mobile/landing còn dùng. Kiểm tra: `rg` tìm import/URL mồ côi, clean install và build mobile/landing; mở landing trên trình duyệt desktop/mobile để kiểm tra giao diện, ảnh, điều hướng và CTA; route web cũ không mở ứng dụng nghiệp vụ; Network không gọi backend cũ hoặc auth web.
+- [ ] **29. Ngừng dịch vụ và bàn giao vận hành.** Phụ thuộc: 28. File: README, hướng dẫn môi trường, runbook và release notes. Nghiệm thu: ghi rõ cách chạy/deploy mobile và landing, backup/khôi phục, quản trị, chi phí và secret rotation; dịch vụ cũ chỉ dừng khi dữ liệu/backup và quyền vận hành đã bàn giao; giữ hosting/domain phục vụ landing. Kiểm tra: chạy theo README từ đầu; xác nhận không còn callback/traffic cần server cũ và landing vẫn truy cập được. Không xóa volume/database production chỉ vì đã xóa code.
 
 ## 6. Kế hoạch chuyển dữ liệu và quay lui
 
@@ -199,7 +205,8 @@ Mỗi task là một commit hoặc một nhóm commit nhỏ, khoảng 2–5 file
 | Mất quyền Calendar khi đổi callback | Staging OAuth callback mới, state chống replay, kiểm thử reconnect và token bị thu hồi |
 | Callback thanh toán/AI đến nhiều lần | Idempotency key, transaction, receipt và cơ chế đối soát hữu hạn |
 | App cũ tiếp tục ghi database cũ | Kế hoạch bảo trì/bản tối thiểu, chặn đường ghi trước snapshot cuối |
-| Bỏ web làm mất công cụ admin | Task 05 và 24 hoàn tất trước khi xóa FE; không cấp quyền admin qua field client sửa được |
+| Bỏ phần web nghiệp vụ làm mất công cụ admin | Task 05 và 24 hoàn tất trước khi xóa admin web; không cấp quyền admin qua field client sửa được |
+| Xóa nhầm tài nguyên landing hoặc để lại CTA hỏng | Kiểm kê dependency, giữ asset/style/build/hosting cần thiết; kiểm tra trình duyệt và các link sau khi gỡ auth/route cũ |
 | Chỉ chạy tốt trong Expo Go | Nghiệm thu bằng bản build thiết bị của kênh phát hành thực tế |
 
 Firestore tính phí đọc/ghi và listener có thể phát sinh lượt đọc; không dự toán chi phí chỉ từ dung lượng metadata. Ghi lại chi phí Firebase, Cloudinary, Replicate riêng bằng kịch bản số user/lượt upload/lượt AI dự kiến. [Firestore billing](https://firebase.google.com/docs/firestore/pricing)
@@ -208,10 +215,11 @@ Firestore tính phí đọc/ghi và listener có thể phát sinh lượt đọc
 
 - [ ] Toàn bộ luồng trong bảng parity có kết quả kiểm thử, hoặc thay đổi phạm vi được chủ dự án chấp nhận rõ ràng.
 - [ ] Android/iOS theo phạm vi phát hành đã chạy thực tế; luồng lỗi và quyền thiết bị được kiểm tra.
-- [ ] Không còn phụ thuộc runtime vào web, Java, Express cũ hoặc PostgreSQL.
+- [ ] Mobile không phụ thuộc ứng dụng web, Java, Express cũ hoặc PostgreSQL; landing chạy độc lập và không gọi backend cũ.
+- [ ] Web chỉ còn landing page và tài nguyên cần thiết; giao diện, hình ảnh, CTA tải/mở mobile và hosting đã được kiểm tra.
 - [ ] Migration và rollback được diễn tập; dữ liệu/người dùng/gói trả phí đối soát đạt.
 - [ ] Bảo mật, quản trị, vòng đời ảnh, xóa tài khoản và quota được kiểm thử.
-- [ ] Checkout mới cài đặt/chạy/build theo tài liệu mới; không chứa secret hoặc bản export dữ liệu thật.
+- [ ] Checkout mới cài đặt/chạy/build mobile và landing theo tài liệu mới; không chứa secret hoặc bản export dữ liệu thật.
 
 ## 8. Thông tin cần chốt khi bắt đầu triển khai
 
