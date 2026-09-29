@@ -1,0 +1,16 @@
+{
+  "cli": { "version": ">= 16.0.0", "appVersionSource": "local" },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false" }
+    },
+    "production": {
+      "environment": "production",
+      "android": { "buildType": "app-bundle" },
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false" }
+    }
+  }
+}

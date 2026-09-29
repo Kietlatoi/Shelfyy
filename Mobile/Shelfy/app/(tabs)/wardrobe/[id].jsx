@@ -25,6 +25,22 @@ import { getCategoryLabel } from '../../../src/constants/categories';
 import { ITEM_STATUS_OPTIONS, statusOptionFor } from '../../../src/constants/itemStatus';
 import { formatDate, formatVND } from '../../../src/utils/format';
 
+async function loadWardrobeItemDetail(id) {
+  const item = await wardrobeApi.getItem(id);
+  let favorite = Boolean(item.favorite);
+  let status = item.status || 'IN_USE';
+  try {
+    const preferences = await wardrobePreferenceApi.getPreferences([id]);
+    if (Array.isArray(preferences) && preferences.length > 0) {
+      favorite = Boolean(preferences[0].favorite);
+      status = preferences[0].status || status;
+    }
+  } catch {
+    // Keep the canonical Firestore item fields when preference lookup fails.
+  }
+  return { item, favorite, status };
+}
+
 export default function WardrobeItemDetailScreen() {
   const { id } = useLocalSearchParams();
   const [item, setItem] = useState(null);
@@ -37,21 +53,10 @@ export default function WardrobeItemDetailScreen() {
   const fetchItemDetail = async () => {
     try {
       setLoading(true);
-      const data = await wardrobeApi.getItem(id);
-      setItem(data);
-      setFavorite(Boolean(data.favorite));
-      setStatus(data.status || 'IN_USE');
-
-      // Fetch preference
-      try {
-        const prefs = await wardrobePreferenceApi.getPreferences([id]);
-        if (Array.isArray(prefs) && prefs.length > 0) {
-          setFavorite(Boolean(prefs[0].favorite));
-          if (prefs[0].status) setStatus(prefs[0].status);
-        }
-      } catch {
-        // Ignore pref error
-      }
+      const result = await loadWardrobeItemDetail(id);
+      setItem(result.item);
+      setFavorite(result.favorite);
+      setStatus(result.status);
     } catch (err) {
       Alert.alert('Lỗi', err.message || 'Không thể tải chi tiết món đồ');
     } finally {
@@ -60,7 +65,18 @@ export default function WardrobeItemDetailScreen() {
   };
 
   useEffect(() => {
-    if (id) fetchItemDetail();
+    if (!id) return undefined;
+    let isMounted = true;
+    loadWardrobeItemDetail(id)
+      .then((result) => {
+        if (!isMounted) return;
+        setItem(result.item);
+        setFavorite(result.favorite);
+        setStatus(result.status);
+      })
+      .catch((err) => { if (isMounted) Alert.alert('Lỗi', err.message || 'Không thể tải chi tiết món đồ'); })
+      .finally(() => { if (isMounted) setLoading(false); });
+    return () => { isMounted = false; };
   }, [id]);
 
   const handleToggleFavorite = async () => {
@@ -86,14 +102,11 @@ export default function WardrobeItemDetailScreen() {
   const handleWearToday = async () => {
     setActionLoading(true);
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
       await dailyOutfitApi.confirmToday({
-        itemIds: [Number(id)],
-        wornDate: todayStr,
+        itemIds: [String(id)],
         name: `Mặc ${item.name}`,
         occasion: 'Hằng ngày',
       });
-      await wardrobeApi.markWorn(id);
       Alert.alert('Thành công', 'Đã lưu món đồ vào trang phục mặc hôm nay!');
       fetchItemDetail();
     } catch (err) {

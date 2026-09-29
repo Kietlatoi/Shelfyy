@@ -65,6 +65,12 @@ temp/
 # Added by taw-commit
 credentials.json
 service-account*.json
+.secret.local
+**/.secret.local
+*.jks
+*.keystore
+*.apk
+*.aab
 .next/
 out/
 build/

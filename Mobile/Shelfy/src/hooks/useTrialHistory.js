@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { trialApi } from '../api/trialApi';
-import { pageContent } from '../api/apiClient';
+import { pageContent } from '../api/adapters';
 import { isTrialPending, syncPendingTrials } from '../utils/trialHistory';
 
 export function useTrialHistory() {
@@ -41,6 +41,8 @@ export function useTrialHistory() {
       active = false;
       clearTimeout(timer);
     };
+  // The dependency intentionally recreates the focus callback when refreshHistory advances it.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revision]));
 
   return { history, historyError, refreshHistory };

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { wardrobeApi } from '../../../src/api/wardrobeApi';
 import { wardrobePreferenceApi } from '../../../src/api/wardrobePreferenceApi';
-import { pageContent } from '../../../src/api/apiClient';
+import { pageContent } from '../../../src/api/adapters';
 import WardrobeCard from '../../../src/components/wardrobe/WardrobeCard';
 import WardrobeFilters from '../../../src/components/wardrobe/WardrobeFilters';
 import WardrobeStats from '../../../src/components/wardrobe/WardrobeStats';
@@ -21,7 +21,7 @@ import AppInput from '../../../src/components/common/AppInput';
 import EmptyState from '../../../src/components/common/EmptyState';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
-import { spacing, radius, shadows } from '../../../src/constants/spacing';
+import { spacing, shadows } from '../../../src/constants/spacing';
 
 export default function WardrobeScreen() {
   const [items, setItems] = useState([]);
@@ -34,7 +34,7 @@ export default function WardrobeScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchItems = async (pageToFetch = 0, isRefresh = false) => {
+  const fetchItems = useCallback(async (pageToFetch = 0, isRefresh = false) => {
     try {
       if (pageToFetch === 0 && !isRefresh) setLoading(true);
 
@@ -87,23 +87,23 @@ export default function WardrobeScreen() {
       setRefreshing(false);
       setLoadingMore(false);
     }
-  };
+  }, [category, searchQuery]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const data = await wardrobeApi.getStats();
       setStats(data);
     } catch {
       // Ignore stats error
     }
-  };
+  }, []);
 
   // Reload data when screen is focused
   useFocusEffect(
     useCallback(() => {
-      fetchItems(0);
-      fetchStats();
-    }, [category, searchQuery])
+      void fetchItems(0);
+      void fetchStats();
+    }, [fetchItems, fetchStats])
   );
 
   const handleRefresh = () => {

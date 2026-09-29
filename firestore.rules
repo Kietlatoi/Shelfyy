@@ -1,0 +1,171 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owns(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && (!exists(/databases/$(database)/documents/_accountAccess/$(uid))
+          || get(/databases/$(database)/documents/_accountAccess/$(uid)).data.status == 'active');
+    }
+
+    function optionalShortString(data, field, maxLength) {
+      return !(field in data)
+        || data[field] == null
+        || (data[field] is string && data[field].size() <= maxLength);
+    }
+
+    function optionalStringList(data, field, maxItems) {
+      return !(field in data)
+        || data[field] == null
+        || (data[field] is list && data[field].size() <= maxItems);
+    }
+
+    function optionalPrice(data) {
+      return !('purchasePrice' in data)
+        || data.purchasePrice == null
+        || (data.purchasePrice is number && data.purchasePrice >= 0 && data.purchasePrice <= 1000000000);
+    }
+
+    function validCloudinaryRef(uid, data, folder) {
+      return data == null
+        || (data is map
+          && data.keys().hasOnly(['secureUrl', 'publicId'])
+          && data.secureUrl is string
+          && data.secureUrl.matches('^https://res[.]cloudinary[.]com/[^/]+/image/upload/.+$')
+          && data.publicId is string
+          && data.publicId.matches('^' + uid + '/' + folder + '/.+$'));
+    }
+
+    function validUserDocument(uid, data) {
+      return data.keys().hasOnly([
+          'fullName', 'email', 'phone', 'avatar', 'profile', 'timeZone', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll(['fullName', 'email', 'createdAt', 'updatedAt'])
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 100
+        && data.email == request.auth.token.email
+        && data.updatedAt == request.time
+        && optionalShortString(data, 'phone', 32)
+        && optionalShortString(data, 'timeZone', 64)
+        && (!('avatar' in data)
+          || data.avatar == null
+          || (data.avatar is map
+            && data.avatar.keys().hasOnly(['secureUrl', 'publicId'])
+            && data.avatar.secureUrl is string
+            && data.avatar.secureUrl.matches('^https://res[.]cloudinary[.]com/[^/]+/image/upload/.+$')
+            && data.avatar.publicId is string
+            && data.avatar.publicId.matches('^' + uid + '/avatars/.+$')))
+        && (!('profile' in data)
+          || (data.profile is map
+            && data.profile.keys().hasOnly([
+              'gender', 'heightCm', 'weightKg', 'bodyShape', 'skinTone',
+              'stylePreference', 'favoriteColors', 'privacyAiTrainingConsent'
+            ])));
+    }
+
+    function validWardrobeItem(uid, data) {
+      return data.keys().hasOnly([
+          'name', 'brand', 'category', 'subCategory', 'color', 'colorHex', 'season',
+          'size', 'pattern', 'material', 'tags', 'purchasePrice', 'purchaseDate',
+          'sourceUrl', 'image', 'thumbnail', 'backgroundRemovedUrl', 'favorite',
+          'status', 'aiDetected', 'wearCount', 'lastWornAt', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll(['name', 'category', 'favorite', 'status', 'createdAt', 'updatedAt'])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 150
+        && data.category in ['TOP', 'BOTTOM', 'DRESS', 'SHOES', 'BAG', 'ACCESSORY', 'OUTERWEAR', 'OTHER']
+        && data.favorite is bool
+        && data.status in ['IN_USE', 'RARELY_USED', 'STORED', 'TO_SELL']
+        && data.updatedAt == request.time
+        && optionalShortString(data, 'brand', 100)
+        && optionalShortString(data, 'subCategory', 100)
+        && optionalShortString(data, 'color', 50)
+        && optionalShortString(data, 'colorHex', 20)
+        && optionalShortString(data, 'season', 50)
+        && optionalShortString(data, 'size', 30)
+        && optionalShortString(data, 'pattern', 100)
+        && optionalShortString(data, 'material', 100)
+        && optionalShortString(data, 'purchaseDate', 32)
+        && optionalShortString(data, 'sourceUrl', 2048)
+        && optionalShortString(data, 'backgroundRemovedUrl', 2048)
+        && optionalStringList(data, 'tags', 25)
+        && optionalPrice(data)
+        && (!('thumbnail' in data) || validCloudinaryRef(uid, data.thumbnail, 'wardrobe'))
+        && (!('image' in data)
+          || validCloudinaryRef(uid, data.image, 'wardrobe'))
+        && data.favorite is bool;
+    }
+
+    function validWardrobeUpdate(uid) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'brand', 'category', 'subCategory', 'color', 'colorHex', 'season',
+          'size', 'pattern', 'material', 'tags', 'purchasePrice', 'purchaseDate',
+          'sourceUrl', 'favorite',
+          'status', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time
+        && validWardrobeItem(uid, request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    match /users/{uid} {
+      allow read: if owns(uid);
+      allow create: if owns(uid)
+        && validUserDocument(uid, request.resource.data)
+        && !('avatar' in request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if owns(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'fullName', 'phone', 'profile', 'timeZone', 'updatedAt'
+        ])
+        && validUserDocument(uid, request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+
+      match /wardrobe/{itemId} {
+        allow read: if owns(uid);
+        allow create: if false;
+        allow update: if owns(uid) && validWardrobeUpdate(uid);
+        allow delete: if false;
+      }
+
+      match /dailyOutfits/{recordId} {
+        allow read: if owns(uid);
+      }
+      match /suggestions/{suggestionId} {
+        allow read: if owns(uid);
+      }
+      match /tryOns/{jobId} {
+        allow read: if owns(uid);
+      }
+      match /weatherSnapshots/{snapshotId} {
+        allow read: if owns(uid);
+      }
+      match /calendarEvents/{eventId} {
+        allow read: if owns(uid);
+      }
+      match /integrationStatus/{provider} {
+        allow read: if owns(uid);
+      }
+      match /entitlements/{entitlementId} {
+        allow read: if owns(uid);
+      }
+      match /payments/{paymentId} {
+        allow read: if owns(uid);
+      }
+      match /auditEvents/{eventId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /plans/{planId} {
+      allow get, list: if resource.data.isActive == true;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,7 +1,7 @@
-import { apiRequest } from './apiClient';
+import { changePassword, getCurrentUser, updateProfile } from './authApi';
 
 export const userApi = {
-  me: () => apiRequest('/users/me'),
-  updateMe: (payload) => apiRequest('/users/me', { method: 'PUT', body: payload }),
-  changePassword: (payload) => apiRequest('/users/me/password', { method: 'PUT', body: payload }),
+  me: getCurrentUser,
+  updateMe: updateProfile,
+  changePassword,
 };

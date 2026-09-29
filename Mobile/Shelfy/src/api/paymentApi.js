@@ -1,9 +1,14 @@
-import { nodeApiRequest } from './nodeApiClient';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/client';
 
-export const paymentApi = {
-  createVnpayPayment: (planType) =>
-    nodeApiRequest('/payments/vnpay/create', {
-      method: 'POST',
-      body: { planType },
-    }),
-};
+export function createPaymentApi(callable) {
+  return {
+    async createVnpayPayment(planId) {
+      const result = await callable('createVnpayPayment')({ planId });
+      return result.data;
+    },
+  };
+}
+
+const callable = (name) => httpsCallable(functions, name);
+export const paymentApi = createPaymentApi(callable);

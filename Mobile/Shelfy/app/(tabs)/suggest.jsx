@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -34,9 +34,8 @@ export default function SuggestScreen() {
   const [wardrobeEmpty, setWardrobeEmpty] = useState(false);
   const [refreshError, setRefreshError] = useState('');
 
-  const fetchLatestSuggestion = async () => {
+  const fetchLatestSuggestion = useCallback(async () => {
     try {
-      setRefreshError('');
       const data = await suggestionApi.latestToday();
       // A background refresh must not erase a suggestion already on screen.
       if (data) {
@@ -49,11 +48,12 @@ export default function SuggestScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchLatestSuggestion();
-  }, []);
+    const timer = setTimeout(() => { void fetchLatestSuggestion(); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchLatestSuggestion]);
 
   const handleGenerateSuggestion = async () => {
     if (refreshing || generating || confirming) return;
@@ -91,20 +91,14 @@ export default function SuggestScreen() {
     const itemIds = items.map((i) => i.id).filter(Boolean);
 
     setConfirming(true);
+    setRefreshError('');
     try {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const dailyRes = await dailyOutfitApi.confirmToday({
+      await dailyOutfitApi.confirmToday({
         itemIds,
-        wornDate: todayStr,
-        name: suggestion.title || `Outfit ngày ${todayStr}`,
+        suggestionId: suggestion.id,
+        name: suggestion.title || 'Outfit hôm nay',
         occasion: suggestion.occasion || 'Hằng ngày',
       });
-
-      if (suggestion.id) {
-        await suggestionApi.markConfirmed(suggestion.id, {
-          dailyOutfitId: dailyRes?.id,
-        });
-      }
 
       Alert.alert(
         'Thành công! 🎉',
@@ -121,6 +115,7 @@ export default function SuggestScreen() {
   const onRefresh = async () => {
     if (refreshing || generating || confirming) return;
     setRefreshing(true);
+    setRefreshError('');
     await fetchLatestSuggestion();
   };
 

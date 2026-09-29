@@ -1,11 +1,19 @@
-import { nodeApiRequest } from './nodeApiClient';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/client';
+
+const getLatestTodaySuggestion = httpsCallable(functions, 'getLatestTodaySuggestion');
+const generateTodaySuggestion = httpsCallable(functions, 'generateTodaySuggestion');
+let retryableGenerationRequestId = null;
 
 export const suggestionApi = {
   latestToday: async () => {
-    const data = await nodeApiRequest('/suggestions/today/latest');
+    const data = (await getLatestTodaySuggestion()).data;
     return data?.suggestion ?? null;
   },
-  generateToday: () => nodeApiRequest('/suggestions/today', { method: 'POST' }),
-  markConfirmed: (id, payload = {}) =>
-    nodeApiRequest(`/suggestions/${id}/confirm`, { method: 'POST', body: payload }),
+  generateToday: async () => {
+    retryableGenerationRequestId ||= `${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
+    const result = await generateTodaySuggestion({ requestId: retryableGenerationRequestId });
+    retryableGenerationRequestId = null;
+    return result.data;
+  },
 };

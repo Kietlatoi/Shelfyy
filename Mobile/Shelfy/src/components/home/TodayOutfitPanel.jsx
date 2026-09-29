@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -14,7 +14,7 @@ export default function TodayOutfitPanel() {
   const [todayOutfit, setTodayOutfit] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchTodayOutfit = async () => {
+  const fetchTodayOutfit = useCallback(async () => {
     try {
       const data = await dailyOutfitApi.getToday();
       setTodayOutfit(data);
@@ -23,11 +23,12 @@ export default function TodayOutfitPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchTodayOutfit();
-  }, []);
+    const timer = setTimeout(() => { void fetchTodayOutfit(); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchTodayOutfit]);
 
   if (loading) {
     return (

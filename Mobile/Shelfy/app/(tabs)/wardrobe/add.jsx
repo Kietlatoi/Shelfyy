@@ -98,15 +98,13 @@ export default function AddWardrobeItemScreen() {
     setLoading(true);
 
     try {
-      let uploadedImageUrl = uploadResult?.originalUrl || null;
-      let uploadedThumbnailUrl = uploadResult?.thumbnailUrl || null;
+      let uploadedImage = uploadResult;
 
       // If user selected image and haven't uploaded yet
-      if (imageUri && !uploadedImageUrl) {
+      if (imageUri && !uploadedImage) {
         setLoadingMessage('Đang tải ảnh lên Cloudinary...');
         const uploadRes = await uploadApi.uploadClothing(imageUri, 'clothing.jpg', 'image/jpeg');
-        uploadedImageUrl = uploadRes.originalUrl || uploadRes.url;
-        uploadedThumbnailUrl = uploadRes.thumbnailUrl || uploadRes.url;
+        uploadedImage = uploadRes;
         setUploadResult(uploadRes);
       }
 
@@ -121,8 +119,12 @@ export default function AddWardrobeItemScreen() {
         pattern: pattern.trim() || 'Trơn',
         material: material.trim() || null,
         purchasePrice: purchasePrice ? Number(purchasePrice) : null,
-        imageUrl: uploadedImageUrl,
-        thumbnailUrl: uploadedThumbnailUrl,
+        image: uploadedImage
+          ? { secureUrl: uploadedImage.secureUrl, publicId: uploadedImage.publicId }
+          : null,
+        thumbnail: uploadedImage
+          ? { secureUrl: uploadedImage.thumbnailUrl, publicId: uploadedImage.publicId }
+          : null,
       };
 
       await wardrobeApi.createItem(payload);

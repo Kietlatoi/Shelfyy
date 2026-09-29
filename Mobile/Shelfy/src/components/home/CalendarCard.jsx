@@ -35,11 +35,14 @@ export default function CalendarCard() {
   }, []);
 
   useEffect(() => {
-    loadCalendarData();
+    const initialLoad = setTimeout(() => { void loadCalendarData(); }, 0);
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') loadCalendarData();
     });
-    return () => subscription.remove();
+    return () => {
+      clearTimeout(initialLoad);
+      subscription.remove();
+    };
   }, [loadCalendarData]);
 
   const handleConnect = async () => {

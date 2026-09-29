@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { router, useSegments } from 'expo-router';
-import { getStoredUser, isAuthenticated, clearAuth, saveAuth } from '../api/tokenStore';
 import * as authApi from '../api/authApi';
-import { userApi } from '../api/userApi';
 
 const AuthContext = createContext(null);
 
@@ -14,39 +12,26 @@ export function AuthProvider({ children }) {
   // Check auth state on launch
   useEffect(() => {
     let isMounted = true;
-
-    async function checkAuth() {
+    let revision = 0;
+    const unsubscribe = authApi.subscribeToAuthState(async (firebaseUser) => {
+      const currentRevision = ++revision;
       try {
-        const authed = await isAuthenticated();
-        if (authed) {
-          const storedUser = await getStoredUser();
-          if (isMounted) {
-            setUser(storedUser);
-          }
-          // Optionally fetch fresh profile in background
-          try {
-            const fresh = await userApi.me();
-            if (isMounted && fresh) {
-              setUser(fresh);
-              await saveAuth({ user: fresh });
-            }
-          } catch {
-            // Keep stored user if offline
-          }
-        }
-      } catch (err) {
-        console.warn('Auth check error:', err);
+        const current = firebaseUser ? await authApi.getCurrentUser() : null;
+        if (isMounted && currentRevision === revision) setUser(current);
+      } catch (error) {
+        console.warn('Không thể tải hồ sơ Firebase:', error);
+        if (isMounted && currentRevision === revision) setUser(null);
       } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+        if (isMounted && currentRevision === revision) setIsLoading(false);
       }
-    }
-
-    checkAuth();
+    }, (error) => {
+      console.warn('Auth check error:', error);
+      if (isMounted) setIsLoading(false);
+    });
 
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 
@@ -83,13 +68,11 @@ export function AuthProvider({ children }) {
   const refreshUser = useCallback(async (userData) => {
     if (userData) {
       setUser(userData);
-      await saveAuth({ user: userData });
     } else {
       try {
-        const fresh = await userApi.me();
+        const fresh = await authApi.getCurrentUser();
         if (fresh) {
           setUser(fresh);
-          await saveAuth({ user: fresh });
         }
       } catch (err) {
         console.warn('Refresh user error:', err);

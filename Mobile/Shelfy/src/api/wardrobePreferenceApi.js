@@ -1,15 +1,8 @@
-import { nodeApiRequest } from './nodeApiClient';
+import { wardrobeApi } from './wardrobeApi';
 
 export const wardrobePreferenceApi = {
   getPreferences: (itemIds = []) => {
-    if (!itemIds || itemIds.length === 0) return Promise.resolve([]);
-    return nodeApiRequest('/wardrobe/preferences', {
-      query: { itemIds: itemIds.join(',') },
-    });
+    return Promise.resolve([]);
   },
-  updatePreference: (itemId, payload) =>
-    nodeApiRequest(`/wardrobe/items/${itemId}/preferences`, {
-      method: 'PUT',
-      body: payload,
-    }),
+  updatePreference: (itemId, payload) => wardrobeApi.updatePreference(itemId, payload),
 };

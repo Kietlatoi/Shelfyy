@@ -33,7 +33,7 @@ export default function WardrobeStats({ stats, totalCount = 0 }) {
       <View style={styles.statItem}>
         <MaterialIcons name="cloud-queue" size={16} color={colors.secondary} />
         <Text style={styles.statText}>
-          Lưu trữ: <Text style={styles.statBold}>{total}/{storageLimit}</Text>
+          Lưu trữ: <Text style={styles.statBold}>{storageLimit < 0 ? `${total} · Không giới hạn` : `${total}/${storageLimit}`}</Text>
         </Text>
       </View>
     </View>

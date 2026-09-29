@@ -71,7 +71,7 @@ test('history refresh stops scheduling when the screen loses focus', async () =>
     react: h.react,
     'expo-router': { useFocusEffect: fn => { focus = fn; } },
     '../api/trialApi': { trialApi: { getHistory: async () => ({ content: [pending] }), getStatus: async () => pending } },
-    '../api/apiClient': { pageContent: page => page.content },
+    '../api/adapters': { pageContent: page => page.content },
     '../utils/trialHistory': historyUtils,
   }, {
     setTimeout: fn => { timer = fn; return 1; },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getCurrentLocation } from '../../utils/geolocation';
@@ -14,7 +14,7 @@ export default function WeatherCard({ onWeatherLoaded }) {
   const [refreshing, setRefreshing] = useState(false);
   const [usingDefaultLocation, setUsingDefaultLocation] = useState(false);
 
-  const fetchWeather = async (isManual = false) => {
+  const fetchWeather = useCallback(async (isManual = false) => {
     if (isManual) setRefreshing(true);
     else setLoading(true);
 
@@ -53,11 +53,12 @@ export default function WeatherCard({ onWeatherLoaded }) {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [onWeatherLoaded]);
 
   useEffect(() => {
-    fetchWeather();
-  }, []);
+    const timer = setTimeout(() => { void fetchWeather(); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchWeather]);
 
   const getWeatherIcon = (condition, isDay) => {
     const c = String(condition || '').toLowerCase();

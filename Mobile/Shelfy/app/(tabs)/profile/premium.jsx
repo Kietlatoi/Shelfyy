@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -13,16 +13,41 @@ import * as WebBrowser from 'expo-web-browser';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { paymentApi } from '../../../src/api/paymentApi';
+import { subscriptionApi } from '../../../src/api/subscriptionApi';
 import AppButton from '../../../src/components/common/AppButton';
 import LoadingOverlay from '../../../src/components/common/LoadingOverlay';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
 import { radius, shadows, spacing } from '../../../src/constants/spacing';
 
+function formatPrice(amount) {
+  return `${new Intl.NumberFormat('vi-VN').format(Number(amount) || 0)} ₫`;
+}
+
 export default function PremiumScreen() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  const currentPlan = user?.plan || 'FREE';
+  const [catalog, setCatalog] = useState(null);
+  const [planStatus, setPlanStatus] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.all([subscriptionApi.getPlans(), subscriptionApi.getMyPlan()])
+      .then(([nextCatalog, nextPlan]) => {
+        if (isMounted) {
+          setCatalog(nextCatalog);
+          setPlanStatus(nextPlan);
+        }
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
+
+  const getPlan = (id) => catalog?.plans?.find((plan) => plan.id === id);
+  const currentPlan = planStatus?.planId || user?.plan || 'FREE';
+  const purchaseEnabled = Boolean(catalog?.purchaseEnabled);
+  const proPrice = getPlan('PRO')?.price;
+  const premiumPrice = getPlan('PREMIUM')?.price;
 
   const handleUpgrade = async (planType) => {
     if (planType === currentPlan) {
@@ -35,11 +60,18 @@ export default function PremiumScreen() {
       const res = await paymentApi.createVnpayPayment(planType);
       if (res?.paymentUrl) {
         await WebBrowser.openBrowserAsync(res.paymentUrl);
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          const updated = await subscriptionApi.getMyPlan();
+          setPlanStatus(updated);
+          if (updated.planId === planType) {
+            Alert.alert('Thanh toán thành công', `Gói ${planType} đã được kích hoạt.`);
+            return;
+          }
+        }
+        Alert.alert('Đang xác nhận', 'VNPay đang xử lý giao dịch. Hãy mở lại trang này sau ít phút để cập nhật gói.');
       } else {
-        Alert.alert(
-          'Đăng ký thành công',
-          `Yêu cầu nâng cấp gói ${planType} đã được ghi nhận. Quản trị viên sẽ xử lý sớm!`
-        );
+        Alert.alert('Chưa tạo được giao dịch', 'VNPay chưa trả về đường dẫn thanh toán. Vui lòng thử lại sau.');
       }
     } catch (err) {
       Alert.alert(
@@ -115,7 +147,7 @@ export default function PremiumScreen() {
             <View>
               <Text style={[styles.planName, styles.proTitle]}>Gói PRO</Text>
               <Text style={styles.planPrice}>
-                <Text style={styles.priceHighlight}>99.000 ₫</Text> / tháng
+                <Text style={styles.priceHighlight}>{proPrice ? formatPrice(proPrice) : '99.000 ₫'}</Text> / tháng
               </Text>
             </View>
             {currentPlan === 'PRO' && (
@@ -128,7 +160,7 @@ export default function PremiumScreen() {
           <View style={styles.featuresList}>
             <View style={styles.featureRow}>
               <MaterialIcons name="check" size={18} color={colors.primary} />
-              <Text style={styles.featureText}>100 lượt thử đồ ảo AI chất lượng cao</Text>
+              <Text style={styles.featureText}>100 lượt thử đồ ảo AI mỗi tháng</Text>
             </View>
             <View style={styles.featureRow}>
               <MaterialIcons name="check" size={18} color={colors.primary} />
@@ -147,7 +179,7 @@ export default function PremiumScreen() {
           <AppButton
             title={currentPlan === 'PRO' ? 'Gói hiện tại của bạn' : 'Nâng cấp lên PRO'}
             onPress={() => handleUpgrade('PRO')}
-            disabled={currentPlan === 'PRO'}
+            disabled={currentPlan === 'PRO' || !purchaseEnabled}
             size="lg"
             style={styles.planBtn}
           />
@@ -163,7 +195,7 @@ export default function PremiumScreen() {
             <View>
               <Text style={[styles.planName, styles.premiumTitle]}>Gói PREMIUM</Text>
               <Text style={styles.planPrice}>
-                <Text style={styles.priceHighlight}>799.000 ₫</Text> / năm
+                <Text style={styles.priceHighlight}>{premiumPrice ? formatPrice(premiumPrice) : '799.000 ₫'}</Text> / năm
               </Text>
             </View>
             {currentPlan === 'PREMIUM' && (
@@ -180,23 +212,28 @@ export default function PremiumScreen() {
             </View>
             <View style={styles.featureRow}>
               <MaterialIcons name="star" size={18} color={colors.gold} />
-              <Text style={styles.featureText}>Thử đồ ảo AI không giới hạn</Text>
+              <Text style={styles.featureText}>Thử đồ ảo AI tối đa 500 lượt mỗi tháng</Text>
             </View>
             <View style={styles.featureRow}>
               <MaterialIcons name="star" size={18} color={colors.gold} />
-              <Text style={styles.featureText}>Hỗ trợ riêng 24/7 từ chuyên gia stylist</Text>
+              <Text style={styles.featureText}>Ưu tiên xử lý AI</Text>
             </View>
           </View>
 
           <AppButton
             title={currentPlan === 'PREMIUM' ? 'Gói hiện tại của bạn' : 'Nâng cấp PREMIUM'}
             onPress={() => handleUpgrade('PREMIUM')}
-            disabled={currentPlan === 'PREMIUM'}
+            disabled={currentPlan === 'PREMIUM' || !purchaseEnabled}
             size="lg"
             variant="secondary"
             style={styles.planBtn}
           />
         </View>
+        <Text style={styles.paymentNote}>
+          {purchaseEnabled
+            ? 'Thanh toán một lần qua VNPay sandbox, gói không tự động gia hạn.'
+            : 'Thanh toán VNPay sandbox sẽ được bật sau khi cấu hình project và thông tin merchant.'}
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -206,6 +243,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  paymentNote: {
+    ...typography.bodySm,
+    color: colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
   },
   navBar: {
     flexDirection: 'row',

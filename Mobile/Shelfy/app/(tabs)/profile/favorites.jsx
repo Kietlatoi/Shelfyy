@@ -13,12 +13,44 @@ import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { wardrobeApi } from '../../../src/api/wardrobeApi';
 import { wardrobePreferenceApi } from '../../../src/api/wardrobePreferenceApi';
-import { pageContent } from '../../../src/api/apiClient';
+import { pageContent } from '../../../src/api/adapters';
 import WardrobeCard from '../../../src/components/wardrobe/WardrobeCard';
 import EmptyState from '../../../src/components/common/EmptyState';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
 import { spacing } from '../../../src/constants/spacing';
+
+async function loadFavorites() {
+  const res = await wardrobeApi.getItems({ size: 100 });
+  const allItems = pageContent(res);
+  const itemIds = allItems.map((item) => item.id);
+  let prefs = [];
+  if (itemIds.length > 0) {
+    try {
+      prefs = await wardrobePreferenceApi.getPreferences(itemIds);
+    } catch {
+      // Keep the canonical favorite/status fields from Firestore when preference lookup fails.
+    }
+  }
+
+  const prefsMap = {};
+  if (Array.isArray(prefs)) {
+    prefs.forEach((preference) => {
+      prefsMap[preference.clothingItemId || preference.itemId || preference.id] = preference;
+    });
+  }
+
+  return allItems
+    .map((item) => {
+      const preference = prefsMap[item.id];
+      return {
+        ...item,
+        favorite: preference ? preference.favorite : item.favorite,
+        status: preference?.status || item.status || 'IN_USE',
+      };
+    })
+    .filter((item) => Boolean(item.favorite));
+}
 
 export default function FavoritesScreen() {
   const [favorites, setFavorites] = useState([]);
@@ -28,38 +60,7 @@ export default function FavoritesScreen() {
   const fetchFavorites = async () => {
     try {
       setLoading(true);
-      const res = await wardrobeApi.getItems({ size: 100 });
-      const allItems = pageContent(res);
-
-      const itemIds = allItems.map((i) => i.id);
-      let prefs = [];
-      if (itemIds.length > 0) {
-        try {
-          prefs = await wardrobePreferenceApi.getPreferences(itemIds);
-        } catch {
-          // Ignore
-        }
-      }
-
-      const prefsMap = {};
-      if (Array.isArray(prefs)) {
-        prefs.forEach((p) => {
-          prefsMap[p.clothingItemId || p.itemId || p.id] = p;
-        });
-      }
-
-      const favItems = allItems
-        .map((item) => {
-          const pref = prefsMap[item.id];
-          return {
-            ...item,
-            favorite: pref ? pref.favorite : item.favorite,
-            status: pref?.status || item.status || 'IN_USE',
-          };
-        })
-        .filter((item) => Boolean(item.favorite));
-
-      setFavorites(favItems);
+      setFavorites(await loadFavorites());
     } catch (err) {
       console.warn('Error fetching favorites:', err);
     } finally {
@@ -69,7 +70,12 @@ export default function FavoritesScreen() {
   };
 
   useEffect(() => {
-    fetchFavorites();
+    let isMounted = true;
+    loadFavorites()
+      .then((items) => { if (isMounted) setFavorites(items); })
+      .catch((err) => console.warn('Error fetching favorites:', err))
+      .finally(() => { if (isMounted) setLoading(false); });
+    return () => { isMounted = false; };
   }, []);
 
   const handleFavoriteToggle = async (item) => {

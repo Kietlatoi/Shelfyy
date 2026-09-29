@@ -36,7 +36,7 @@ export function LandingAppNoticeModal({ onClose }) {
           Ứng dụng mobile sắp ra mắt
         </h2>
         <p className="mt-3 text-base leading-7 text-gray-600">
-          Hiện tại ứng dụng mobile app của chúng tôi đang trong giai đoạn phát triễn và xin được giấy phép từ CH Play.
+          Shelfy đang chuẩn bị bản Android dùng thử. Liên kết tải sẽ được cập nhật tại đây khi ứng dụng sẵn sàng.
         </p>
         <button
           className="mt-6 w-full rounded-full bg-[#b83c44] px-5 py-3 text-sm font-bold text-white transition-opacity hover:opacity-90"

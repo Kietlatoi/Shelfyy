@@ -20,14 +20,15 @@ import { typography } from '../../src/constants/typography';
 import { spacing, radius } from '../../src/constants/spacing';
 
 export default function ResetPasswordScreen() {
-  const { token } = useLocalSearchParams();
+  const { token, oobCode } = useLocalSearchParams();
+  const resetCode = Array.isArray(oobCode) ? oobCode[0] : oobCode || token;
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleResetPassword = async () => {
-    if (!token) {
+    if (!resetCode) {
       setError('Mã xác thực (token) không hợp lệ hoặc đã hết hạn.');
       return;
     }
@@ -44,7 +45,7 @@ export default function ResetPasswordScreen() {
     setLoading(true);
     try {
       await resetPassword({
-        token: String(token),
+        oobCode: String(resetCode),
         newPassword,
       });
       Alert.alert(

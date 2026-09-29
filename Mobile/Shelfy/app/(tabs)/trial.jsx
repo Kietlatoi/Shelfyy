@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  ActivityIndicator,
   Alert,
   Modal,
   FlatList,
@@ -16,7 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { trialApi } from '../../src/api/trialApi';
 import { wardrobeApi } from '../../src/api/wardrobeApi';
-import { pageContent } from '../../src/api/apiClient';
+import { uploadApi } from '../../src/api/uploadApi';
 import AppButton from '../../src/components/common/AppButton';
 import LoadingOverlay from '../../src/components/common/LoadingOverlay';
 import TrialHistoryCard from '../../src/components/common/TrialHistoryCard';
@@ -29,7 +28,9 @@ import { getCategoryLabel } from '../../src/constants/categories';
 
 export default function TrialScreen() {
   const [personImageUri, setPersonImageUri] = useState(null);
-  const [personBase64, setPersonBase64] = useState(null);
+  const [personImageRef, setPersonImageRef] = useState(null);
+  const [personFileName, setPersonFileName] = useState('try-on-person.jpg');
+  const [personMimeType, setPersonMimeType] = useState('image/jpeg');
   const [selectedItem, setSelectedItem] = useState(null);
   const [wardrobeItems, setWardrobeItems] = useState([]);
   const [itemPickerVisible, setItemPickerVisible] = useState(false);
@@ -43,21 +44,18 @@ export default function TrialScreen() {
 
   // Load wardrobe & history on mount
   useEffect(() => {
-    loadWardrobe();
+    let isMounted = true;
+    wardrobeApi.getItems({ size: 50 })
+      .then((res) => {
+        if (isMounted) setWardrobeItems(res?.content || res?.items || []);
+      })
+      .catch(() => {});
 
     return () => {
+      isMounted = false;
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
     };
   }, []);
-
-  const loadWardrobe = async () => {
-    try {
-      const res = await wardrobeApi.getItems({ size: 50 });
-      setWardrobeItems(pageContent(res));
-    } catch {
-      // Ignore
-    }
-  };
 
   const pickPersonImage = async () => {
     try {
@@ -66,13 +64,14 @@ export default function TrialScreen() {
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
-        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         setPersonImageUri(asset.uri);
-        setPersonBase64(`data:image/jpeg;base64,${asset.base64}`);
+        setPersonImageRef(null);
+        setPersonFileName(asset.fileName || 'try-on-person.jpg');
+        setPersonMimeType(asset.mimeType || 'image/jpeg');
       }
     } catch (err) {
       Alert.alert('Lỗi', 'Không thể chọn ảnh: ' + err.message);
@@ -91,13 +90,14 @@ export default function TrialScreen() {
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
-        base64: true,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const asset = result.assets[0];
         setPersonImageUri(asset.uri);
-        setPersonBase64(`data:image/jpeg;base64,${asset.base64}`);
+        setPersonImageRef(null);
+        setPersonFileName(asset.fileName || 'try-on-person.jpg');
+        setPersonMimeType(asset.mimeType || 'image/jpeg');
       }
     } catch (err) {
       Alert.alert('Lỗi', 'Không thể chụp ảnh: ' + err.message);
@@ -127,8 +127,14 @@ export default function TrialScreen() {
     setResult(null);
 
     try {
+      const personImage = personImageRef || await uploadApi.uploadTryOnInput(
+        personImageUri,
+        personFileName,
+        personMimeType
+      );
+      setPersonImageRef(personImage);
       const job = await trialApi.generate({
-        personImageDataUrl: personBase64,
+        personImage: { secureUrl: personImage.secureUrl, publicId: personImage.publicId },
         clothingItemId: selectedItem.id,
       });
 

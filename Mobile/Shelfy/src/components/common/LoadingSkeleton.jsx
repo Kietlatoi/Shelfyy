@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Animated } from 'react-native';
 import { colors } from '../../constants/colors';
 import { radius } from '../../constants/spacing';
 
@@ -9,7 +9,7 @@ export default function LoadingSkeleton({
   borderRadius = radius.sm,
   style,
 }) {
-  const opacityAnim = useRef(new Animated.Value(0.3)).current;
+  const [opacityAnim] = useState(() => new Animated.Value(0.3));
 
   useEffect(() => {
     const animation = Animated.loop(

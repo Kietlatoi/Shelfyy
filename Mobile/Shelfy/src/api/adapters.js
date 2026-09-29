@@ -1,5 +1,11 @@
 import { getCategoryLabel } from '../constants/categories';
 
+export function pageContent(pageResponse) {
+  if (!pageResponse) return [];
+  if (Array.isArray(pageResponse)) return pageResponse;
+  return pageResponse.content || pageResponse.items || [];
+}
+
 export function adaptClothingItem(item) {
   if (!item) return null;
   return {

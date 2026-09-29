@@ -30,6 +30,7 @@ export default function EditWardrobeItemScreen() {
   const { id } = useLocalSearchParams();
   const [initialLoading, setInitialLoading] = useState(true);
   const [imageUri, setImageUri] = useState(null);
+  const [imageResource, setImageResource] = useState(null);
   const [isNewImage, setIsNewImage] = useState(false);
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('');
@@ -59,6 +60,7 @@ export default function EditWardrobeItemScreen() {
         setMaterial(item.material || '');
         setPurchasePrice(item.purchasePrice ? String(item.purchasePrice) : '');
         setImageUri(item.imageUrl || item.thumbnailUrl || null);
+        setImageResource(item.image || null);
       } catch (err) {
         Alert.alert('Lỗi', err.message || 'Không thể tải thông tin món đồ');
       } finally {
@@ -97,14 +99,14 @@ export default function EditWardrobeItemScreen() {
     setLoading(true);
 
     try {
-      let finalImageUrl = imageUri;
       let finalThumbnailUrl = imageUri;
+      let finalImageResource = imageResource;
 
       if (isNewImage && imageUri) {
         setLoadingMessage('Đang tải ảnh mới lên...');
         const uploadRes = await uploadApi.uploadClothing(imageUri, 'clothing.jpg', 'image/jpeg');
-        finalImageUrl = uploadRes.originalUrl || uploadRes.url;
         finalThumbnailUrl = uploadRes.thumbnailUrl || uploadRes.url;
+        finalImageResource = { secureUrl: uploadRes.secureUrl, publicId: uploadRes.publicId };
       }
 
       setLoadingMessage('Đang lưu cập nhật...');
@@ -118,8 +120,10 @@ export default function EditWardrobeItemScreen() {
         pattern: pattern.trim() || 'Trơn',
         material: material.trim() || null,
         purchasePrice: purchasePrice ? Number(purchasePrice) : null,
-        imageUrl: finalImageUrl,
-        thumbnailUrl: finalThumbnailUrl,
+        image: finalImageResource,
+        thumbnail: finalImageResource
+          ? { secureUrl: finalThumbnailUrl, publicId: finalImageResource.publicId }
+          : null,
       };
 
       await wardrobeApi.updateItem(id, payload);

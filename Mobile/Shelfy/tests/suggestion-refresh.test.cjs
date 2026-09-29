@@ -11,7 +11,7 @@ function loadModule(file, mocks) {
     plugins: ['@babel/plugin-transform-react-jsx', '@babel/plugin-transform-modules-commonjs'],
   });
   const exports = {};
-  vm.runInNewContext(code, { exports, require: (name) => {
+  vm.runInNewContext(code, { exports, setTimeout, clearTimeout, require: (name) => {
     assert.ok(Object.hasOwn(mocks, name), `Missing mock: ${name}`);
     return mocks[name];
   } });
@@ -20,18 +20,39 @@ function loadModule(file, mocks) {
 
 const outfit = { id: 7, title: 'Outfit đã tạo', items: [{ id: 11, name: 'Áo trắng' }] };
 
-test('latest API unwraps the saved suggestion returned by the backend', async () => {
+test('latest API unwraps the saved suggestion returned by Firebase', async () => {
   const { suggestionApi } = loadModule('src/api/suggestionApi.js', {
-    './nodeApiClient': { nodeApiRequest: async () => ({ generated: true, suggestion: outfit }) },
+    'firebase/functions': { httpsCallable: () => async () => ({ data: { suggestion: outfit } }) },
+    '../firebase/client': { functions: {} },
   });
   assert.equal(await suggestionApi.latestToday(), outfit);
 });
 
 test('latest API returns null when no suggestion exists today', async () => {
   const { suggestionApi } = loadModule('src/api/suggestionApi.js', {
-    './nodeApiClient': { nodeApiRequest: async () => ({ generated: false, suggestion: null }) },
+    'firebase/functions': { httpsCallable: () => async () => ({ data: { suggestion: null } }) },
+    '../firebase/client': { functions: {} },
   });
   assert.equal(await suggestionApi.latestToday(), null);
+});
+
+test('generation reuses its request ID when a callable response is lost', async () => {
+  const requests = [];
+  let calls = 0;
+  const { suggestionApi } = loadModule('src/api/suggestionApi.js', {
+    'firebase/functions': { httpsCallable: (_functions, name) => async (payload) => {
+      if (name !== 'generateTodaySuggestion') return { data: {} };
+      requests.push(payload.requestId);
+      calls += 1;
+      if (calls === 1) throw new Error('Connection lost after request');
+      return { data: outfit };
+    } },
+    '../firebase/client': { functions: {} },
+  });
+
+  await assert.rejects(suggestionApi.generateToday(), /Connection lost/);
+  assert.equal(await suggestionApi.generateToday(), outfit);
+  assert.equal(requests[0], requests[1]);
 });
 
 // Exercise the actual screen handlers with mocked native views and hook state.
@@ -49,6 +70,7 @@ async function screenFixture() {
       if (!(index in state)) state[index] = initial;
       return [state[index], (value) => { state[index] = typeof value === 'function' ? value(state[index]) : value; }];
     },
+    useCallback: (callback) => callback,
     useEffect: (callback) => { effect ||= callback; },
   };
   const mocks = {
@@ -79,7 +101,7 @@ async function screenFixture() {
   const render = () => { cursor = 0; return Screen(); };
   render();
   effect();
-  await new Promise(resolve => setImmediate(resolve));
+  await new Promise(resolve => setTimeout(resolve, 5));
   await find(render(), node => node.props?.title === 'Tạo gợi ý hôm nay').props.onPress();
   return { render, setLatest: value => { latest = value; }, generated: () => generated };
 }

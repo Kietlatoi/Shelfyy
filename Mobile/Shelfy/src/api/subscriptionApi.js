@@ -1,10 +1,18 @@
-import { apiRequest } from './apiClient';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/client';
 
-export const subscriptionApi = {
-  getPlans: () => apiRequest('/subscription/plans', { auth: false }),
-  getMyPlan: () => apiRequest('/subscription/me'),
-  upgrade: (planType) =>
-    apiRequest('/subscription/upgrade', { method: 'POST', body: { planType } }),
-  cancel: () =>
-    apiRequest('/subscription/cancel', { method: 'POST' }),
-};
+export function createSubscriptionApi(callable) {
+  return {
+    async getPlans() {
+      const result = await callable('getSubscriptionPlans')({});
+      return result.data;
+    },
+    async getMyPlan() {
+      const result = await callable('getMyEntitlement')({});
+      return result.data;
+    },
+  };
+}
+
+const callable = (name) => httpsCallable(functions, name);
+export const subscriptionApi = createSubscriptionApi(callable);

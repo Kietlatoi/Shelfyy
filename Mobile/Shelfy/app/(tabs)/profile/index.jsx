@@ -13,8 +13,9 @@ import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { userApi } from '../../../src/api/userApi';
+import * as authApi from '../../../src/api/authApi';
 import { uploadApi } from '../../../src/api/uploadApi';
+import { subscriptionApi } from '../../../src/api/subscriptionApi';
 import { wardrobeApi } from '../../../src/api/wardrobeApi';
 import Avatar from '../../../src/components/common/Avatar';
 import AppButton from '../../../src/components/common/AppButton';
@@ -28,6 +29,7 @@ import { radius, shadows, spacing } from '../../../src/constants/spacing';
 export default function ProfileScreen() {
   const { user, signOut, refreshUser } = useAuth();
   const [stats, setStats] = useState(null);
+  const [planStatus, setPlanStatus] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
 
@@ -41,6 +43,9 @@ export default function ProfileScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     async function loadStats() {
@@ -52,6 +57,14 @@ export default function ProfileScreen() {
       }
     }
     loadStats();
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    subscriptionApi.getMyPlan()
+      .then((plan) => { if (isMounted) setPlanStatus(plan); })
+      .catch(() => {});
+    return () => { isMounted = false; };
   }, []);
 
   const handleChangeAvatar = async () => {
@@ -68,8 +81,9 @@ export default function ProfileScreen() {
         setLoadingMsg('Đang cập nhật ảnh đại diện...');
         const asset = result.assets[0];
         const uploadRes = await uploadApi.uploadAvatar(asset.uri, 'avatar.jpg', 'image/jpeg');
-        const avatarUrl = uploadRes.originalUrl || uploadRes.url;
-        const updated = await userApi.updateMe({ avatarUrl });
+        const updated = await authApi.updateProfile({
+          avatar: { secureUrl: uploadRes.secureUrl, publicId: uploadRes.publicId },
+        });
         await refreshUser(updated);
         Alert.alert('Thành công', 'Đã cập nhật ảnh đại diện mới!');
       }
@@ -90,7 +104,7 @@ export default function ProfileScreen() {
     setLoading(true);
     setLoadingMsg('Đang lưu thông tin...');
     try {
-      const updated = await userApi.updateMe({ fullName: newName.trim() });
+      const updated = await authApi.updateProfile({ fullName: newName.trim() });
       await refreshUser(updated);
       setNameModalVisible(false);
       Alert.alert('Thành công', 'Đã cập nhật tên hiển thị!');
@@ -120,7 +134,7 @@ export default function ProfileScreen() {
     setLoading(true);
     setLoadingMsg('Đang cập nhật mật khẩu...');
     try {
-      await userApi.changePassword({ currentPassword, newPassword });
+      await authApi.changePassword({ currentPassword, newPassword });
       setPasswordModalVisible(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -148,11 +162,26 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const plan = user?.plan || 'FREE';
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) { setDeleteError('Vui lòng nhập mật khẩu hiện tại.'); return; }
+    setLoading(true);
+    setLoadingMsg('Đang gửi yêu cầu xóa tài khoản...');
+    try {
+      await authApi.deleteAccount(deletePassword);
+      setDeleteModalVisible(false);
+      setDeletePassword('');
+      await signOut();
+      Alert.alert('Đã nhận yêu cầu', 'Tài khoản đã ngừng truy cập. Dữ liệu và ảnh sẽ được xóa trong quá trình xử lý.');
+    } catch (error) {
+      setDeleteError(error.message || 'Chưa thể xóa tài khoản. Vui lòng thử lại.');
+    } finally { setLoading(false); setLoadingMsg(''); }
+  };
+
+  const plan = planStatus?.planId || user?.plan || 'FREE';
   const storageUsed = stats?.totalItems ?? user?.storageUsed ?? 0;
-  const storageLimit = user?.storageLimit ?? 100;
-  const tryOnToday = user?.tryOnCountToday ?? 0;
-  const tryOnLimit = user?.tryOnLimit ?? 5;
+  const storageLimit = planStatus?.wardrobeLimit ?? 100;
+  const tryOnToday = planStatus?.quota?.used ?? user?.tryOnCountToday ?? 0;
+  const tryOnLimit = planStatus?.quota?.limit ?? user?.tryOnLimit ?? 5;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -191,7 +220,7 @@ export default function ProfileScreen() {
             <View style={styles.statInfo}>
               <Text style={styles.statLabel}>Tủ đồ lưu trữ</Text>
               <Text style={styles.statValue}>
-                {storageUsed} / {storageLimit} món
+                {storageLimit < 0 ? `${storageUsed} món · Không giới hạn` : `${storageUsed} / ${storageLimit} món`}
               </Text>
             </View>
             <View style={styles.progressBarBg}>
@@ -199,7 +228,7 @@ export default function ProfileScreen() {
                 style={[
                   styles.progressBarFill,
                   {
-                    width: `${Math.min(100, (storageUsed / storageLimit) * 100)}%`,
+                    width: `${storageLimit < 0 ? 100 : Math.min(100, (storageUsed / storageLimit) * 100)}%`,
                     backgroundColor: storageUsed > storageLimit ? colors.error : colors.primary,
                   },
                 ]}
@@ -211,7 +240,9 @@ export default function ProfileScreen() {
 
           <View style={styles.statRow}>
             <View style={styles.statInfo}>
-              <Text style={styles.statLabel}>Lượt thử đồ AI hôm nay</Text>
+                <Text style={styles.statLabel}>
+                  Lượt thử đồ AI {planStatus?.quota?.period === 'MONTH' ? 'tháng này' : 'hôm nay'}
+                </Text>
               <Text style={styles.statValue}>
                 {tryOnToday} / {tryOnLimit} lượt
               </Text>
@@ -309,6 +340,9 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout Button */}
+        <AppButton title="Xóa tài khoản" variant="ghost" size="md"
+          textStyle={{ color: colors.error }}
+          onPress={() => { setDeleteError(''); setDeletePassword(''); setDeleteModalVisible(true); }} />
         <AppButton
           title="Đăng xuất"
           onPress={handleLogout}
@@ -319,6 +353,21 @@ export default function ProfileScreen() {
           style={styles.logoutBtn}
         />
       </ScrollView>
+
+      <Modal visible={deleteModalVisible} transparent animationType="fade" onRequestClose={() => !loading && setDeleteModalVisible(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Xóa tài khoản Shelfy?</Text>
+            <Text>Tủ đồ, hồ sơ, lịch sử và ảnh của bạn sẽ bị xóa. Thao tác không thể hoàn tác. Một số bản ghi giao dịch được giữ để đối soát.</Text>
+            <ErrorBanner message={deleteError} onDismiss={() => setDeleteError('')} />
+            <AppInput label="Mật khẩu hiện tại" value={deletePassword} onChangeText={setDeletePassword} secureTextEntry />
+            <View style={styles.modalActionsRow}>
+              <AppButton title="Hủy" variant="ghost" disabled={loading} onPress={() => setDeleteModalVisible(false)} style={styles.modalBtn} />
+              <AppButton title="Xóa tài khoản" disabled={loading} onPress={handleDeleteAccount} style={styles.modalBtn} />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal: Edit Name */}
       <Modal visible={nameModalVisible} transparent animationType="fade">

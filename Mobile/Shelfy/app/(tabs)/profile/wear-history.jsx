@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -29,9 +29,8 @@ export default function WearHistoryScreen() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const fetchHistory = async (pageToFetch = 0) => {
+  const fetchHistory = useCallback(async (pageToFetch = 0) => {
     try {
-      if (pageToFetch === 0) setLoading(true);
       const res = await dailyOutfitApi.list({ page: pageToFetch, size: 10 });
       const items = res?.content || res?.items || (Array.isArray(res) ? res : []);
       const totalP = res?.totalPages ?? 1;
@@ -50,11 +49,12 @@ export default function WearHistoryScreen() {
       setRefreshing(false);
       setLoadingMore(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchHistory(0);
-  }, []);
+    const timer = setTimeout(() => { void fetchHistory(0); }, 0);
+    return () => clearTimeout(timer);
+  }, [fetchHistory]);
 
   const handleLoadMore = () => {
     if (!loadingMore && page + 1 < totalPages) {

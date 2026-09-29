@@ -7,7 +7,6 @@ import { LandingHeader } from '../components/LandingHeader'
 import { LandingHero } from '../components/LandingHero'
 import { LandingAppNoticeModal } from '../components/LandingAppNoticeModal'
 import { LandingHowItWorks } from '../components/LandingHowItWorks'
-import { LandingLoginModal } from '../components/LandingLoginModal'
 import { LandingProblems } from '../components/LandingProblems'
 import {
   landingExtensionData,
@@ -20,35 +19,18 @@ import {
 } from '../const/landingData'
 
 export function LandingPage() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isAppNoticeOpen, setIsAppNoticeOpen] = useState(false)
-  const [isLoggingIn, setIsLoggingIn] = useState(false)
-  const [loginError, setLoginError] = useState('')
-
-  // Gọi BE thật cho cả đăng nhập và đăng ký.
-  const handleLoginSubmit = async ({ mode = 'login', fullName, email, password, rememberMe }) => {
-    setIsLoggingIn(true)
-    setLoginError('')
-    try {
-      if (mode === 'register') {
-        await register({ fullName, email, password })
-      } else {
-        await login({ email, password, rememberMe })
-      }
-      // saveAuth() đã được gọi bên trong authApi
-      window.location.hash = '/home'
-    } catch (err) {
-      setLoginError(err.message || (mode === 'register' ? 'Đăng ký thất bại. Vui lòng thử lại.' : 'Đăng nhập thất bại. Vui lòng thử lại.'))
-      setIsLoggingIn(false)
-    }
+  const downloadUrl = import.meta.env.VITE_ANDROID_DOWNLOAD_URL?.trim()
+  const handleDownload = () => {
+    if (downloadUrl?.startsWith('https://')) window.location.assign(downloadUrl)
+    else setIsAppNoticeOpen(true)
   }
 
   return (
     <div className="font-sans bg-white text-[#111827] overflow-x-hidden">
       <LandingHeader
-        data={landingHeaderData}
-        onDownloadClick={() => setIsAppNoticeOpen(true)}
-        onLoginClick={() => { setLoginError(''); setIsLoginOpen(true) }}
+        data={{ ...landingHeaderData, actions: ['Tải ứng dụng'] }}
+        onDownloadClick={handleDownload}
       />
       <main>
         <LandingHero data={landingHeroData} />
@@ -63,14 +45,7 @@ export function LandingPage() {
         <LandingAppNoticeModal onClose={() => setIsAppNoticeOpen(false)} />
       )}
 
-      {isLoginOpen && (
-        <LandingLoginModal
-          onClose={() => { if (!isLoggingIn) setIsLoginOpen(false) }}
-          onSubmit={handleLoginSubmit}
-          isLoading={isLoggingIn}
-          error={loginError}
-        />
-      )}
+
     </div>
   )
 }
