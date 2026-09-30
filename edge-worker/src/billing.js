@@ -289,6 +289,21 @@ export async function getBillingPlans(env) {
   };
 }
 
+export async function ensurePayOsWebhook(env) {
+  const ready = ['PAYOS_CLIENT_ID', 'PAYOS_API_KEY', 'PAYOS_CHECKSUM_KEY', 'PUBLIC_BASE_URL']
+    .every((name) => configured(env, name));
+  if (!ready || !env.RATE_LIMITS) return { configured: false };
+  const webhookUrl = `${publicBaseUrl(env)}/v1/webhooks/payos`;
+  const marker = `payos-webhook:${await sha256Hex(webhookUrl)}`;
+  if (await env.RATE_LIMITS.get(marker)) return { configured: true, webhookUrl };
+  const result = await payOsRequest(env, '/confirm-webhook', {
+    method: 'POST',
+    body: JSON.stringify({ webhookUrl }),
+  });
+  await env.RATE_LIMITS.put(marker, nowIso(), { expirationTtl: 30 * 24 * 60 * 60 });
+  return { configured: true, webhookUrl: result?.webhookUrl || webhookUrl };
+}
+
 export async function getMyPlan(env, user) {
   const plan = await getEffectiveEntitlement(env, user.uid);
   const key = `quota:${user.uid}:${plan.id}:${periodKey(plan)}`;
@@ -354,6 +369,7 @@ export async function createCheckout(env, user, body) {
     error.code = 'RATE_LIMIT_NOT_CONFIGURED';
     throw error;
   }
+  await ensurePayOsWebhook(env);
   const idempotencyKey = `billing-request:${user.uid}:${requestId}`;
   const existingOrderCode = await env.RATE_LIMITS.get(idempotencyKey);
   if (existingOrderCode) {

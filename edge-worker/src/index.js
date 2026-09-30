@@ -2,6 +2,7 @@ import {
   anonymizeBilling,
   cancelPayment,
   createCheckout,
+  ensurePayOsWebhook,
   getBillingPlans,
   getEffectiveEntitlement,
   getMyPlan,
@@ -493,6 +494,9 @@ export default {
     }
   },
   async scheduled(_controller, env, context) {
-    context.waitUntil(reconcilePendingPayments(env));
+    context.waitUntil(Promise.all([
+      ensurePayOsWebhook(env).catch(() => null),
+      reconcilePendingPayments(env),
+    ]));
   },
 };
