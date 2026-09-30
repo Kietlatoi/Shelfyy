@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Alert, Pressable, AppState } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
 import { calendarApi } from '../../api/calendarApi';
 import AppButton from '../common/AppButton';
 import { colors } from '../../constants/colors';
@@ -48,11 +47,7 @@ export default function CalendarCard() {
   const handleConnect = async () => {
     setConnecting(true);
     try {
-      const res = await calendarApi.connect();
-      if (!res?.authorizationUrl) throw new Error('Không nhận được liên kết Google Calendar.');
-      // Tokens stay on the backend. Refresh on return, including Expo Go where
-      // the app's custom shelfy:// scheme is not registered.
-      await WebBrowser.openBrowserAsync(res.authorizationUrl);
+      await calendarApi.connect();
       await loadCalendarData();
     } catch (err) {
       Alert.alert('Thông báo', err.message || 'Chưa thể kết nối Google Calendar lúc này.');
@@ -148,10 +143,10 @@ export default function CalendarCard() {
       ) : (
         <View style={styles.notConnectedBox}>
           <Text style={styles.notConnectedDesc}>
-            Kết nối Google Calendar để Shelfy gợi ý trang phục phù hợp với các cuộc họp và sự kiện của bạn.
+            Cho phép Shelfy đọc lịch trên điện thoại. Các lịch Google đã đồng bộ với Android sẽ được dùng để gợi ý trang phục phù hợp.
           </Text>
           <AppButton
-            title="Kết nối Google Calendar"
+            title="Cho phép đọc lịch thiết bị"
             onPress={handleConnect}
             loading={connecting}
             variant="outline"
@@ -160,7 +155,7 @@ export default function CalendarCard() {
             style={styles.connectBtn}
           />
           <Text style={styles.returnHint}>
-            Sau khi cấp quyền Google, đóng trình duyệt và quay lại Shelfy để cập nhật lịch.
+            Shelfy chỉ đọc sự kiện trong ngày và lưu bản tóm tắt vào tài khoản của bạn.
           </Text>
         </View>
       )}

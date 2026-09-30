@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shelfy-edge",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-30",
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMITS",
+      "id": "5082c7939f5f4958905123d3c21b7ee6"
+    }
+  ]
+}

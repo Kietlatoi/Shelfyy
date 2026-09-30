@@ -1,19 +1,20 @@
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   limit,
   orderBy,
   query,
+  serverTimestamp,
+  setDoc,
   startAfter,
+  updateDoc,
   where,
 } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions } from '../firebase/client';
+import { auth, db } from '../firebase/client';
+import { edgeRequest } from './edgeApi';
 
-const createTryOnJob = httpsCallable(functions, 'createTryOnJob');
-const getTryOnJobStatus = httpsCallable(functions, 'getTryOnJobStatus');
-const setTryOnJobSaved = httpsCallable(functions, 'setTryOnJobSaved');
-const deleteTryOnJob = httpsCallable(functions, 'deleteTryOnJob');
 const cursorsByQuery = new Map();
 const MAX_PAGE_SIZE = 50;
 let retryableRequestId = null;
@@ -44,17 +45,75 @@ function fromDocument(snapshot) {
 }
 
 export const trialApi = {
-  generate: async ({ personImage, clothingItemId }) => {
+  generate: async ({ personImage, clothingItem }) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Vui lòng đăng nhập để thử đồ.');
+    const itemImage = clothingItem?.image || (clothingItem?.imagePublicId ? {
+      secureUrl: clothingItem.imageUrl,
+      publicId: clothingItem.imagePublicId,
+    } : null);
+    if (!clothingItem?.id || !itemImage?.secureUrl || !itemImage?.publicId) {
+      throw new Error('Trang phục chưa có ảnh Cloudinary hợp lệ.');
+    }
     retryableRequestId ||= `${Date.now()}-${Math.random().toString(36).slice(2, 14)}`;
-    const result = await createTryOnJob({
-      personImage,
-      clothingItemId: String(clothingItemId),
-      requestId: retryableRequestId,
+    const result = await edgeRequest('/v1/try-on/predictions', {
+      body: {
+        personImage,
+        clothingItem: {
+          id: String(clothingItem.id),
+          name: clothingItem.name || 'Trang phục',
+          category: clothingItem.category,
+          image: { secureUrl: itemImage.secureUrl, publicId: itemImage.publicId },
+        },
+        requestId: retryableRequestId,
+      },
+    });
+    const jobId = String(result.jobId || result.id || '');
+    if (!jobId) throw new Error('Replicate không trả về mã tiến trình.');
+    await setDoc(doc(db, 'users', uid, 'tryOns', jobId), {
+      status: result.status || 'PROCESSING',
+      clothingItemId: String(clothingItem.id),
+      itemSnapshot: {
+        id: String(clothingItem.id),
+        name: clothingItem.name || 'Trang phục',
+        category: clothingItem.category,
+        image: { secureUrl: itemImage.secureUrl, publicId: itemImage.publicId },
+      },
+      personImagePublicId: personImage.publicId,
+      isSaved: false,
+      isDeleted: false,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     });
     retryableRequestId = null;
-    return result.data;
+    return { ...result, jobId };
   },
-  getStatus: async (jobId) => (await getTryOnJobStatus({ jobId: String(jobId) })).data,
+  getStatus: async (jobId) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Vui lòng đăng nhập để xem tiến trình.');
+    const jobRef = doc(db, 'users', uid, 'tryOns', String(jobId));
+    const snapshot = await getDoc(jobRef);
+    if (!snapshot.exists()) throw new Error('Không tìm thấy lượt thử đồ này.');
+    const current = snapshot.data();
+    const result = await edgeRequest(`/v1/try-on/predictions/${encodeURIComponent(jobId)}/status`, {
+      body: { personImagePublicId: current.personImagePublicId || null },
+    });
+    const patch = {
+      status: result.status,
+      processingTimeMs: result.processingTimeMs ?? null,
+      errorCode: result.errorCode || null,
+      errorMessage: result.errorMessage || null,
+      updatedAt: serverTimestamp(),
+    };
+    if (result.status === 'DONE' && result.resultImage) {
+      patch.resultImage = result.resultImage;
+      patch.completedAt = serverTimestamp();
+    } else if (result.status === 'FAILED') {
+      patch.completedAt = serverTimestamp();
+    }
+    await updateDoc(jobRef, patch);
+    return { ...result, jobId: String(jobId) };
+  },
   getHistory: async ({ page = 0, size = 10, saved } = {}) => {
     const uid = auth.currentUser?.uid;
     const pageNumber = Math.max(0, Number(page) || 0);
@@ -90,6 +149,35 @@ export const trialApi = {
       last: !hasMore,
     };
   },
-  setSaved: async (jobId, saved = true) => (await setTryOnJobSaved({ jobId: String(jobId), saved })).data,
-  deleteHistory: async (jobId) => (await deleteTryOnJob({ jobId: String(jobId) })).data,
+  setSaved: async (jobId, saved = true) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Vui lòng đăng nhập để lưu kết quả.');
+    await updateDoc(doc(db, 'users', uid, 'tryOns', String(jobId)), {
+      isSaved: Boolean(saved),
+      savedAt: saved ? serverTimestamp() : null,
+      updatedAt: serverTimestamp(),
+    });
+    return { jobId: String(jobId), isSaved: Boolean(saved) };
+  },
+  deleteHistory: async (jobId) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) throw new Error('Vui lòng đăng nhập để xóa kết quả.');
+    const jobRef = doc(db, 'users', uid, 'tryOns', String(jobId));
+    const snapshot = await getDoc(jobRef);
+    if (!snapshot.exists()) return { jobId: String(jobId), deleted: true };
+    const data = snapshot.data();
+    await edgeRequest(`/v1/try-on/predictions/${encodeURIComponent(jobId)}`, {
+      method: 'DELETE',
+      body: {
+        personImagePublicId: data.personImagePublicId || null,
+        resultPublicId: data.resultImage?.publicId || null,
+      },
+    });
+    await updateDoc(jobRef, {
+      isDeleted: true,
+      deletedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return { jobId: String(jobId), deleted: true };
+  },
 };

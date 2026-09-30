@@ -26,8 +26,14 @@
       "expo-status-bar",
       "expo-splash-screen",
       "expo-image",
-      "expo-secure-store",
-      "expo-web-browser"
-    ]
+      "expo-secure-store"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a1659c90-3eb3-4aa0-9ae3-b482ed6ca7db"
+      }
+    },
+    "owner": "duongminhkiet"
   }
 }

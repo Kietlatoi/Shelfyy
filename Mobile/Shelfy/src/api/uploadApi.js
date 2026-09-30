@@ -1,9 +1,7 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase/client';
+import { edgeRequest } from './edgeApi';
 
 async function uploadImage(intent, fileUri, fileName, mimeType) {
-  const requestSignature = httpsCallable(functions, 'createCloudinaryUploadSignature');
-  const { data: signedUpload } = await requestSignature({ intent });
+  const signedUpload = await edgeRequest('/v1/uploads/signatures', { body: { intent } });
   const formData = new FormData();
   formData.append('file', {
     uri: fileUri,
@@ -14,7 +12,6 @@ async function uploadImage(intent, fileUri, fileName, mimeType) {
   formData.append('timestamp', String(signedUpload.timestamp));
   formData.append('folder', signedUpload.folder);
   formData.append('public_id', signedUpload.public_id);
-  if (signedUpload.type) formData.append('type', signedUpload.type);
   formData.append('signature', signedUpload.signature);
   formData.append('overwrite', String(signedUpload.overwrite ?? false));
 
@@ -26,7 +23,7 @@ async function uploadImage(intent, fileUri, fileName, mimeType) {
   if (!response.ok) {
     throw new Error(result?.error?.message || 'Không thể tải ảnh lên Cloudinary.');
   }
-  const deliveryType = signedUpload.type || 'upload';
+  const deliveryType = 'upload';
   const expectedCloudinaryUrl = `https://res.cloudinary.com/${signedUpload.cloudName}/image/${deliveryType}/`;
   if (!result.secure_url?.startsWith(expectedCloudinaryUrl)
     || result.public_id !== `${signedUpload.folder}/${signedUpload.public_id}`
@@ -36,8 +33,16 @@ async function uploadImage(intent, fileUri, fileName, mimeType) {
   if (!['jpg', 'jpeg', 'png', 'webp', 'heic'].includes(result.format) || result.bytes > 10 * 1024 * 1024) {
     throw new Error('Ảnh cần ở định dạng JPG, PNG, WebP hoặc HEIC và nhỏ hơn 10 MB.');
   }
-  const complete = httpsCallable(functions, 'completeCloudinaryUpload');
-  const { data: verified } = await complete({ publicId: result.public_id });
+  const verified = {
+    publicId: result.public_id,
+    secureUrl: result.secure_url,
+    deliveryType,
+    format: result.format,
+    bytes: result.bytes,
+    width: result.width,
+    height: result.height,
+    version: result.version,
+  };
   return { ...verified, originalUrl: verified.secureUrl, thumbnailUrl: verified.secureUrl, url: verified.secureUrl };
 }
 

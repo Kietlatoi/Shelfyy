@@ -1,19 +1,22 @@
 import {
   collection,
+  deleteDoc,
   doc,
   getCountFromServer,
   getDoc,
   getDocs,
+  increment,
   limit,
   orderBy,
   query,
   serverTimestamp,
+  setDoc,
   startAfter,
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions } from '../firebase/client';
+import { auth, db } from '../firebase/client';
+import { edgeRequest } from './edgeApi';
 
 const PAGE_SIZE_MAX = 100;
 const SCAN_LIMIT = 500;
@@ -46,7 +49,7 @@ function normalizeWritePayload(payload) {
     .map((key) => [key, payload[key]]));
 }
 
-export function createFirebaseWardrobeApi(firestore, firebaseAuth, markWornCallable, createItemCallable, deleteItemCallable, getPlanCallable, updateItemCallable) {
+export function createFirebaseWardrobeApi(firestore, firebaseAuth) {
   const userItems = () => {
     const uid = firebaseAuth.currentUser?.uid;
     if (!uid) throw new Error('Vui lòng đăng nhập để sử dụng tủ đồ.');
@@ -110,8 +113,23 @@ export function createFirebaseWardrobeApi(firestore, firebaseAuth, markWornCalla
     },
     async createItem(payload) {
       const data = normalizeWritePayload(payload);
-      const result = await createItemCallable(data);
-      return fromData(result.data, result.data.id);
+      const count = await getCountFromServer(query(userItems()));
+      if (count.data().count >= 100) {
+        throw new Error('Gói miễn phí hỗ trợ tối đa 100 món đồ.');
+      }
+      const itemRef = doc(userItems());
+      const item = {
+        ...data,
+        favorite: data.favorite === true,
+        status: data.status || 'IN_USE',
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        wearCount: 0,
+        lastWornAt: null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+      await setDoc(itemRef, item);
+      return fromData(item, itemRef.id);
     },
     async getItem(id) {
       const snapshot = await getDoc(doc(userItems(), String(id)));
@@ -119,28 +137,52 @@ export function createFirebaseWardrobeApi(firestore, firebaseAuth, markWornCalla
       return fromDocument(snapshot);
     },
     async updateItem(id, payload) {
-      const result = await updateItemCallable({ itemId: String(id), payload: normalizeWritePayload(payload) });
-      return fromData(result.data, result.data.id);
+      const itemRef = doc(userItems(), String(id));
+      const before = await getDoc(itemRef);
+      if (!before.exists()) throw new Error('Không tìm thấy món đồ này.');
+      const data = normalizeWritePayload(payload);
+      await updateDoc(itemRef, { ...data, updatedAt: serverTimestamp() });
+      const nextImage = Object.hasOwn(data, 'image') ? data.image : before.data().image;
+      const nextThumbnail = Object.hasOwn(data, 'thumbnail') ? data.thumbnail : before.data().thumbnail;
+      const oldPublicIds = [before.data().image?.publicId, before.data().thumbnail?.publicId]
+        .filter((publicId) => publicId && publicId !== nextImage?.publicId && publicId !== nextThumbnail?.publicId);
+      if (oldPublicIds.length > 0) {
+        await edgeRequest('/v1/media', { method: 'DELETE', body: { publicIds: [...new Set(oldPublicIds)] } })
+          .catch(() => {});
+      }
+      const after = await getDoc(itemRef);
+      return fromDocument(after);
     },
     async deleteItem(id) {
-      const result = await deleteItemCallable({ itemId: String(id) });
-      return result.data;
+      const itemRef = doc(userItems(), String(id));
+      const snapshot = await getDoc(itemRef);
+      if (!snapshot.exists()) return { id: String(id), deleted: true };
+      const publicIds = [...new Set([snapshot.data().image?.publicId, snapshot.data().thumbnail?.publicId].filter(Boolean))];
+      await deleteDoc(itemRef);
+      if (publicIds.length > 0) {
+        await edgeRequest('/v1/media', { method: 'DELETE', body: { publicIds } }).catch(() => {});
+      }
+      return { id: String(id), deleted: true };
     },
     async markWorn(id) {
-      const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      return markWornCallable({ itemId: String(id), requestId });
+      const itemRef = doc(userItems(), String(id));
+      await updateDoc(itemRef, {
+        wearCount: increment(1),
+        lastWornAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return fromDocument(await getDoc(itemRef));
     },
     async getStats() {
       const items = userItems();
-      const [total, worn, plan] = await Promise.all([
+      const [total, worn] = await Promise.all([
         getCountFromServer(query(items)),
         getCountFromServer(query(items, where('wearCount', '>', 0))),
-        getPlanCallable({}),
       ]);
       return {
         totalItems: total.data().count,
         wornCount: worn.data().count,
-        storageLimit: plan.data.wardrobeLimit,
+        storageLimit: 100,
       };
     },
     async updatePreference(id, updates) {
@@ -157,12 +199,7 @@ export function createFirebaseWardrobeApi(firestore, firebaseAuth, markWornCalla
 
 export const wardrobeApi = createFirebaseWardrobeApi(
   db,
-  auth,
-  httpsCallable(functions, 'markWardrobeItemWorn'),
-  httpsCallable(functions, 'createWardrobeItem'),
-  httpsCallable(functions, 'deleteWardrobeItem'),
-  httpsCallable(functions, 'getMyEntitlement'),
-  httpsCallable(functions, 'updateWardrobeItem')
+  auth
 );
 
 export const { getItems, createItem, getItem, updateItem, deleteItem, markWorn, getStats } = wardrobeApi;

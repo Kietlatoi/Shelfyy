@@ -137,6 +137,7 @@ export default function WeatherCard({ onWeatherLoaded }) {
           <Text style={styles.metricLabel}>Gió: {weather?.windSpeed} km/h</Text>
         </View>
       </View>
+      <Text style={styles.attribution}>Dữ liệu thời tiết: Open-Meteo</Text>
     </View>
   );
 }
@@ -236,5 +237,11 @@ const styles = StyleSheet.create({
     width: 1,
     height: 16,
     backgroundColor: colors.borderMedium,
+  },
+  attribution: {
+    ...typography.caption,
+    color: colors.onSurfaceVariant,
+    textAlign: 'right',
+    marginTop: spacing.xs,
   },
 });

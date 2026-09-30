@@ -9,13 +9,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { paymentApi } from '../../../src/api/paymentApi';
 import { subscriptionApi } from '../../../src/api/subscriptionApi';
 import AppButton from '../../../src/components/common/AppButton';
-import LoadingOverlay from '../../../src/components/common/LoadingOverlay';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
 import { radius, shadows, spacing } from '../../../src/constants/spacing';
@@ -26,7 +23,6 @@ function formatPrice(amount) {
 
 export default function PremiumScreen() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
   const [catalog, setCatalog] = useState(null);
   const [planStatus, setPlanStatus] = useState(null);
 
@@ -49,44 +45,17 @@ export default function PremiumScreen() {
   const proPrice = getPlan('PRO')?.price;
   const premiumPrice = getPlan('PREMIUM')?.price;
 
-  const handleUpgrade = async (planType) => {
+  const handleUpgrade = (planType) => {
     if (planType === currentPlan) {
       Alert.alert('Thông báo', 'Bạn đang sử dụng gói này rồi!');
       return;
     }
 
-    setLoading(true);
-    try {
-      const res = await paymentApi.createVnpayPayment(planType);
-      if (res?.paymentUrl) {
-        await WebBrowser.openBrowserAsync(res.paymentUrl);
-        for (let attempt = 0; attempt < 8; attempt += 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          const updated = await subscriptionApi.getMyPlan();
-          setPlanStatus(updated);
-          if (updated.planId === planType) {
-            Alert.alert('Thanh toán thành công', `Gói ${planType} đã được kích hoạt.`);
-            return;
-          }
-        }
-        Alert.alert('Đang xác nhận', 'VNPay đang xử lý giao dịch. Hãy mở lại trang này sau ít phút để cập nhật gói.');
-      } else {
-        Alert.alert('Chưa tạo được giao dịch', 'VNPay chưa trả về đường dẫn thanh toán. Vui lòng thử lại sau.');
-      }
-    } catch (err) {
-      Alert.alert(
-        'Thông báo',
-        err.message || 'Cổng thanh toán VNPay đang bảo trì. Vui lòng liên hệ hỗ trợ hoặc thử lại sau.'
-      );
-    } finally {
-      setLoading(false);
-    }
+    Alert.alert('PayOS sắp ra mắt', `Gói ${planType} chưa mở bán trong bản demo này.`);
   };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <LoadingOverlay visible={loading} message="Đang kết nối cổng thanh toán VNPay..." />
-
       <View style={styles.navBar}>
         <Pressable onPress={() => router.back()} style={styles.navBtn}>
           <MaterialIcons name="arrow-back" size={24} color={colors.onSurface} />
@@ -177,7 +146,7 @@ export default function PremiumScreen() {
           </View>
 
           <AppButton
-            title={currentPlan === 'PRO' ? 'Gói hiện tại của bạn' : 'Nâng cấp lên PRO'}
+            title={currentPlan === 'PRO' ? 'Gói hiện tại của bạn' : 'PayOS sắp ra mắt'}
             onPress={() => handleUpgrade('PRO')}
             disabled={currentPlan === 'PRO' || !purchaseEnabled}
             size="lg"
@@ -221,7 +190,7 @@ export default function PremiumScreen() {
           </View>
 
           <AppButton
-            title={currentPlan === 'PREMIUM' ? 'Gói hiện tại của bạn' : 'Nâng cấp PREMIUM'}
+            title={currentPlan === 'PREMIUM' ? 'Gói hiện tại của bạn' : 'PayOS sắp ra mắt'}
             onPress={() => handleUpgrade('PREMIUM')}
             disabled={currentPlan === 'PREMIUM' || !purchaseEnabled}
             size="lg"
@@ -231,8 +200,8 @@ export default function PremiumScreen() {
         </View>
         <Text style={styles.paymentNote}>
           {purchaseEnabled
-            ? 'Thanh toán một lần qua VNPay sandbox, gói không tự động gia hạn.'
-            : 'Thanh toán VNPay sandbox sẽ được bật sau khi cấu hình project và thông tin merchant.'}
+            ? 'Thanh toán PayOS sẽ được bật ở phiên bản thương mại.'
+            : 'PayOS sắp ra mắt. Hiện tại mọi tài khoản sử dụng gói FREE.'}
         </Text>
       </ScrollView>
     </SafeAreaView>

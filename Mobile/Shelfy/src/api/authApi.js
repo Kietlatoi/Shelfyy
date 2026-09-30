@@ -10,10 +10,23 @@ import {
   updateProfile as updateFirebaseProfile,
   verifyPasswordResetCode,
   confirmPasswordReset,
+  deleteUser,
 } from 'firebase/auth';
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { auth, db, functions } from '../firebase/client';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  writeBatch,
+} from 'firebase/firestore';
+import { auth, db } from '../firebase/client';
+import { edgeRequest } from './edgeApi';
 
 function mapUser(user, profile = {}) {
   return {
@@ -132,13 +145,23 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
       }
       if (Object.hasOwn(updates, 'phone')) patch.phone = updates.phone;
       if (Object.hasOwn(updates, 'avatar')) {
-        await httpsCallable(functions, 'setProfileAvatar')({ avatar: updates.avatar });
+        patch.avatar = updates.avatar;
+        await updateFirebaseUserProfile(user, { photoURL: updates.avatar?.secureUrl || null });
       }
       if (Object.hasOwn(updates, 'profile')) patch.profile = updates.profile;
       if (Object.hasOwn(updates, 'timeZone')) patch.timeZone = updates.timeZone;
       const ref = document(firestore, 'users', user.uid);
+      const before = await getDocument(ref);
       await updateDocument(ref, { ...patch, updatedAt: timestamp() });
       const snapshot = await getDocument(ref);
+      const previousAvatarId = before.data()?.avatar?.publicId;
+      if (Object.hasOwn(updates, 'avatar')
+        && previousAvatarId && previousAvatarId !== updates.avatar?.publicId) {
+        await edgeRequest('/v1/media', {
+          method: 'DELETE',
+          body: { publicIds: [previousAvatarId] },
+        }).catch(() => {});
+      }
       return mapUser(user, snapshot.data());
     },
   };
@@ -166,7 +189,50 @@ export async function deleteAccount(currentPassword) {
   if (!user?.email) throw new Error('Vui lòng đăng nhập lại.');
   await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
   await user.getIdToken(true);
-  const result = await httpsCallable(functions, 'requestAccountDeletion')({});
-  await signOut(auth);
-  return result.data;
+
+  const subcollections = [
+    'wardrobe', 'dailyOutfits', 'suggestions', 'tryOns', 'weatherSnapshots',
+    'calendarEvents', 'integrationStatus', 'entitlements', 'payments', 'mediaAssets',
+  ];
+  const snapshots = await Promise.all(subcollections.map((name) => getDocs(
+    collection(db, 'users', user.uid, name),
+  )));
+  const profile = await getDoc(doc(db, 'users', user.uid));
+  const publicIds = new Set();
+  const addPublicId = (value) => {
+    if (typeof value === 'string' && value.startsWith(`${user.uid}/`)) publicIds.add(value);
+  };
+  addPublicId(profile.data()?.avatar?.publicId);
+  snapshots.forEach((snapshot) => snapshot.docs.forEach((entry) => {
+    const data = entry.data();
+    addPublicId(data.image?.publicId);
+    addPublicId(data.thumbnail?.publicId);
+    addPublicId(data.resultImage?.publicId);
+    addPublicId(data.personImagePublicId);
+    addPublicId(data.publicId);
+    if (Array.isArray(data.mediaPublicIds)) data.mediaPublicIds.forEach(addPublicId);
+  }));
+
+  const ids = [...publicIds];
+  for (let offset = 0; offset < ids.length; offset += 5) {
+    await edgeRequest('/v1/media', {
+      method: 'DELETE',
+      body: { publicIds: ids.slice(offset, offset + 5) },
+    });
+  }
+
+  for (const name of subcollections) {
+    let page;
+    do {
+      page = await getDocs(query(collection(db, 'users', user.uid, name), limit(400)));
+      if (!page.empty) {
+        const batch = writeBatch(db);
+        page.docs.forEach((entry) => batch.delete(entry.ref));
+        await batch.commit();
+      }
+    } while (!page.empty);
+  }
+  await deleteDoc(doc(db, 'users', user.uid));
+  await deleteUser(user);
+  return { deleted: true };
 }

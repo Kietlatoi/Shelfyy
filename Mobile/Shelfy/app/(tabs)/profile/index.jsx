@@ -165,13 +165,13 @@ export default function ProfileScreen() {
   const handleDeleteAccount = async () => {
     if (!deletePassword) { setDeleteError('Vui lòng nhập mật khẩu hiện tại.'); return; }
     setLoading(true);
-    setLoadingMsg('Đang gửi yêu cầu xóa tài khoản...');
+    setLoadingMsg('Đang xóa dữ liệu và ảnh của bạn...');
     try {
       await authApi.deleteAccount(deletePassword);
       setDeleteModalVisible(false);
       setDeletePassword('');
-      await signOut();
-      Alert.alert('Đã nhận yêu cầu', 'Tài khoản đã ngừng truy cập. Dữ liệu và ảnh sẽ được xóa trong quá trình xử lý.');
+      Alert.alert('Đã xóa tài khoản', 'Tài khoản, dữ liệu và ảnh của bạn đã được xóa.');
+      router.replace('/(auth)/login');
     } catch (error) {
       setDeleteError(error.message || 'Chưa thể xóa tài khoản. Vui lòng thử lại.');
     } finally { setLoading(false); setLoadingMsg(''); }

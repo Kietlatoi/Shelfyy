@@ -1,18 +1,21 @@
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase/client';
+const catalog = {
+  purchaseEnabled: false,
+  provider: 'PAYOS_COMING_SOON',
+  plans: [
+    { id: 'FREE', name: 'Cơ bản', price: 0 },
+    { id: 'PRO', name: 'PRO', price: 99000 },
+    { id: 'PREMIUM', name: 'PREMIUM', price: 799000 },
+  ],
+};
 
-export function createSubscriptionApi(callable) {
-  return {
-    async getPlans() {
-      const result = await callable('getSubscriptionPlans')({});
-      return result.data;
-    },
-    async getMyPlan() {
-      const result = await callable('getMyEntitlement')({});
-      return result.data;
-    },
-  };
-}
+const freeEntitlement = {
+  planId: 'FREE',
+  status: 'ACTIVE',
+  wardrobeLimit: 100,
+  quota: { used: 0, limit: 5 },
+};
 
-const callable = (name) => httpsCallable(functions, name);
-export const subscriptionApi = createSubscriptionApi(callable);
+export const subscriptionApi = {
+  getPlans: async () => catalog,
+  getMyPlan: async () => freeEntitlement,
+};

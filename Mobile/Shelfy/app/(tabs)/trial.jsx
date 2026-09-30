@@ -41,6 +41,7 @@ export default function TrialScreen() {
   const [jobStatus, setJobStatus] = useState('');
   const [result, setResult] = useState(null);
   const pollIntervalRef = useRef(null);
+  const pollInFlightRef = useRef(false);
 
   // Load wardrobe & history on mount
   useEffect(() => {
@@ -135,7 +136,7 @@ export default function TrialScreen() {
       setPersonImageRef(personImage);
       const job = await trialApi.generate({
         personImage: { secureUrl: personImage.secureUrl, publicId: personImage.publicId },
-        clothingItemId: selectedItem.id,
+        clothingItem: selectedItem,
       });
 
       const jobId = job?.jobId || job?.id;
@@ -146,22 +147,29 @@ export default function TrialScreen() {
       setJobStatus('AI đang tiến hành may mặc ảo...');
 
       // Start polling
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = setInterval(async () => {
+        if (pollInFlightRef.current) return;
+        pollInFlightRef.current = true;
         try {
           const statusRes = await trialApi.getStatus(jobId);
           if (statusRes.status === 'DONE' || statusRes.status === 'SUCCESS') {
             clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
             setResult(statusRes);
             setProcessing(false);
             loadHistory();
           } else if (statusRes.status === 'FAILED') {
             clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
             setProcessing(false);
             Alert.alert('Thất bại', statusRes.errorMessage || 'Quá trình thử đồ ảo không thành công.');
             loadHistory();
           }
         } catch {
           // Poll attempt failed, will retry next interval
+        } finally {
+          pollInFlightRef.current = false;
         }
       }, 3000);
     } catch (err) {

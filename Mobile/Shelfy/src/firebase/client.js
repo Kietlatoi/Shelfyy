@@ -8,7 +8,6 @@ import {
   initializeAuth,
 } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
-import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { resolveEmulatorHost, resolveFirebaseConfig } from './config';
 
 const emulatorEnabled = process.env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR === 'true'
@@ -17,7 +16,7 @@ const defaultProjectId = emulatorEnabled ? 'demo-shelfy' : undefined;
 const firebaseConfig = resolveFirebaseConfig({
   EXPO_PUBLIC_FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  EXPO_PUBLIC_FIREBASE_PROJECT_ID: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || defaultProjectId,
+  EXPO_PUBLIC_FIREBASE_PROJECT_ID: defaultProjectId || process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
   EXPO_PUBLIC_FIREBASE_APP_ID: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || (emulatorEnabled ? '1:1234567890:android:demo' : undefined),
   EXPO_PUBLIC_USE_FIREBASE_EMULATOR: String(emulatorEnabled),
 });
@@ -35,8 +34,6 @@ try {
 }
 
 const db = getFirestore(app);
-const functionsRegion = process.env.EXPO_PUBLIC_FIREBASE_FUNCTIONS_REGION || 'asia-southeast1';
-const functions = getFunctions(app, functionsRegion);
 
 if (emulatorEnabled) {
   const host = resolveEmulatorHost(
@@ -46,7 +43,6 @@ if (emulatorEnabled) {
 
   connectAuthEmulator(auth, `http://${host}:9099`, { disableWarnings: true });
   connectFirestoreEmulator(db, host, 8080);
-  connectFunctionsEmulator(functions, host, 5001);
 }
 
-export { app, auth, db, firebaseConfig, functions, functionsRegion };
+export { app, auth, db, firebaseConfig };

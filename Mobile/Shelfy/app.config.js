@@ -16,9 +16,33 @@ module.exports = ({ config }) => {
 
   return {
     ...config,
+    plugins: [
+      ...(config.plugins || []),
+      ['expo-calendar', {
+        calendarPermission: 'Cho phép Shelfy đọc lịch để gợi ý trang phục phù hợp với sự kiện trong ngày.',
+      }],
+      ['expo-location', {
+        locationWhenInUsePermission: 'Cho phép Shelfy dùng vị trí để lấy thời tiết tại nơi bạn đang ở.',
+      }],
+      ['expo-image-picker', {
+        photosPermission: 'Cho phép Shelfy chọn ảnh trang phục và ảnh đại diện từ thư viện.',
+        cameraPermission: 'Cho phép Shelfy chụp ảnh trang phục.',
+        microphonePermission: false,
+      }],
+    ],
     android: {
       ...config.android,
       package: 'com.shelfy.app',
+      googleServicesFile: './google-services.json',
+      permissions: [
+        ...(config.android?.permissions || []),
+        'android.permission.READ_CALENDAR',
+        'android.permission.WRITE_CALENDAR',
+        'android.permission.ACCESS_COARSE_LOCATION',
+        'android.permission.ACCESS_FINE_LOCATION',
+        'android.permission.CAMERA',
+        'android.permission.READ_MEDIA_IMAGES',
+      ],
       intentFilters: [...(config.android?.intentFilters || []), intentFilter],
     },
   };
