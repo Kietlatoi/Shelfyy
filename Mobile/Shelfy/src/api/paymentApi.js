@@ -22,9 +22,9 @@ async function remember(payment) {
 }
 
 export const paymentApi = {
-  async createPayment(planId) {
+  async createPayment(planId, appReturnUrl) {
     const payment = await edgeRequest('/v1/billing/checkout', {
-      body: { planId, requestId: requestId() },
+      body: { planId, requestId: requestId(), appReturnUrl },
     });
     await remember(payment);
     return payment;

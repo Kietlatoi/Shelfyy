@@ -58,12 +58,13 @@ test('subscription and payment APIs use the Worker and never pass price or provi
   const payments = loadModule('src/api/paymentApi.js', context.common).paymentApi;
   assert.equal((await subscriptions.getPlans()).provider, 'PAYOS');
   assert.equal((await subscriptions.getMyPlan()).planId, 'FREE');
-  assert.equal((await payments.createPayment('PRO')).planId, 'PRO');
+  assert.equal((await payments.createPayment('PRO', 'exp://127.0.0.1:8081/--/payment/result')).planId, 'PRO');
   assert.equal(context.calls[0].path, '/v1/billing/plans');
   assert.equal(context.calls[1].path, '/v1/billing/me');
   assert.equal(context.calls[2].path, '/v1/billing/checkout');
   assert.equal(context.calls[2].options.body.planId, 'PRO');
   assert.match(context.calls[2].options.body.requestId, /^\d+-[a-z0-9]+$/);
+  assert.equal(context.calls[2].options.body.appReturnUrl, 'exp://127.0.0.1:8081/--/payment/result');
   assert.equal('price' in context.calls[2].options.body, false);
   assert.equal(/api.?key|checksum|client.?id/i.test(JSON.stringify(context.calls)), false);
 });

@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import test from 'node:test';
-import { PLANS, quotaDescriptor, validatePaymentStatus, verifyPayOsSignature } from '../src/billing.js';
+import {
+  PLANS,
+  quotaDescriptor,
+  resolveAppReturnUrl,
+  validatePaymentStatus,
+  verifyPayOsSignature,
+} from '../src/billing.js';
 
 test('PayOS signature sorts fields alphabetically and verifies HMAC-SHA256', async () => {
   const data = {
@@ -42,4 +48,20 @@ test('financial ledger accepts only documented statuses', () => {
     assert.equal(validatePaymentStatus(status), true);
   }
   assert.equal(validatePaymentStatus('SUCCESS'), false);
+});
+
+test('payment return URL accepts the installed app and Expo Go result route only', () => {
+  const env = { APP_DEEP_LINK: 'shelfy://payment/result' };
+  assert.equal(resolveAppReturnUrl(env), 'shelfy://payment/result');
+  assert.equal(resolveAppReturnUrl(env, 'shelfy://payment/result'), 'shelfy://payment/result');
+  assert.equal(
+    resolveAppReturnUrl(env, 'exp://192.168.1.20:8081/--/payment/result'),
+    'exp://192.168.1.20:8081/--/payment/result',
+  );
+  assert.throws(() => resolveAppReturnUrl(env, 'https://attacker.example/payment/result'), {
+    code: 'INVALID_APP_RETURN_URL',
+  });
+  assert.throws(() => resolveAppReturnUrl(env, 'shelfy://profile/payment-history'), {
+    code: 'INVALID_APP_RETURN_URL',
+  });
 });

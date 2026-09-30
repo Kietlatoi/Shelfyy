@@ -73,10 +73,10 @@ export default function PremiumScreen() {
     }
     setProcessingPlan(planType);
     try {
-      const payment = await paymentApi.createPayment(planType);
+      const redirectUrl = Linking.createURL('/payment/result');
+      const payment = await paymentApi.createPayment(planType, redirectUrl);
       setPendingPayment(payment);
       if (!payment.checkoutUrl) throw new Error('PayOS chưa trả về trang thanh toán.');
-      const redirectUrl = Linking.createURL('/payment/result');
       const result = await WebBrowser.openAuthSessionAsync(payment.checkoutUrl, redirectUrl, {
         toolbarColor: colors.primary,
         showTitle: true,

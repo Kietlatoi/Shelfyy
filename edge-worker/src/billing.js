@@ -54,6 +54,43 @@ function publicBaseUrl(env) {
   return required(env, 'PUBLIC_BASE_URL').replace(/\/+$/, '');
 }
 
+export function resolveAppReturnUrl(env, value) {
+  const fallback = required(env, 'APP_DEEP_LINK');
+  if (!value) return fallback;
+
+  const candidate = String(value);
+  if (candidate.length > 1000) {
+    const error = new Error('Địa chỉ quay lại ứng dụng không hợp lệ.');
+    error.status = 400;
+    error.code = 'INVALID_APP_RETURN_URL';
+    throw error;
+  }
+
+  let url;
+  try {
+    url = new URL(candidate);
+  } catch {
+    const error = new Error('Địa chỉ quay lại ứng dụng không hợp lệ.');
+    error.status = 400;
+    error.code = 'INVALID_APP_RETURN_URL';
+    throw error;
+  }
+
+  const isInstalledApp = url.protocol === 'shelfy:'
+    && url.hostname === 'payment'
+    && url.pathname === '/result';
+  const isExpoDevelopment = ['exp:', 'exps:'].includes(url.protocol)
+    && url.pathname.endsWith('/--/payment/result');
+  if ((!isInstalledApp && !isExpoDevelopment) || url.username || url.password || url.search || url.hash) {
+    const error = new Error('Địa chỉ quay lại ứng dụng không được hỗ trợ.');
+    error.status = 400;
+    error.code = 'INVALID_APP_RETURN_URL';
+    throw error;
+  }
+
+  return url.toString();
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -363,6 +400,7 @@ export async function createCheckout(env, user, body) {
     throw error;
   }
   const requestId = assertRequestId(body?.requestId);
+  const appReturnUrl = resolveAppReturnUrl(env, body?.appReturnUrl);
   if (!env.RATE_LIMITS) {
     const error = new Error('Worker chưa được gắn KV RATE_LIMITS.');
     error.status = 503;
@@ -430,6 +468,7 @@ export async function createCheckout(env, user, body) {
       paymentLinkId: null,
       providerReference: null,
       description: `SHELFY ${orderCode}`,
+      appReturnUrl,
       checkoutUrl: null,
       createdAt,
       expiresAt: new Date(Date.now() + ttlSeconds * 1000).toISOString(),
@@ -752,10 +791,17 @@ export async function handlePayOsWebhook(env, payload) {
   return { acknowledged: true };
 }
 
-export function paymentRedirect(env, request, status) {
+export async function paymentRedirect(env, request, status) {
   const url = new URL(request.url);
   const orderCode = url.searchParams.get('orderCode') || '';
-  const deepLink = new URL(required(env, 'APP_DEEP_LINK'));
+  let appReturnUrl = required(env, 'APP_DEEP_LINK');
+  if (/^\d{10,16}$/.test(orderCode)) {
+    const payment = await getDocument(env, paymentPath(orderCode));
+    if (payment?.data.appReturnUrl) {
+      appReturnUrl = resolveAppReturnUrl(env, payment.data.appReturnUrl);
+    }
+  }
+  const deepLink = new URL(appReturnUrl);
   if (orderCode) deepLink.searchParams.set('orderCode', orderCode);
   deepLink.searchParams.set('returnStatus', status);
   return Response.redirect(deepLink.toString(), 302);
