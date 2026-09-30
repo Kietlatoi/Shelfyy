@@ -10,13 +10,13 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  setDoc,
   startAfter,
   updateDoc,
   where,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
 import { edgeRequest } from './edgeApi';
+import { subscriptionApi } from './subscriptionApi';
 
 const PAGE_SIZE_MAX = 100;
 const SCAN_LIMIT = 500;
@@ -113,23 +113,8 @@ export function createFirebaseWardrobeApi(firestore, firebaseAuth) {
     },
     async createItem(payload) {
       const data = normalizeWritePayload(payload);
-      const count = await getCountFromServer(query(userItems()));
-      if (count.data().count >= 100) {
-        throw new Error('Gói miễn phí hỗ trợ tối đa 100 món đồ.');
-      }
-      const itemRef = doc(userItems());
-      const item = {
-        ...data,
-        favorite: data.favorite === true,
-        status: data.status || 'IN_USE',
-        tags: Array.isArray(data.tags) ? data.tags : [],
-        wearCount: 0,
-        lastWornAt: null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-      };
-      await setDoc(itemRef, item);
-      return fromData(item, itemRef.id);
+      const item = await edgeRequest('/v1/wardrobe/items', { body: data });
+      return fromData(item, item.id);
     },
     async getItem(id) {
       const snapshot = await getDoc(doc(userItems(), String(id)));
@@ -175,14 +160,15 @@ export function createFirebaseWardrobeApi(firestore, firebaseAuth) {
     },
     async getStats() {
       const items = userItems();
-      const [total, worn] = await Promise.all([
+      const [total, worn, entitlement] = await Promise.all([
         getCountFromServer(query(items)),
         getCountFromServer(query(items, where('wearCount', '>', 0))),
+        subscriptionApi.getMyPlan(),
       ]);
       return {
         totalItems: total.data().count,
         wornCount: worn.data().count,
-        storageLimit: 100,
+        storageLimit: entitlement.wardrobeLimit ?? 100,
       };
     },
     async updatePreference(id, updates) {

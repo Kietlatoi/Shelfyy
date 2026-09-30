@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Platform,
   View,
   Text,
   TextInput,
@@ -23,7 +24,8 @@ export default function AppInput({
   onRightIconPress,
   keyboardType = 'default',
   autoCapitalize = 'none',
-  autoCorrect = false,
+  autoCorrect,
+  spellCheck,
   editable = true,
   multiline = false,
   numberOfLines = 1,
@@ -31,8 +33,35 @@ export default function AppInput({
   inputStyle,
   containerStyle,
 }) {
+  const inputRef = useRef(null);
+  const nativeValueRef = useRef(String(value ?? ''));
+  const lastEmittedValueRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isSecure, setIsSecure] = useState(secureTextEntry);
+  const normalizedValue = String(value ?? '');
+  const textAssistanceEnabled = autoCorrect
+    ?? (!secureTextEntry && keyboardType === 'default');
+
+  // Echoing `value` after every keystroke can interrupt Android IME composition
+  // (Telex/VNI included). Keep Android native-controlled while typing, then only
+  // push true external changes such as loading an edit form or clearing search.
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    if (normalizedValue === lastEmittedValueRef.current) {
+      lastEmittedValueRef.current = null;
+      return;
+    }
+    if (normalizedValue !== nativeValueRef.current) {
+      inputRef.current?.setNativeProps({ text: normalizedValue });
+      nativeValueRef.current = normalizedValue;
+    }
+  }, [normalizedValue]);
+
+  const handleChangeText = (text) => {
+    nativeValueRef.current = text;
+    lastEmittedValueRef.current = text;
+    onChangeText?.(text);
+  };
 
   const toggleSecure = () => {
     setIsSecure((prev) => !prev);
@@ -55,14 +84,18 @@ export default function AppInput({
         {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
 
         <TextInput
-          value={value}
-          onChangeText={onChangeText}
+          ref={inputRef}
+          {...(Platform.OS === 'android'
+            ? { defaultValue: normalizedValue }
+            : { value: normalizedValue })}
+          onChangeText={handleChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.onSurfaceDisabled}
           secureTextEntry={isSecure}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
-          autoCorrect={autoCorrect}
+          autoCorrect={textAssistanceEnabled}
+          spellCheck={spellCheck ?? textAssistanceEnabled}
           editable={editable}
           multiline={multiline}
           numberOfLines={numberOfLines}

@@ -6,7 +6,8 @@ const { checkBuildEnvironment } = require('../scripts/check-build-env.cjs');
 test('release builds reject missing Firebase configuration and emulator targets', () => {
   assert.throws(() => checkBuildEnvironment({}), /Thiếu cấu hình EAS/);
   const valid = { EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'shelfy-stage', EXPO_PUBLIC_FIREBASE_APP_ID: '1:123:web:abc',
-    EXPO_PUBLIC_FIREBASE_API_KEY: 'public-project-key', EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'false' };
+    EXPO_PUBLIC_FIREBASE_API_KEY: 'public-project-key', EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: 'shelfy-stage.firebaseapp.com',
+    EXPO_PUBLIC_EDGE_API_URL: 'https://shelfy-edge.example.workers.dev', EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'false' };
   assert.doesNotThrow(() => checkBuildEnvironment(valid));
   assert.throws(() => checkBuildEnvironment({ ...valid, EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'true' }), /project thật/);
   assert.throws(() => checkBuildEnvironment({ ...valid, EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'demo-shelfy' }), /project thật/);

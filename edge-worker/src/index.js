@@ -1,3 +1,18 @@
+import {
+  anonymizeBilling,
+  cancelPayment,
+  createCheckout,
+  getBillingPlans,
+  getEffectiveEntitlement,
+  getMyPlan,
+  getPayment,
+  handlePayOsWebhook,
+  paymentRedirect,
+  quotaDescriptor,
+  reconcilePendingPayments,
+} from './billing.js';
+import { createWardrobeItem } from './wardrobe.js';
+
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 const TRY_ON_CATEGORIES = new Set(['TOP', 'BOTTOM', 'DRESS', 'OUTERWEAR']);
 const REPLICATE_API = 'https://api.replicate.com/v1';
@@ -94,7 +109,7 @@ async function authenticate(request, env) {
   if (!response.ok || !user || user.localId !== tokenPayload.sub || user.disabled) {
     throw new ApiError(401, 'INVALID_TOKEN', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa.');
   }
-  return { uid: user.localId };
+  return { uid: user.localId, email: user.email || '' };
 }
 
 async function sha1Hex(value) {
@@ -271,20 +286,21 @@ async function consumeTryOnQuota(env, uid, requestId) {
   const existingJobId = await env.RATE_LIMITS.get(requestKey);
   if (existingJobId) return { existingJobId, requestKey };
 
-  const date = new Date().toISOString().slice(0, 10);
-  const quotaKey = `quota:${uid}:${date}`;
+  const plan = await getEffectiveEntitlement(env, uid);
+  const quota = quotaDescriptor(plan, uid);
+  const quotaKey = quota.key;
   const used = Number(await env.RATE_LIMITS.get(quotaKey) || 0);
-  const limit = Math.min(Math.max(Number(env.TRY_ON_LIMIT_PER_DAY) || 5, 1), 50);
-  if (used >= limit) {
-    throw new ApiError(429, 'DAILY_TRY_ON_LIMIT', `Bạn đã dùng hết ${limit} lượt thử đồ AI hôm nay.`);
+  if (used >= quota.limit) {
+    const periodLabel = quota.period === 'MONTH' ? 'tháng này' : 'hôm nay';
+    throw new ApiError(429, 'TRY_ON_LIMIT_REACHED', `Bạn đã dùng hết ${quota.limit} lượt thử đồ AI ${periodLabel}.`);
   }
-  return { existingJobId: null, requestKey, quotaKey, used };
+  return { existingJobId: null, requestKey, quotaKey, used, quotaExpirationTtl: quota.expirationTtl };
 }
 
 async function rememberPrediction(env, quota, predictionId) {
   await Promise.all([
     env.RATE_LIMITS.put(quota.requestKey, predictionId, { expirationTtl: 86400 }),
-    env.RATE_LIMITS.put(quota.quotaKey, String(quota.used + 1), { expirationTtl: 172800 }),
+    env.RATE_LIMITS.put(quota.quotaKey, String(quota.used + 1), { expirationTtl: quota.quotaExpirationTtl }),
     env.RATE_LIMITS.put(`prediction-owner:${predictionId}`, quota.uid, { expirationTtl: 31536000 }),
   ]);
 }
@@ -402,7 +418,35 @@ async function route(request, env) {
     return { status: 'ok' };
   }
 
-  const { uid } = await authenticate(request, env);
+  if (request.method === 'POST' && url.pathname === '/v1/webhooks/payos') {
+    return handlePayOsWebhook(env, await readJson(request));
+  }
+  if (request.method === 'GET' && url.pathname === '/v1/billing/return') {
+    return paymentRedirect(env, request, 'return');
+  }
+  if (request.method === 'GET' && url.pathname === '/v1/billing/cancel') {
+    return paymentRedirect(env, request, 'cancel');
+  }
+
+  const user = await authenticate(request, env);
+  const { uid } = user;
+  if (request.method === 'GET' && url.pathname === '/v1/billing/plans') {
+    return getBillingPlans(env);
+  }
+  if (request.method === 'GET' && url.pathname === '/v1/billing/me') {
+    return getMyPlan(env, user);
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/billing/checkout') {
+    return createCheckout(env, user, await readJson(request));
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/account/anonymize-billing') {
+    return anonymizeBilling(env, user);
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/wardrobe/items') {
+    return createWardrobeItem(env, user, await readJson(request), (ownerUid, image, folder) => (
+      assertCloudinaryImage(env, ownerUid, image, folder)
+    ));
+  }
   if (request.method === 'POST' && url.pathname === '/v1/uploads/signatures') {
     return createUploadSignature(env, uid, await readJson(request));
   }
@@ -421,6 +465,14 @@ async function route(request, env) {
   if (request.method === 'DELETE' && cancelMatch) {
     return cancelPrediction(env, uid, cancelMatch[1], await readJson(request));
   }
+  const paymentMatch = url.pathname.match(/^\/v1\/billing\/payments\/(\d{10,16})$/);
+  if (request.method === 'GET' && paymentMatch) {
+    return getPayment(env, user, paymentMatch[1]);
+  }
+  const paymentCancelMatch = url.pathname.match(/^\/v1\/billing\/payments\/(\d{10,16})\/cancel$/);
+  if (request.method === 'POST' && paymentCancelMatch) {
+    return cancelPayment(env, user, paymentCancelMatch[1]);
+  }
   throw new ApiError(404, 'NOT_FOUND', 'Không tìm thấy API này.');
 }
 
@@ -430,12 +482,17 @@ export default {
     try {
       corsHeaders = corsFor(request, env);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
-      return json({ data: await route(request, env) }, 200, corsHeaders);
+      const result = await route(request, env);
+      if (result instanceof Response) return result;
+      return json({ data: result }, 200, corsHeaders);
     } catch (error) {
-      const status = error instanceof ApiError ? error.status : 500;
-      const code = error instanceof ApiError ? error.code : 'INTERNAL_ERROR';
-      const message = error instanceof ApiError ? error.message : 'Máy chủ gặp lỗi. Vui lòng thử lại.';
+      const status = Number(error?.status) || (error instanceof ApiError ? error.status : 500);
+      const code = error?.code || (error instanceof ApiError ? error.code : 'INTERNAL_ERROR');
+      const message = status < 500 ? error.message : 'Máy chủ gặp lỗi. Vui lòng thử lại.';
       return json({ error: { code, message } }, status, corsHeaders);
     }
+  },
+  async scheduled(_controller, env, context) {
+    context.waitUntil(reconcilePendingPayments(env));
   },
 };

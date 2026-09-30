@@ -189,10 +189,11 @@ export async function deleteAccount(currentPassword) {
   if (!user?.email) throw new Error('Vui lòng đăng nhập lại.');
   await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
   await user.getIdToken(true);
+  await edgeRequest('/v1/account/anonymize-billing', { body: {} });
 
   const subcollections = [
     'wardrobe', 'dailyOutfits', 'suggestions', 'tryOns', 'weatherSnapshots',
-    'calendarEvents', 'integrationStatus', 'entitlements', 'payments', 'mediaAssets',
+    'calendarEvents', 'integrationStatus', 'mediaAssets',
   ];
   const snapshots = await Promise.all(subcollections.map((name) => getDocs(
     collection(db, 'users', user.uid, name),

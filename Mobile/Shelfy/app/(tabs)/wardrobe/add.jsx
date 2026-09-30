@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -26,6 +26,7 @@ import { radius, spacing } from '../../../src/constants/spacing';
 import { CATEGORIES, SEASONS, SIZES } from '../../../src/constants/categories';
 
 export default function AddWardrobeItemScreen() {
+  const scrollRef = useRef(null);
   const [imageUri, setImageUri] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
   const [name, setName] = useState('');
@@ -135,7 +136,10 @@ export default function AddWardrobeItemScreen() {
         },
       ]);
     } catch (err) {
-      setError(err.message || 'Không thể tạo món đồ. Vui lòng thử lại.');
+      const message = err.message || 'Không thể tạo món đồ. Vui lòng thử lại.';
+      setError(message);
+      scrollRef.current?.scrollTo({ y: 0, animated: true });
+      Alert.alert('Không thể lưu món đồ', message);
     } finally {
       setLoading(false);
       setLoadingMessage('');
@@ -160,6 +164,7 @@ export default function AddWardrobeItemScreen() {
         style={styles.container}
       >
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >

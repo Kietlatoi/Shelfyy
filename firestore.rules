@@ -289,10 +289,8 @@ service cloud.firestore {
 
       match /wardrobe/{itemId} {
         allow read: if owns(uid);
-        allow create: if owns(uid)
-          && validWardrobeItem(uid, request.resource.data)
-          && request.resource.data.createdAt == request.time
-          && request.resource.data.wearCount == 0;
+        // New items go through the Worker so paid-plan storage limits cannot be bypassed.
+        allow create: if false;
         allow update: if owns(uid) && validWardrobeUpdate(uid);
         allow delete: if owns(uid);
       }
@@ -357,11 +355,11 @@ service cloud.firestore {
       }
       match /entitlements/{entitlementId} {
         allow read: if owns(uid);
-        allow delete: if owns(uid);
+        allow write: if false;
       }
       match /payments/{paymentId} {
         allow read: if owns(uid);
-        allow delete: if owns(uid);
+        allow write: if false;
       }
       match /mediaAssets/{assetId} {
         allow read, delete: if owns(uid);
@@ -373,6 +371,18 @@ service cloud.firestore {
 
     match /plans/{planId} {
       allow get, list: if resource.data.isActive == true;
+    }
+
+    match /_billingPayments/{paymentId} {
+      allow read, write: if false;
+    }
+
+    match /_billingWebhookEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /_billingCustomers/{uid} {
+      allow read, write: if false;
     }
 
     match /{document=**} {

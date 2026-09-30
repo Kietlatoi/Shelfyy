@@ -29,6 +29,7 @@ module.exports = ({ config }) => {
         cameraPermission: 'Cho phép Shelfy chụp ảnh trang phục.',
         microphonePermission: false,
       }],
+      'expo-web-browser',
     ],
     android: {
       ...config.android,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { subscriptionApi } from '../../../src/api/subscriptionApi';
+import { paymentApi } from '../../../src/api/paymentApi';
 import AppButton from '../../../src/components/common/AppButton';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
@@ -21,23 +24,37 @@ function formatPrice(amount) {
   return `${new Intl.NumberFormat('vi-VN').format(Number(amount) || 0)} ₫`;
 }
 
+function formatDate(value) {
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('vi-VN') : null;
+}
+
 export default function PremiumScreen() {
   const { user } = useAuth();
   const [catalog, setCatalog] = useState(null);
   const [planStatus, setPlanStatus] = useState(null);
+  const [pendingPayment, setPendingPayment] = useState(null);
+  const [processingPlan, setProcessingPlan] = useState(null);
+
+  const loadData = useCallback(async () => {
+    const [nextCatalog, nextPlan, storedPending] = await Promise.all([
+      subscriptionApi.getPlans(),
+      subscriptionApi.getMyPlan(),
+      paymentApi.getPendingPayment(),
+    ]);
+    setCatalog(nextCatalog);
+    setPlanStatus(nextPlan);
+    if (storedPending) {
+      const latest = await paymentApi.getPayment(storedPending.orderCode).catch(() => null);
+      setPendingPayment(latest?.status === 'PENDING' ? latest : null);
+    } else {
+      setPendingPayment(null);
+    }
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    Promise.all([subscriptionApi.getPlans(), subscriptionApi.getMyPlan()])
-      .then(([nextCatalog, nextPlan]) => {
-        if (isMounted) {
-          setCatalog(nextCatalog);
-          setPlanStatus(nextPlan);
-        }
-      })
-      .catch(() => {});
-    return () => { isMounted = false; };
-  }, []);
+    Promise.resolve().then(loadData).catch(() => {});
+  }, [loadData]);
 
   const getPlan = (id) => catalog?.plans?.find((plan) => plan.id === id);
   const currentPlan = planStatus?.planId || user?.plan || 'FREE';
@@ -45,13 +62,55 @@ export default function PremiumScreen() {
   const proPrice = getPlan('PRO')?.price;
   const premiumPrice = getPlan('PREMIUM')?.price;
 
-  const handleUpgrade = (planType) => {
-    if (planType === currentPlan) {
-      Alert.alert('Thông báo', 'Bạn đang sử dụng gói này rồi!');
+  const handleUpgrade = async (planType) => {
+    if (!purchaseEnabled) {
+      Alert.alert('Chưa thể thanh toán', 'PayOS chưa được cấu hình đầy đủ trên máy chủ.');
       return;
     }
+    if (currentPlan === 'PREMIUM' && planType === 'PRO') {
+      Alert.alert('Gói PREMIUM đang hoạt động', 'Bạn có thể mua PRO sau khi gói PREMIUM hết hạn.');
+      return;
+    }
+    setProcessingPlan(planType);
+    try {
+      const payment = await paymentApi.createPayment(planType);
+      setPendingPayment(payment);
+      if (!payment.checkoutUrl) throw new Error('PayOS chưa trả về trang thanh toán.');
+      const redirectUrl = Linking.createURL('/payment/result');
+      const result = await WebBrowser.openAuthSessionAsync(payment.checkoutUrl, redirectUrl, {
+        toolbarColor: colors.primary,
+        showTitle: true,
+      });
+      if (result.type !== 'success') {
+        const latest = await paymentApi.getPayment(payment.orderCode).catch(() => payment);
+        setPendingPayment(latest.status === 'PENDING' ? latest : null);
+        if (latest.status === 'PAID') {
+          Alert.alert('Thanh toán thành công', `Gói ${planType} đã được kích hoạt.`);
+        }
+      }
+      await loadData();
+    } catch (error) {
+      Alert.alert('Không thể thanh toán', error.message || 'Vui lòng thử lại sau.');
+    } finally {
+      setProcessingPlan(null);
+    }
+  };
 
-    Alert.alert('PayOS sắp ra mắt', `Gói ${planType} chưa mở bán trong bản demo này.`);
+  const resumePendingPayment = async () => {
+    if (!pendingPayment?.checkoutUrl) return;
+    setProcessingPlan(pendingPayment.planId);
+    try {
+      await WebBrowser.openAuthSessionAsync(
+        pendingPayment.checkoutUrl,
+        Linking.createURL('/payment/result'),
+        { toolbarColor: colors.primary, showTitle: true },
+      );
+      await loadData();
+    } catch (error) {
+      Alert.alert('Không thể mở PayOS', error.message || 'Vui lòng thử lại sau.');
+    } finally {
+      setProcessingPlan(null);
+    }
   };
 
   return (
@@ -65,6 +124,15 @@ export default function PremiumScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {pendingPayment && (
+          <Pressable style={styles.pendingCard} onPress={resumePendingPayment}>
+            <MaterialIcons name="schedule" size={22} color={colors.primary} />
+            <View style={styles.pendingTextWrap}>
+              <Text style={styles.pendingTitle}>Thanh toán {pendingPayment.planId} đang chờ</Text>
+              <Text style={styles.pendingText}>Nhấn để tiếp tục trên PayOS.</Text>
+            </View>
+          </Pressable>
+        )}
         {/* Hero Header */}
         <View style={styles.heroSection}>
           <View style={styles.diamondCircle}>
@@ -77,6 +145,11 @@ export default function PremiumScreen() {
         </View>
 
         {/* Free Plan */}
+        {currentPlan !== 'FREE' && formatDate(planStatus?.expiresAt) && (
+          <Text style={styles.expiryText}>
+            Gói {currentPlan} có hiệu lực đến {formatDate(planStatus.expiresAt)}
+          </Text>
+        )}
         <View style={styles.planCard}>
           <View style={styles.planHeader}>
             <View>
@@ -116,7 +189,7 @@ export default function PremiumScreen() {
             <View>
               <Text style={[styles.planName, styles.proTitle]}>Gói PRO</Text>
               <Text style={styles.planPrice}>
-                <Text style={styles.priceHighlight}>{proPrice ? formatPrice(proPrice) : '99.000 ₫'}</Text> / tháng
+                <Text style={styles.priceHighlight}>{proPrice ? formatPrice(proPrice) : '69.000 ₫'}</Text> / tháng
               </Text>
             </View>
             {currentPlan === 'PRO' && (
@@ -137,18 +210,16 @@ export default function PremiumScreen() {
             </View>
             <View style={styles.featureRow}>
               <MaterialIcons name="check" size={18} color={colors.primary} />
-              <Text style={styles.featureText}>Phối đồ thông minh theo lịch trình Google Calendar</Text>
-            </View>
-            <View style={styles.featureRow}>
-              <MaterialIcons name="check" size={18} color={colors.primary} />
-              <Text style={styles.featureText}>Tốc độ xử lý AI ưu tiên cao</Text>
+              <Text style={styles.featureText}>Hiệu lực 30 ngày cho mỗi lần thanh toán</Text>
             </View>
           </View>
 
           <AppButton
-            title={currentPlan === 'PRO' ? 'Gói hiện tại của bạn' : 'PayOS sắp ra mắt'}
+            title={processingPlan === 'PRO'
+              ? 'Đang tạo thanh toán...'
+              : currentPlan === 'PRO' ? 'Gia hạn gói PRO' : 'Mua gói PRO qua PayOS'}
             onPress={() => handleUpgrade('PRO')}
-            disabled={currentPlan === 'PRO' || !purchaseEnabled}
+            disabled={!purchaseEnabled || Boolean(processingPlan) || currentPlan === 'PREMIUM'}
             size="lg"
             style={styles.planBtn}
           />
@@ -157,14 +228,14 @@ export default function PremiumScreen() {
         {/* PREMIUM Plan */}
         <View style={[styles.planCard, styles.premiumCard]}>
           <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>TIẾT KIỆM 33%</Text>
+            <Text style={styles.discountText}>TIẾT KIỆM 28%</Text>
           </View>
 
           <View style={styles.planHeader}>
             <View>
               <Text style={[styles.planName, styles.premiumTitle]}>Gói PREMIUM</Text>
               <Text style={styles.planPrice}>
-                <Text style={styles.priceHighlight}>{premiumPrice ? formatPrice(premiumPrice) : '799.000 ₫'}</Text> / năm
+                <Text style={styles.priceHighlight}>{premiumPrice ? formatPrice(premiumPrice) : '599.000 ₫'}</Text> / năm
               </Text>
             </View>
             {currentPlan === 'PREMIUM' && (
@@ -185,14 +256,16 @@ export default function PremiumScreen() {
             </View>
             <View style={styles.featureRow}>
               <MaterialIcons name="star" size={18} color={colors.gold} />
-              <Text style={styles.featureText}>Ưu tiên xử lý AI</Text>
+              <Text style={styles.featureText}>Hiệu lực 365 ngày cho mỗi lần thanh toán</Text>
             </View>
           </View>
 
           <AppButton
-            title={currentPlan === 'PREMIUM' ? 'Gói hiện tại của bạn' : 'PayOS sắp ra mắt'}
+            title={processingPlan === 'PREMIUM'
+              ? 'Đang tạo thanh toán...'
+              : currentPlan === 'PREMIUM' ? 'Gia hạn gói PREMIUM' : 'Mua gói PREMIUM qua PayOS'}
             onPress={() => handleUpgrade('PREMIUM')}
-            disabled={currentPlan === 'PREMIUM' || !purchaseEnabled}
+            disabled={!purchaseEnabled || Boolean(processingPlan)}
             size="lg"
             variant="secondary"
             style={styles.planBtn}
@@ -200,8 +273,8 @@ export default function PremiumScreen() {
         </View>
         <Text style={styles.paymentNote}>
           {purchaseEnabled
-            ? 'Thanh toán PayOS sẽ được bật ở phiên bản thương mại.'
-            : 'PayOS sắp ra mắt. Hiện tại mọi tài khoản sử dụng gói FREE.'}
+            ? 'Thanh toán một lần qua PayOS. Gói không tự động gia hạn.'
+            : 'Thanh toán tạm khóa vì PayOS chưa được cấu hình đầy đủ.'}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -219,6 +292,24 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.xl,
   },
+  expiryText: {
+    ...typography.bodySm,
+    color: colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  pendingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryContainer,
+  },
+  pendingTextWrap: { flex: 1 },
+  pendingTitle: { ...typography.titleSm, color: colors.onSurface },
+  pendingText: { ...typography.bodySm, color: colors.onSurfaceVariant },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',

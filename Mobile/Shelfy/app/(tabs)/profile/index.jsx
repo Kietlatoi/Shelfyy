@@ -304,6 +304,19 @@ export default function ProfileScreen() {
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
           </Pressable>
+
+          <View style={styles.menuDivider} />
+
+          <Pressable
+            onPress={() => router.push('/(tabs)/profile/payment-history')}
+            style={styles.menuItem}
+          >
+            <View style={[styles.menuIconCircle, { backgroundColor: colors.successLight }]}>
+              <MaterialIcons name="receipt-long" size={20} color={colors.success} />
+            </View>
+            <Text style={styles.menuTitle}>Lịch sử thanh toán</Text>
+            <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+          </Pressable>
         </View>
 
         {/* Account Settings Menu */}
