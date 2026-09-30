@@ -34,7 +34,8 @@ export default function AppInput({
   containerStyle,
 }) {
   const inputRef = useRef(null);
-  const nativeValueRef = useRef(String(value ?? ''));
+  const [initialNativeValue] = useState(() => String(value ?? ''));
+  const nativeValueRef = useRef(initialNativeValue);
   const lastEmittedValueRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isSecure, setIsSecure] = useState(secureTextEntry);
@@ -42,9 +43,9 @@ export default function AppInput({
   const textAssistanceEnabled = autoCorrect
     ?? (!secureTextEntry && keyboardType === 'default');
 
-  // Echoing `value` after every keystroke can interrupt Android IME composition
-  // (Telex/VNI included). Keep Android native-controlled while typing, then only
-  // push true external changes such as loading an edit form or clearing search.
+  // Echoing `value` or a changing `defaultValue` after every keystroke can
+  // interrupt Android IME composition (Telex/VNI included). Keep Android
+  // native-controlled while typing, then only push true external changes.
   useEffect(() => {
     if (Platform.OS !== 'android') return;
     if (normalizedValue === lastEmittedValueRef.current) {
@@ -86,7 +87,7 @@ export default function AppInput({
         <TextInput
           ref={inputRef}
           {...(Platform.OS === 'android'
-            ? { defaultValue: normalizedValue }
+            ? { defaultValue: initialNativeValue }
             : { value: normalizedValue })}
           onChangeText={handleChangeText}
           placeholder={placeholder}
