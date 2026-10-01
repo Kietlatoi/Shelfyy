@@ -1,5 +1,4 @@
-import { fetch as expoFetch } from 'expo/fetch';
-import { File } from 'expo-file-system';
+import { File, UploadType } from 'expo-file-system';
 import { edgeRequest } from './edgeApi';
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
@@ -15,22 +14,29 @@ async function uploadImage(intent, fileUri, fileName, mimeType) {
     throw new Error('Ảnh phải nhỏ hơn 10 MB.');
   }
 
-  const formData = new FormData();
-  formData.append('file', file, fileName || file.name || 'photo.jpg');
-  formData.append('api_key', signedUpload.apiKey);
-  formData.append('timestamp', String(signedUpload.timestamp));
-  formData.append('folder', signedUpload.folder);
-  formData.append('public_id', signedUpload.public_id);
-  formData.append('signature', signedUpload.signature);
-  formData.append('overwrite', String(signedUpload.overwrite ?? false));
-
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
   let response;
   try {
-    response = await expoFetch(
+    response = await file.upload(
       `https://api.cloudinary.com/v1_1/${signedUpload.cloudName}/image/upload`,
-      { method: 'POST', body: formData, signal: controller.signal }
+      {
+        httpMethod: 'POST',
+        uploadType: UploadType.MULTIPART,
+        fieldName: 'file',
+        mimeType: mimeType || file.type || (fileName?.toLowerCase().endsWith('.png')
+          ? 'image/png'
+          : 'image/jpeg'),
+        parameters: {
+          api_key: signedUpload.apiKey,
+          timestamp: String(signedUpload.timestamp),
+          folder: signedUpload.folder,
+          public_id: signedUpload.public_id,
+          signature: signedUpload.signature,
+          overwrite: String(signedUpload.overwrite ?? false),
+        },
+        signal: controller.signal,
+      }
     );
   } catch (error) {
     if (error?.name === 'AbortError') {
@@ -41,8 +47,13 @@ async function uploadImage(intent, fileUri, fileName, mimeType) {
     clearTimeout(timeout);
   }
 
-  const result = await response.json().catch(() => null);
-  if (!response.ok) {
+  let result = null;
+  try {
+    result = JSON.parse(response.body);
+  } catch {
+    // Cloudinary normally returns JSON, including for validation errors.
+  }
+  if (response.status < 200 || response.status >= 300) {
     throw new Error(result?.error?.message || 'Không thể tải ảnh lên Cloudinary.');
   }
   const deliveryType = 'upload';
