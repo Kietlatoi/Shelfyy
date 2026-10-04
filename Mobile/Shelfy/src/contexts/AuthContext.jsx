@@ -54,8 +54,12 @@ export function AuthProvider({ children }) {
     return data;
   }, []);
 
-  const signUp = useCallback(async ({ email, password, fullName }) => {
-    const data = await authApi.register({ email, password, fullName });
+  const requestRegistrationCode = useCallback(async (email) => (
+    authApi.requestRegistrationCode(email)
+  ), []);
+
+  const signUp = useCallback(async ({ email, password, fullName, challengeId, code }) => {
+    const data = await authApi.register({ email, password, fullName, challengeId, code });
     setUser(data.user);
     return data;
   }, []);
@@ -86,6 +90,7 @@ export function AuthProvider({ children }) {
         user,
         isLoading,
         signIn,
+        requestRegistrationCode,
         signUp,
         signOut,
         refreshUser,

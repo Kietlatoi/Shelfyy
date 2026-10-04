@@ -4,6 +4,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function owns(uid) {
       return request.auth != null && request.auth.uid == uid
+        && (request.auth.token.email_verified == true
+          || exists(/databases/$(database)/documents/users/$(uid)))
         && (!exists(/databases/$(database)/documents/_accountAccess/$(uid))
           || get(/databases/$(database)/documents/_accountAccess/$(uid)).data.status == 'active');
     }

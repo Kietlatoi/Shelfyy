@@ -1,6 +1,5 @@
 import {
   EmailAuthProvider,
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
   reauthenticateWithCredential,
   sendPasswordResetEmail,
@@ -26,7 +25,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
-import { edgeRequest } from './edgeApi';
+import { edgePublicRequest, edgeRequest } from './edgeApi';
 
 function mapUser(user, profile = {}) {
   return {
@@ -41,9 +40,8 @@ function mapUser(user, profile = {}) {
   };
 }
 
-export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, firestoreFunctions) {
+export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, firestoreFunctions, edgeFunctions = {}) {
   const {
-    createUserWithEmailAndPassword: createAccount,
     reauthenticateWithCredential: reauthenticate,
     sendPasswordResetEmail: sendResetEmail,
     signInWithEmailAndPassword: signIn,
@@ -55,6 +53,7 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
     EmailAuthProvider: emailProvider,
   } = authFunctions;
   const { doc: document, getDoc: getDocument, serverTimestamp: timestamp, setDoc: setDocument, updateDoc: updateDocument } = firestoreFunctions;
+  const publicRequest = edgeFunctions.publicRequest || edgePublicRequest;
 
   async function ensureProfile(user, preferredName = '') {
     const ref = document(firestore, 'users', user.uid);
@@ -106,9 +105,28 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
       const user = await ensureProfile(credential.user);
       return { user };
     },
-    async register({ email, password, fullName }) {
-      const credential = await createAccount(firebaseAuth, email.trim(), password);
+    async requestRegistrationCode(email) {
+      return publicRequest('/v1/auth/registration-codes', {
+        body: { email: email.trim() },
+      });
+    },
+    async register({ email, password, fullName, challengeId, code }) {
+      const normalizedEmail = email.trim();
       const normalizedName = fullName.trim();
+      const registration = await publicRequest('/v1/auth/registrations', {
+        body: {
+          email: normalizedEmail,
+          password,
+          fullName: normalizedName,
+          challengeId,
+          code,
+        },
+      });
+      const credential = await signIn(firebaseAuth, normalizedEmail, password);
+      if (registration?.uid && registration.uid !== credential.user.uid) {
+        await signOutUser(firebaseAuth);
+        throw new Error('Tài khoản vừa tạo không khớp với phiên đăng nhập.');
+      }
       await updateFirebaseUserProfile(credential.user, { displayName: normalizedName });
       const user = await ensureProfile(credential.user, normalizedName);
       return { user };
@@ -169,7 +187,6 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
 
 const authApi = createFirebaseAuthApi(auth, db, {
   EmailAuthProvider,
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
   reauthenticateWithCredential,
   sendPasswordResetEmail,
@@ -179,9 +196,9 @@ const authApi = createFirebaseAuthApi(auth, db, {
   updateProfile: updateFirebaseProfile,
   verifyPasswordResetCode,
   confirmPasswordReset,
-}, { doc, getDoc, serverTimestamp, setDoc, updateDoc });
+}, { doc, getDoc, serverTimestamp, setDoc, updateDoc }, { publicRequest: edgePublicRequest });
 
-export const { login, register, logout, getCurrentUser, forgotPassword, resetPassword, changePassword, updateProfile } = authApi;
+export const { login, requestRegistrationCode, register, logout, getCurrentUser, forgotPassword, resetPassword, changePassword, updateProfile } = authApi;
 export const subscribeToAuthState = (listener, onError) => onAuthStateChanged(auth, listener, onError);
 
 export async function deleteAccount(currentPassword) {

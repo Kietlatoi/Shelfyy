@@ -13,6 +13,8 @@ import {
   reconcilePendingPayments,
 } from './billing.js';
 import { createWardrobeItem } from './wardrobe.js';
+import { completeRegistration, requestRegistrationCode } from './registration.js';
+import { getDocument } from './firestore-rest.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 const TRY_ON_CATEGORIES = new Set(['TOP', 'BOTTOM', 'DRESS', 'OUTERWEAR']);
@@ -109,6 +111,12 @@ async function authenticate(request, env) {
   const user = result.users?.[0];
   if (!response.ok || !user || user.localId !== tokenPayload.sub || user.disabled) {
     throw new ApiError(401, 'INVALID_TOKEN', 'Phiên đăng nhập không hợp lệ hoặc tài khoản đã bị khóa.');
+  }
+  if (!user.emailVerified) {
+    const existingProfile = await getDocument(env, `users/${user.localId}`).catch(() => null);
+    if (!existingProfile) {
+      throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Email của tài khoản chưa được xác thực.');
+    }
   }
   return { uid: user.localId, email: user.email || '' };
 }
@@ -427,6 +435,12 @@ async function route(request, env) {
   }
   if (request.method === 'GET' && url.pathname === '/v1/billing/cancel') {
     return paymentRedirect(env, request, 'cancel');
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/auth/registration-codes') {
+    return requestRegistrationCode(env, request, await readJson(request));
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/auth/registrations') {
+    return completeRegistration(env, await readJson(request));
   }
 
   const user = await authenticate(request, env);

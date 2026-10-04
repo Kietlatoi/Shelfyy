@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -20,13 +20,22 @@ import { typography } from '../../src/constants/typography';
 import { spacing, radius } from '../../src/constants/spacing';
 
 export default function RegisterScreen() {
-  const { signUp } = useAuth();
+  const { requestRegistrationCode, signUp } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [challengeId, setChallengeId] = useState('');
+  const [resendAfter, setResendAfter] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (resendAfter <= 0) return undefined;
+    const timer = setTimeout(() => setResendAfter((value) => Math.max(0, value - 1)), 1000);
+    return () => clearTimeout(timer);
+  }, [resendAfter]);
 
   const validate = () => {
     if (!fullName.trim()) {
@@ -48,9 +57,28 @@ export default function RegisterScreen() {
     return true;
   };
 
-  const handleRegister = async () => {
+  const handleRequestCode = async () => {
     if (!validate()) return;
 
+    setError('');
+    setLoading(true);
+    try {
+      const result = await requestRegistrationCode(email);
+      setChallengeId(result.challengeId);
+      setResendAfter(result.resendAfterSeconds || 60);
+      setCode('');
+    } catch (err) {
+      setError(err.message || 'Không thể gửi mã xác thực. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (!/^\d{5}$/.test(code)) {
+      setError('Vui lòng nhập đủ mã xác thực gồm 5 chữ số');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -58,6 +86,8 @@ export default function RegisterScreen() {
         fullName: fullName.trim(),
         email: email.trim(),
         password,
+        challengeId,
+        code,
       });
       // AuthProvider will automatically redirect to /(tabs)/home
     } catch (err) {
@@ -65,6 +95,18 @@ export default function RegisterScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    if (resendAfter > 0 || loading) return;
+    await handleRequestCode();
+  };
+
+  const changeEmail = () => {
+    setChallengeId('');
+    setCode('');
+    setResendAfter(0);
+    setError('');
   };
 
   return (
@@ -82,9 +124,11 @@ export default function RegisterScreen() {
             <View style={styles.logoBadge}>
               <Ionicons name="sparkles" size={30} color={colors.primary} />
             </View>
-            <Text style={styles.title}>Tạo tài khoản</Text>
+            <Text style={styles.title}>{challengeId ? 'Xác thực email' : 'Tạo tài khoản'}</Text>
             <Text style={styles.subtitle}>
-              Bắt đầu hành trình phong cách thông minh cùng Shelfy
+              {challengeId
+                ? `Nhập mã 5 chữ số đã gửi tới ${email.trim()}`
+                : 'Bắt đầu hành trình phong cách thông minh cùng Shelfy'}
             </Text>
           </View>
 
@@ -92,74 +136,86 @@ export default function RegisterScreen() {
           <View style={styles.formCard}>
             <ErrorBanner message={error} onDismiss={() => setError('')} />
 
-            <AppInput
-              label="Họ và tên"
-              placeholder="Nguyễn Văn A"
-              value={fullName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
-              leftIcon={
-                <MaterialIcons
-                  name="person"
-                  size={20}
-                  color={colors.onSurfaceVariant}
+            {!challengeId ? (
+              <>
+                <AppInput
+                  label="Họ và tên"
+                  placeholder="Nguyễn Văn A"
+                  value={fullName}
+                  onChangeText={setFullName}
+                  autoCapitalize="words"
+                  leftIcon={<MaterialIcons name="person" size={20} color={colors.onSurfaceVariant} />}
                 />
-              }
-            />
-
-            <AppInput
-              label="Email"
-              placeholder="email@example.com"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              leftIcon={
-                <MaterialIcons
-                  name="email"
-                  size={20}
-                  color={colors.onSurfaceVariant}
+                <AppInput
+                  label="Email"
+                  placeholder="email@example.com"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  leftIcon={<MaterialIcons name="email" size={20} color={colors.onSurfaceVariant} />}
                 />
-              }
-            />
-
-            <AppInput
-              label="Mật khẩu"
-              placeholder="Tối thiểu 6 ký tự"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              leftIcon={
-                <MaterialIcons
-                  name="lock"
-                  size={20}
-                  color={colors.onSurfaceVariant}
+                <AppInput
+                  label="Mật khẩu"
+                  placeholder="Tối thiểu 6 ký tự"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  leftIcon={<MaterialIcons name="lock" size={20} color={colors.onSurfaceVariant} />}
                 />
-              }
-            />
-
-            <AppInput
-              label="Xác nhận mật khẩu"
-              placeholder="Nhập lại mật khẩu"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              leftIcon={
-                <MaterialIcons
-                  name="lock-outline"
-                  size={20}
-                  color={colors.onSurfaceVariant}
+                <AppInput
+                  label="Xác nhận mật khẩu"
+                  placeholder="Nhập lại mật khẩu"
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  leftIcon={<MaterialIcons name="lock-outline" size={20} color={colors.onSurfaceVariant} />}
                 />
-              }
-            />
-
-            <AppButton
-              title="Đăng ký tài khoản"
-              onPress={handleRegister}
-              loading={loading}
-              size="lg"
-              style={styles.submitBtn}
-            />
+                <AppButton
+                  title="Gửi mã xác thực"
+                  onPress={handleRequestCode}
+                  loading={loading}
+                  size="lg"
+                  style={styles.submitBtn}
+                />
+              </>
+            ) : (
+              <>
+                <View style={styles.notice}>
+                  <MaterialIcons name="mark-email-read" size={22} color={colors.primary} />
+                  <Text style={styles.noticeText}>
+                    Mã có hiệu lực trong 10 phút. Hãy kiểm tra cả thư mục Spam nếu chưa thấy email.
+                  </Text>
+                </View>
+                <AppInput
+                  label="Mã xác thực"
+                  placeholder="00000"
+                  value={code}
+                  onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 5))}
+                  keyboardType="number-pad"
+                  maxLength={5}
+                  autoCorrect={false}
+                  leftIcon={<MaterialIcons name="pin" size={20} color={colors.onSurfaceVariant} />}
+                  inputStyle={styles.codeInput}
+                />
+                <AppButton
+                  title="Xác thực và tạo tài khoản"
+                  onPress={handleRegister}
+                  loading={loading}
+                  disabled={code.length !== 5}
+                  size="lg"
+                  style={styles.submitBtn}
+                />
+                <Pressable disabled={resendAfter > 0 || loading} onPress={handleResend}>
+                  <Text style={[styles.secondaryAction, resendAfter > 0 && styles.secondaryActionDisabled]}>
+                    {resendAfter > 0 ? `Gửi lại mã sau ${resendAfter}s` : 'Gửi lại mã'}
+                  </Text>
+                </Pressable>
+                <Pressable disabled={loading} onPress={changeEmail}>
+                  <Text style={styles.secondaryAction}>Đổi email đăng ký</Text>
+                </Pressable>
+              </>
+            )}
           </View>
 
           {/* Footer Login Link */}
@@ -226,6 +282,36 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: spacing.sm,
+  },
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.primaryContainer,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  noticeText: {
+    ...typography.bodySm,
+    color: colors.onSurface,
+    flex: 1,
+    marginLeft: spacing.sm,
+  },
+  codeInput: {
+    fontSize: 24,
+    fontWeight: '700',
+    letterSpacing: 10,
+    textAlign: 'center',
+  },
+  secondaryAction: {
+    ...typography.labelMd,
+    color: colors.primary,
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingTop: spacing.md,
+  },
+  secondaryActionDisabled: {
+    color: colors.onSurfaceDisabled,
   },
   footer: {
     flexDirection: 'row',

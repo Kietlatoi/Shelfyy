@@ -11,14 +11,11 @@ function baseUrl() {
   return value;
 }
 
-export async function edgeRequest(path, { method = 'POST', body } = {}) {
-  const user = auth.currentUser;
-  if (!user) throw new Error('Vui lòng đăng nhập để tiếp tục.');
-  const idToken = await user.getIdToken();
+async function request(path, { method = 'POST', body, idToken } = {}) {
   const response = await fetch(`${baseUrl()}${path}`, {
     method,
     headers: {
-      Authorization: `Bearer ${idToken}`,
+      ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
       'Content-Type': 'application/json',
     },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -30,4 +27,14 @@ export async function edgeRequest(path, { method = 'POST', body } = {}) {
     throw error;
   }
   return result?.data;
+}
+
+export async function edgePublicRequest(path, options = {}) {
+  return request(path, options);
+}
+
+export async function edgeRequest(path, options = {}) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Vui lòng đăng nhập để tiếp tục.');
+  return request(path, { ...options, idToken: await user.getIdToken() });
 }

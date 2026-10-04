@@ -1,4 +1,4 @@
-const FIRESTORE_SCOPE = 'https://www.googleapis.com/auth/datastore';
+const GOOGLE_CLOUD_SCOPE = 'https://www.googleapis.com/auth/cloud-platform';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
 let cachedAccessToken = null;
@@ -28,7 +28,7 @@ function pemBytes(pem) {
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
-async function serviceAccountAccessToken(env) {
+export async function serviceAccountAccessToken(env) {
   const now = Math.floor(Date.now() / 1000);
   if (cachedAccessToken?.projectId === env.FIREBASE_PROJECT_ID
     && cachedAccessToken.expiresAt > now + 60) {
@@ -40,7 +40,7 @@ async function serviceAccountAccessToken(env) {
   const header = base64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const claims = base64Url(JSON.stringify({
     iss: clientEmail,
-    scope: FIRESTORE_SCOPE,
+    scope: GOOGLE_CLOUD_SCOPE,
     aud: GOOGLE_TOKEN_URL,
     iat: now,
     exp: now + 3600,

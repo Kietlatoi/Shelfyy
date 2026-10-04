@@ -58,9 +58,13 @@ function wardrobeItem() {
   };
 }
 
+function verifiedContext(uid, claims = {}) {
+  return testEnvironment.authenticatedContext(uid, { email_verified: true, ...claims });
+}
+
 test('signed-in owner creates their profile; another user cannot read it', async () => {
-  const alice = testEnvironment.authenticatedContext('alice', { email: 'alice@example.test' });
-  const bob = testEnvironment.authenticatedContext('bob', { email: 'bob@example.test' });
+  const alice = verifiedContext('alice', { email: 'alice@example.test' });
+  const bob = verifiedContext('bob', { email: 'bob@example.test' });
   const aliceProfile = doc(alice.firestore(), 'users/alice');
 
   await assertSucceeds(setDoc(aliceProfile, profile('alice@example.test')));
@@ -69,8 +73,30 @@ test('signed-in owner creates their profile; another user cannot read it', async
   await assertFails(setDoc(doc(alice.firestore(), 'users/bob'), profile('bob@example.test')));
 });
 
+test('unverified new accounts are blocked while existing profiles remain usable', async () => {
+  const newAccount = testEnvironment.authenticatedContext('new-user', {
+    email: 'new@example.test',
+    email_verified: false,
+  });
+  await assertFails(setDoc(doc(newAccount.firestore(), 'users/new-user'), profile('new@example.test')));
+
+  await testEnvironment.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), 'users/legacy-user'), {
+      fullName: 'Legacy User',
+      email: 'legacy@example.test',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  });
+  const legacy = testEnvironment.authenticatedContext('legacy-user', {
+    email: 'legacy@example.test',
+    email_verified: false,
+  });
+  await assertSucceeds(getDoc(doc(legacy.firestore(), 'users/legacy-user')));
+});
+
 test('profile creation rejects spoofed email and privileged account fields', async () => {
-  const alice = testEnvironment.authenticatedContext('alice', { email: 'alice@example.test' });
+  const alice = verifiedContext('alice', { email: 'alice@example.test' });
 
   await assertFails(setDoc(doc(alice.firestore(), 'users/alice'), profile('someone@example.test')));
   await assertFails(setDoc(doc(alice.firestore(), 'users/alice'), {
@@ -81,7 +107,7 @@ test('profile creation rejects spoofed email and privileged account fields', asy
 });
 
 test('profile updates allow owner display changes but keep email immutable', async () => {
-  const alice = testEnvironment.authenticatedContext('alice', { email: 'alice@example.test' });
+  const alice = verifiedContext('alice', { email: 'alice@example.test' });
   const aliceProfile = doc(alice.firestore(), 'users/alice');
 
   await assertSucceeds(setDoc(aliceProfile, profile('alice@example.test')));
@@ -96,8 +122,8 @@ test('profile updates allow owner display changes but keep email immutable', asy
 });
 
 test('wardrobe create and delete require Functions; owner can update allowed fields only', async () => {
-  const alice = testEnvironment.authenticatedContext('alice', { email: 'alice@example.test' });
-  const bob = testEnvironment.authenticatedContext('bob', { email: 'bob@example.test' });
+  const alice = verifiedContext('alice', { email: 'alice@example.test' });
+  const bob = verifiedContext('bob', { email: 'bob@example.test' });
   const aliceItem = doc(alice.firestore(), 'users/alice/wardrobe/item-1');
 
   await assertFails(setDoc(aliceItem, wardrobeItem()));
@@ -117,7 +143,7 @@ test('wardrobe create and delete require Functions; owner can update allowed fie
 });
 
 test('clients cannot bypass server wardrobe validation by creating documents directly', async () => {
-  const alice = testEnvironment.authenticatedContext('alice', { email: 'alice@example.test' });
+  const alice = verifiedContext('alice', { email: 'alice@example.test' });
   const item = doc(alice.firestore(), 'users/alice/wardrobe/item-1');
 
   await assertFails(setDoc(item, { ...wardrobeItem(), tags: Array(26).fill('tag') }));
@@ -133,7 +159,7 @@ test('clients cannot bypass server wardrobe validation by creating documents dir
 });
 
 test('client cannot write entitlements, payments, suggestions or server records', async () => {
-  const alice = testEnvironment.authenticatedContext('alice', { email: 'alice@example.test' });
+  const alice = verifiedContext('alice', { email: 'alice@example.test' });
   const firestore = alice.firestore();
 
   await assertFails(setDoc(doc(firestore, 'users/alice/entitlements/current'), { planId: 'PREMIUM' }));
@@ -154,8 +180,8 @@ test('try-on history is owner-readable while provider jobs, receipts and quota s
     await setDoc(doc(firestore, '_tryOnReceipts/request-1'), { jobId: 'job-1' });
   });
 
-  const alice = testEnvironment.authenticatedContext('alice').firestore();
-  const bob = testEnvironment.authenticatedContext('bob').firestore();
+  const alice = verifiedContext('alice').firestore();
+  const bob = verifiedContext('bob').firestore();
   await assertSucceeds(getDoc(doc(alice, 'users/alice/tryOns/job-1')));
   await assertFails(getDoc(doc(bob, 'users/alice/tryOns/job-1')));
   await assertFails(setDoc(doc(alice, 'users/alice/tryOns/job-2'), { status: 'DONE' }));
@@ -169,8 +195,8 @@ test('weather snapshots are owner-readable and server-write-only', async () => {
     await setDoc(doc(context.firestore(), 'users/alice/weatherSnapshots/current'), { temperature: 28 });
   });
 
-  const alice = testEnvironment.authenticatedContext('alice').firestore();
-  const bob = testEnvironment.authenticatedContext('bob').firestore();
+  const alice = verifiedContext('alice').firestore();
+  const bob = verifiedContext('bob').firestore();
   await assertSucceeds(getDoc(doc(alice, 'users/alice/weatherSnapshots/current')));
   await assertFails(getDoc(doc(bob, 'users/alice/weatherSnapshots/current')));
   await assertFails(setDoc(doc(alice, 'users/alice/weatherSnapshots/current'), { temperature: 99 }));
@@ -183,7 +209,7 @@ test('only active plans are readable and clients cannot change the catalog', asy
     await setDoc(doc(firestore, 'plans/OLD'), { name: 'Old', isActive: false });
   });
 
-  const alice = testEnvironment.authenticatedContext('alice').firestore();
+  const alice = verifiedContext('alice').firestore();
   await assertSucceeds(getDoc(doc(alice, 'plans/FREE')));
   await assertFails(getDoc(doc(alice, 'plans/OLD')));
   await assertFails(setDoc(doc(alice, 'plans/PAID'), { isActive: true }));

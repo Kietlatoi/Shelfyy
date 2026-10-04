@@ -29,6 +29,7 @@ export default function AppInput({
   editable = true,
   multiline = false,
   numberOfLines = 1,
+  maxLength,
   style,
   inputStyle,
   containerStyle,
@@ -100,6 +101,7 @@ export default function AppInput({
           editable={editable}
           multiline={multiline}
           numberOfLines={numberOfLines}
+          maxLength={maxLength}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           style={[
