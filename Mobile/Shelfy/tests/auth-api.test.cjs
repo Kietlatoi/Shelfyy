@@ -105,3 +105,28 @@ test('registration asks Worker to verify the code before signing in to Firebase'
 
   assert.deepEqual(calls, ['/v1/auth/registrations', 'firebase-sign-in']);
 });
+
+test('login converts Firebase credential errors to a safe Vietnamese message', async () => {
+  const authModule = loadModule('src/api/authApi.js', {
+    'firebase/auth': {
+      EmailAuthProvider: {}, onAuthStateChanged() {}, reauthenticateWithCredential() {},
+      signInWithEmailAndPassword() {}, signOut() {}, updatePassword() {}, updateProfile() {},
+    },
+    'firebase/firestore': { doc() {}, getDoc() {}, serverTimestamp() {}, setDoc() {}, updateDoc() {} },
+    '../firebase/client': { auth: {}, db: {} },
+    './edgeApi': { edgePublicRequest() {}, edgeRequest() {} },
+  });
+  const api = authModule.createFirebaseAuthApi({}, {}, {
+    signInWithEmailAndPassword: async () => {
+      const error = new Error('Firebase: Error (auth/invalid-credential).');
+      error.code = 'auth/invalid-credential';
+      throw error;
+    },
+  }, {}, {});
+
+  await assert.rejects(
+    api.login({ email: 'owner@example.com', password: 'incorrect' }),
+    (error) => error.message === 'Email hoặc mật khẩu không đúng.'
+      && error.code === 'auth/invalid-credential',
+  );
+});

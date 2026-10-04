@@ -37,6 +37,26 @@ function mapUser(user, profile = {}) {
   };
 }
 
+export function getLoginErrorMessage(error) {
+  switch (error?.code) {
+    case 'auth/invalid-credential':
+    case 'auth/invalid-login-credentials':
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+      return 'Email hoặc mật khẩu không đúng.';
+    case 'auth/invalid-email':
+      return 'Địa chỉ email không hợp lệ.';
+    case 'auth/user-disabled':
+      return 'Tài khoản này đã bị vô hiệu hóa.';
+    case 'auth/too-many-requests':
+      return 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.';
+    case 'auth/network-request-failed':
+      return 'Không thể kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.';
+    default:
+      return 'Đăng nhập không thành công. Vui lòng thử lại.';
+  }
+}
+
 export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, firestoreFunctions, edgeFunctions = {}) {
   const {
     reauthenticateWithCredential: reauthenticate,
@@ -74,9 +94,15 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
 
   return {
     async login({ email, password }) {
-      const credential = await signIn(firebaseAuth, email.trim(), password);
-      const user = await ensureProfile(credential.user);
-      return { user };
+      try {
+        const credential = await signIn(firebaseAuth, email.trim(), password);
+        const user = await ensureProfile(credential.user);
+        return { user };
+      } catch (error) {
+        const loginError = new Error(getLoginErrorMessage(error));
+        loginError.code = error?.code;
+        throw loginError;
+      }
     },
     async requestRegistrationCode(email) {
       return publicRequest('/v1/auth/registration-codes', {
