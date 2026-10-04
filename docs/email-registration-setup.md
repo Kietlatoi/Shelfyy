@@ -1,9 +1,10 @@
-# Cấu hình xác thực email 5 chữ số
+# Cấu hình OTP email 5 chữ số
 
-Luồng đăng ký mobile gọi Cloudflare Worker để gửi mã qua Resend. Mã chỉ tồn tại
-dưới dạng HMAC-SHA256 trong KV `RATE_LIMITS`, hết hạn sau 10 phút và bị khóa sau
-5 lần nhập sai. Firebase Auth account chỉ được tạo sau khi mã đúng, với
-`emailVerified=true`.
+Luồng đăng ký và quên mật khẩu trên mobile gọi Cloudflare Worker để gửi mã qua
+Resend. Mã chỉ tồn tại dưới dạng HMAC-SHA256 trong KV `RATE_LIMITS`, hết hạn sau
+10 phút và bị khóa sau 5 lần nhập sai. Firebase Auth account chỉ được tạo sau
+khi mã đăng ký đúng, với `emailVerified=true`. Mật khẩu chỉ được thay đổi sau khi
+mã đặt lại mật khẩu đúng.
 
 Firestore Rules và Worker yêu cầu email đã xác thực đối với tài khoản mới. Các
 tài khoản cũ đã có hồ sơ `users/{uid}` được tiếp tục sử dụng để tránh khóa người
@@ -73,6 +74,8 @@ Sau deploy, luồng cần kiểm tra trên app:
 3. Mã sai bị từ chối; mã đúng tạo tài khoản và đăng nhập.
 4. Trong Firebase Authentication, tài khoản mới có trạng thái email đã xác minh.
 5. Nút gửi lại chỉ mở sau 60 giây và mã hết hạn sau 10 phút.
+6. Luồng **Quên mật khẩu** gửi mã 5 chữ số, đổi được mật khẩu và không tiết lộ
+   email chưa đăng ký.
 
 Thay đổi mobile này cần một bản APK mới khi muốn phân phối. Việc deploy Worker
 không cập nhật mã JavaScript đã đóng gói trong APK hiện tại.

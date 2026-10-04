@@ -1,4 +1,8 @@
-# Android password reset links
+# Android password reset links (legacy)
+
+> Luồng quên mật khẩu hiện tại dùng OTP 5 chữ số qua Cloudflare Worker và Resend.
+> App Link cũ chỉ được giữ để chuyển người dùng về màn yêu cầu OTP; Firebase
+> không còn gửi link đặt lại mật khẩu cho yêu cầu mới.
 
 The app uses the Firebase Hosting email-action link and opens Android directly into the password reset screen.
 

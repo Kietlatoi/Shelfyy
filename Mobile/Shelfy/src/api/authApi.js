@@ -2,13 +2,10 @@ import {
   EmailAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
-  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
   updateProfile as updateFirebaseProfile,
-  verifyPasswordResetCode,
-  confirmPasswordReset,
   deleteUser,
 } from 'firebase/auth';
 import {
@@ -43,13 +40,10 @@ function mapUser(user, profile = {}) {
 export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, firestoreFunctions, edgeFunctions = {}) {
   const {
     reauthenticateWithCredential: reauthenticate,
-    sendPasswordResetEmail: sendResetEmail,
     signInWithEmailAndPassword: signIn,
     signOut: signOutUser,
     updatePassword: changeFirebasePassword,
     updateProfile: updateFirebaseUserProfile,
-    verifyPasswordResetCode: verifyResetCode,
-    confirmPasswordReset: confirmReset,
     EmailAuthProvider: emailProvider,
   } = authFunctions;
   const { doc: document, getDoc: getDocument, serverTimestamp: timestamp, setDoc: setDocument, updateDoc: updateDocument } = firestoreFunctions;
@@ -76,27 +70,6 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
       if (latest.exists()) return mapUser(user, latest.data());
       throw error;
     }
-  }
-
-  function passwordResetActionSettings() {
-    const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID?.trim()
-      || firebaseAuth.app?.options?.projectId;
-    const authDomain = process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN?.trim()
-      || firebaseAuth.app?.options?.authDomain
-      || (projectId ? `${projectId}.firebaseapp.com` : '');
-    const continueUrl = process.env.EXPO_PUBLIC_FIREBASE_PASSWORD_RESET_CONTINUE_URL?.trim()
-      || (authDomain ? `https://${authDomain}` : '');
-    if (!continueUrl.startsWith('https://')) {
-      throw new Error('Thiếu domain HTTPS của Firebase để gửi link đặt lại mật khẩu.');
-    }
-    const settings = {
-      url: continueUrl,
-      android: { packageName: 'com.shelfy.app', installApp: false },
-      handleCodeInApp: true,
-    };
-    const linkDomain = process.env.EXPO_PUBLIC_FIREBASE_AUTH_LINK_DOMAIN?.trim();
-    if (linkDomain) settings.linkDomain = linkDomain.replace(/^https?:\/\//, '').split('/')[0];
-    return settings;
   }
 
   return {
@@ -138,12 +111,14 @@ export function createFirebaseAuthApi(firebaseAuth, firestore, authFunctions, fi
       return firebaseAuth.currentUser ? ensureProfile(firebaseAuth.currentUser) : null;
     },
     async forgotPassword(email) {
-      await sendResetEmail(firebaseAuth, email.trim(), passwordResetActionSettings());
+      return publicRequest('/v1/auth/password-reset-codes', {
+        body: { email: email.trim() },
+      });
     },
-    async resetPassword({ token, oobCode, newPassword }) {
-      const code = oobCode || token;
-      await verifyResetCode(firebaseAuth, code);
-      await confirmReset(firebaseAuth, code, newPassword);
+    async resetPassword({ email, challengeId, code, newPassword }) {
+      return publicRequest('/v1/auth/password-resets', {
+        body: { email: email.trim(), challengeId, code, newPassword },
+      });
     },
     async changePassword({ currentPassword, newPassword }) {
       const user = firebaseAuth.currentUser;
@@ -189,13 +164,10 @@ const authApi = createFirebaseAuthApi(auth, db, {
   EmailAuthProvider,
   onAuthStateChanged,
   reauthenticateWithCredential,
-  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updatePassword,
   updateProfile: updateFirebaseProfile,
-  verifyPasswordResetCode,
-  confirmPasswordReset,
 }, { doc, getDoc, serverTimestamp, setDoc, updateDoc }, { publicRequest: edgePublicRequest });
 
 export const { login, requestRegistrationCode, register, logout, getCurrentUser, forgotPassword, resetPassword, changePassword, updateProfile } = authApi;

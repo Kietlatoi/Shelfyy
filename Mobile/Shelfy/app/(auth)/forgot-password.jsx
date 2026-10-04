@@ -22,10 +22,9 @@ import { spacing, radius } from '../../src/constants/spacing';
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSendLink = async () => {
+  const handleSendCode = async () => {
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
       setError('Vui lòng nhập địa chỉ email hợp lệ');
       return;
@@ -34,10 +33,17 @@ export default function ForgotPasswordScreen() {
     setError('');
     setLoading(true);
     try {
-      await forgotPassword(email.trim());
-      setSubmitted(true);
+      const result = await forgotPassword(email.trim());
+      router.push({
+        pathname: '/(auth)/reset-password',
+        params: {
+          email: email.trim(),
+          challengeId: result.challengeId,
+          resendAfter: String(result.resendAfterSeconds || 60),
+        },
+      });
     } catch (err) {
-      setError(err.message || 'Không thể gửi link đặt lại mật khẩu. Vui lòng thử lại.');
+      setError(err.message || 'Không thể gửi mã đặt lại mật khẩu. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -53,29 +59,7 @@ export default function ForgotPasswordScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {submitted ? (
-            <View style={styles.successCard}>
-              <View style={styles.successIconBadge}>
-                <MaterialIcons name="mark-email-read" size={48} color={colors.success} />
-              </View>
-              <Text style={styles.successTitle}>Kiểm tra email của bạn</Text>
-              <Text style={styles.successText}>
-                Chúng tôi đã gửi hướng dẫn đặt lại mật khẩu tới địa chỉ:
-              </Text>
-              <Text style={styles.emailHighlight}>{email}</Text>
-              <Text style={styles.noteText}>
-                Vui lòng làm theo hướng dẫn trong email để tạo mật khẩu mới.
-              </Text>
-
-              <AppButton
-                title="Quay lại đăng nhập"
-                onPress={() => router.replace('/(auth)/login')}
-                size="md"
-                style={styles.backBtn}
-              />
-            </View>
-          ) : (
-            <View style={styles.formCard}>
+          <View style={styles.formCard}>
               <Pressable onPress={() => router.back()} style={styles.backLinkRow}>
                 <MaterialIcons name="arrow-back" size={20} color={colors.onSurfaceVariant} />
                 <Text style={styles.backLinkText}>Quay lại</Text>
@@ -87,7 +71,7 @@ export default function ForgotPasswordScreen() {
 
               <Text style={styles.title}>Quên mật khẩu?</Text>
               <Text style={styles.subtitle}>
-                Nhập email đã đăng ký của bạn. Chúng tôi sẽ gửi đường link để đặt lại mật khẩu.
+                Nhập email đã đăng ký. Shelfy sẽ gửi mã xác thực gồm 5 chữ số.
               </Text>
 
               <ErrorBanner message={error} onDismiss={() => setError('')} />
@@ -109,14 +93,13 @@ export default function ForgotPasswordScreen() {
               />
 
               <AppButton
-                title="Gửi link đặt lại mật khẩu"
-                onPress={handleSendLink}
+                title="Gửi mã xác thực"
+                onPress={handleSendCode}
                 loading={loading}
                 size="lg"
                 style={styles.submitBtn}
               />
-            </View>
-          )}
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -181,53 +164,5 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: spacing.sm,
-  },
-  successCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing['2xl'],
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.borderSubtle,
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
-  },
-  successIconBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.successLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  successTitle: {
-    ...typography.headlineSm,
-    color: colors.onSurface,
-    textAlign: 'center',
-    marginBottom: spacing.sm,
-  },
-  successText: {
-    ...typography.bodyMd,
-    color: colors.onSurfaceVariant,
-    textAlign: 'center',
-  },
-  emailHighlight: {
-    ...typography.titleMd,
-    color: colors.primaryDark,
-    marginVertical: spacing.xs,
-  },
-  noteText: {
-    ...typography.bodySm,
-    color: colors.onSurfaceVariant,
-    textAlign: 'center',
-    marginTop: spacing.sm,
-    marginBottom: spacing.xl,
-  },
-  backBtn: {
-    width: '100%',
   },
 });

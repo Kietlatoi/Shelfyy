@@ -10,7 +10,7 @@ export default function FirebaseAuthLinkScreen() {
 
   useEffect(() => {
     if (code) {
-      router.replace({ pathname: '/(auth)/reset-password', params: { oobCode: code } });
+      router.replace('/(auth)/forgot-password');
       return;
     }
     Alert.alert('Liên kết không hợp lệ', 'Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.');

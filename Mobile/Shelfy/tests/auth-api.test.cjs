@@ -22,59 +22,44 @@ function loadModule(file, mocks, environment = {}) {
   return exports;
 }
 
-test('password reset requests an Android App Link for the configured Firebase Hosting domain', async () => {
-  let sent;
+test('password reset requests and completes a five-digit code through the Worker', async () => {
+  const calls = [];
   const authModule = loadModule('src/api/authApi.js', {
     'firebase/auth': {
-      EmailAuthProvider: {}, createUserWithEmailAndPassword() {}, onAuthStateChanged() {},
-      reauthenticateWithCredential() {}, sendPasswordResetEmail() {}, signInWithEmailAndPassword() {},
-      signOut() {}, updatePassword() {}, updateProfile() {}, verifyPasswordResetCode() {}, confirmPasswordReset() {},
+      EmailAuthProvider: {}, onAuthStateChanged() {}, reauthenticateWithCredential() {},
+      signInWithEmailAndPassword() {}, signOut() {}, updatePassword() {}, updateProfile() {},
     },
     'firebase/firestore': { doc() {}, getDoc() {}, serverTimestamp() {}, setDoc() {}, updateDoc() {} },
-    'firebase/functions': { httpsCallable() {} },
     '../firebase/client': { auth: {}, db: {} },
     './edgeApi': { edgePublicRequest() {}, edgeRequest() {} },
-  }, {
-    EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'shelfy-stage',
-    EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: 'shelfy-stage.firebaseapp.com',
   });
-  const authApi = authModule.createFirebaseAuthApi({}, {}, {
-    sendPasswordResetEmail: async (...args) => { sent = args; },
-  }, {});
-
-  await authApi.forgotPassword(' owner@example.com ');
-
-  assert.equal(sent[1], 'owner@example.com');
-  assert.deepEqual(JSON.parse(JSON.stringify(sent[2])), {
-    url: 'https://shelfy-stage.firebaseapp.com',
-    android: { packageName: 'com.shelfy.app', installApp: false },
-    handleCodeInApp: true,
-  });
-});
-
-test('password reset can select a custom Firebase Hosting link domain', async () => {
-  let settings;
-  const authModule = loadModule('src/api/authApi.js', {
-    'firebase/auth': {
-      EmailAuthProvider: {}, createUserWithEmailAndPassword() {}, onAuthStateChanged() {},
-      reauthenticateWithCredential() {}, sendPasswordResetEmail() {}, signInWithEmailAndPassword() {},
-      signOut() {}, updatePassword() {}, updateProfile() {}, verifyPasswordResetCode() {}, confirmPasswordReset() {},
+  const authApi = authModule.createFirebaseAuthApi({}, {}, {}, {}, {
+    publicRequest: async (path, options) => {
+      calls.push({ path, body: options.body });
+      return path.endsWith('codes')
+        ? { challengeId: 'challenge-1', resendAfterSeconds: 60 }
+        : { updated: true };
     },
-    'firebase/firestore': { doc() {}, getDoc() {}, serverTimestamp() {}, setDoc() {}, updateDoc() {} },
-    'firebase/functions': { httpsCallable() {} },
-    '../firebase/client': { auth: {}, db: {} },
-    './edgeApi': { edgePublicRequest() {}, edgeRequest() {} },
-  }, {
-    EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'shelfy-stage',
-    EXPO_PUBLIC_FIREBASE_AUTH_LINK_DOMAIN: 'links.shelfy.app',
   });
-  const authApi = authModule.createFirebaseAuthApi({}, {}, {
-    sendPasswordResetEmail: async (_auth, _email, actionCodeSettings) => { settings = actionCodeSettings; },
-  }, {});
 
-  await authApi.forgotPassword('owner@example.com');
-  assert.equal(settings.linkDomain, 'links.shelfy.app');
-  assert.equal(settings.url, 'https://shelfy-stage.firebaseapp.com');
+  const challenge = await authApi.forgotPassword(' owner@example.com ');
+  await authApi.resetPassword({
+    email: 'owner@example.com',
+    challengeId: challenge.challengeId,
+    code: '12345',
+    newPassword: 'NewPassword-123!',
+  });
+
+  assert.deepEqual(JSON.parse(JSON.stringify(calls)), [
+    { path: '/v1/auth/password-reset-codes', body: { email: 'owner@example.com' } },
+    {
+      path: '/v1/auth/password-resets',
+      body: {
+        email: 'owner@example.com', challengeId: 'challenge-1',
+        code: '12345', newPassword: 'NewPassword-123!',
+      },
+    },
+  ]);
 });
 
 test('registration asks Worker to verify the code before signing in to Firebase', async () => {

@@ -13,7 +13,12 @@ import {
   reconcilePendingPayments,
 } from './billing.js';
 import { createWardrobeItem } from './wardrobe.js';
-import { completeRegistration, requestRegistrationCode } from './registration.js';
+import {
+  completePasswordReset,
+  completeRegistration,
+  requestPasswordResetCode,
+  requestRegistrationCode,
+} from './registration.js';
 import { getDocument } from './firestore-rest.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
@@ -441,6 +446,12 @@ async function route(request, env) {
   }
   if (request.method === 'POST' && url.pathname === '/v1/auth/registrations') {
     return completeRegistration(env, await readJson(request));
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/auth/password-reset-codes') {
+    return requestPasswordResetCode(env, request, await readJson(request));
+  }
+  if (request.method === 'POST' && url.pathname === '/v1/auth/password-resets') {
+    return completePasswordReset(env, await readJson(request));
   }
 
   const user = await authenticate(request, env);

@@ -92,7 +92,10 @@ async function incrementLimit(kv, key, limit, ttl, message) {
   await kv.put(key, String(used + 1), { expirationTtl: ttl });
 }
 
-async function sendVerificationEmail(env, email, code, fetchImpl) {
+async function sendVerificationEmail(env, email, code, fetchImpl, purpose = 'registration') {
+  const isPasswordReset = purpose === 'password-reset';
+  const title = isPasswordReset ? 'Đặt lại mật khẩu Shelfy' : 'Xác thực email Shelfy';
+  const action = isPasswordReset ? 'đặt lại mật khẩu' : 'xác thực email';
   const response = await fetchImpl(RESEND_API, {
     method: 'POST',
     headers: {
@@ -102,9 +105,9 @@ async function sendVerificationEmail(env, email, code, fetchImpl) {
     body: JSON.stringify({
       from: required(env, 'EMAIL_FROM'),
       to: [email],
-      subject: `${code} là mã xác thực Shelfy của bạn`,
-      text: `Mã xác thực Shelfy của bạn là ${code}. Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.`,
-      html: `<!doctype html><html lang="vi"><body style="font-family:Arial,sans-serif;color:#172033"><h2>Xác thực email Shelfy</h2><p>Mã xác thực của bạn là:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px;color:#625ff5">${code}</p><p>Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.</p><p>Nếu bạn không đăng ký Shelfy, hãy bỏ qua email này.</p></body></html>`,
+      subject: `${code} là mã ${action} Shelfy của bạn`,
+      text: `Mã ${action} Shelfy của bạn là ${code}. Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.`,
+      html: `<!doctype html><html lang="vi"><body style="font-family:Arial,sans-serif;color:#172033"><h2>${title}</h2><p>Mã ${action} của bạn là:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px;color:#625ff5">${code}</p><p>Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.</p><p>Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email.</p></body></html>`,
     }),
   });
   if (!response.ok) {
@@ -148,6 +151,142 @@ export async function requestRegistrationCode(env, request, body, dependencies =
   }
   await env.RATE_LIMITS.put(cooldownKey, '1', { expirationTtl: resendSeconds });
   return { challengeId, expiresInSeconds: ttl, resendAfterSeconds: resendSeconds };
+}
+
+async function findFirebaseUserByEmail(env, email, dependencies) {
+  const projectId = required(env, 'FIREBASE_PROJECT_ID');
+  const fetchImpl = dependencies.fetchImpl || fetch;
+  const getAccessToken = dependencies.getAccessToken || serviceAccountAccessToken;
+  const response = await fetchImpl(
+    `https://identitytoolkit.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/accounts:lookup`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${await getAccessToken(env)}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({ email: [email] }),
+    },
+  );
+  const result = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new RegistrationError(502, 'FIREBASE_LOOKUP_FAILED', 'Không thể xử lý yêu cầu đặt lại mật khẩu.');
+  }
+  return (result?.users || []).find((user) => (
+    String(user.email || '').trim().toLowerCase() === email && !user.disabled
+  )) || null;
+}
+
+export async function requestPasswordResetCode(env, request, body, dependencies = {}) {
+  const fetchImpl = dependencies.fetchImpl || fetch;
+  if (!env.RATE_LIMITS) {
+    throw new RegistrationError(503, 'RATE_LIMIT_NOT_CONFIGURED', 'Worker chưa được gắn KV RATE_LIMITS.');
+  }
+  const email = normalizeEmail(body?.email);
+  const pepper = required(env, 'EMAIL_OTP_PEPPER');
+  const emailHash = await hmacHex(pepper, email);
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+  const ipHash = await hmacHex(pepper, ip);
+  const resendSeconds = positiveInteger(env.EMAIL_CODE_RESEND_SECONDS, DEFAULT_RESEND_SECONDS);
+  const cooldownKey = `password-reset:cooldown:${emailHash}`;
+  if (await env.RATE_LIMITS.get(cooldownKey)) {
+    throw new RegistrationError(429, 'RESEND_TOO_SOON', `Vui lòng đợi ${resendSeconds} giây trước khi gửi lại mã.`);
+  }
+  await incrementLimit(env.RATE_LIMITS, `password-reset:email-rate:${emailHash}`, 5, 3600, 'Email này đã yêu cầu quá nhiều mã. Vui lòng thử lại sau.');
+  await incrementLimit(env.RATE_LIMITS, `password-reset:ip-rate:${ipHash}`, 20, 3600, 'Thiết bị này đã yêu cầu quá nhiều mã. Vui lòng thử lại sau.');
+
+  const account = await findFirebaseUserByEmail(env, email, dependencies);
+  const code = randomFiveDigitCode();
+  const challengeId = crypto.randomUUID();
+  const ttl = positiveInteger(env.EMAIL_CODE_TTL_SECONDS, DEFAULT_CODE_TTL_SECONDS);
+  const challenge = {
+    emailHash,
+    codeHash: await hmacHex(pepper, `${challengeId}:${email}:${code}`),
+    accountUid: account?.localId || null,
+    attempts: 0,
+    expiresAt: Date.now() + ttl * 1000,
+  };
+  await env.RATE_LIMITS.put(`password-reset:challenge:${challengeId}`, JSON.stringify(challenge), { expirationTtl: ttl });
+  if (account) {
+    try {
+      await sendVerificationEmail(env, email, code, fetchImpl, 'password-reset');
+    } catch (error) {
+      await env.RATE_LIMITS.delete(`password-reset:challenge:${challengeId}`);
+      throw error;
+    }
+  }
+  await env.RATE_LIMITS.put(cooldownKey, '1', { expirationTtl: resendSeconds });
+  return {
+    challengeId,
+    expiresInSeconds: ttl,
+    resendAfterSeconds: resendSeconds,
+    message: 'Nếu email đã đăng ký, Shelfy sẽ gửi mã xác thực tới hộp thư của bạn.',
+  };
+}
+
+async function updateFirebasePassword(env, accountUid, password, dependencies) {
+  const projectId = required(env, 'FIREBASE_PROJECT_ID');
+  const apiKey = required(env, 'FIREBASE_API_KEY');
+  const fetchImpl = dependencies.fetchImpl || fetch;
+  const getAccessToken = dependencies.getAccessToken || serviceAccountAccessToken;
+  const response = await fetchImpl(
+    `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${encodeURIComponent(apiKey)}`,
+    {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${await getAccessToken(env)}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        localId: accountUid,
+        password,
+        validSince: String(Math.floor(Date.now() / 1000)),
+        targetProjectId: projectId,
+      }),
+    },
+  );
+  const result = await response.json().catch(() => null);
+  if (!response.ok || result?.localId !== accountUid) {
+    throw new RegistrationError(502, 'FIREBASE_PASSWORD_UPDATE_FAILED', 'Không thể cập nhật mật khẩu. Vui lòng thử lại sau.');
+  }
+}
+
+export async function completePasswordReset(env, body, dependencies = {}) {
+  if (!env.RATE_LIMITS) {
+    throw new RegistrationError(503, 'RATE_LIMIT_NOT_CONFIGURED', 'Worker chưa được gắn KV RATE_LIMITS.');
+  }
+  const challengeId = String(body?.challengeId || '');
+  if (!/^[0-9a-f-]{36}$/i.test(challengeId)) {
+    throw new RegistrationError(400, 'INVALID_CHALLENGE', 'Yêu cầu xác thực không hợp lệ.');
+  }
+  const email = normalizeEmail(body?.email);
+  const code = validateCode(body?.code);
+  const password = validatePassword(body?.newPassword);
+  const key = `password-reset:challenge:${challengeId}`;
+  const challenge = await env.RATE_LIMITS.get(key, 'json');
+  if (!challenge || Number(challenge.expiresAt) <= Date.now()) {
+    throw new RegistrationError(410, 'CODE_EXPIRED', 'Mã xác thực đã hết hạn. Vui lòng gửi mã mới.');
+  }
+  const maxAttempts = positiveInteger(env.EMAIL_CODE_MAX_ATTEMPTS, DEFAULT_MAX_ATTEMPTS);
+  if (Number(challenge.attempts) >= maxAttempts) {
+    await env.RATE_LIMITS.delete(key);
+    throw new RegistrationError(429, 'TOO_MANY_CODE_ATTEMPTS', 'Bạn đã nhập sai quá nhiều lần. Vui lòng gửi mã mới.');
+  }
+  const pepper = required(env, 'EMAIL_OTP_PEPPER');
+  const emailHash = await hmacHex(pepper, email);
+  const codeHash = await hmacHex(pepper, `${challengeId}:${email}:${code}`);
+  challenge.attempts = Number(challenge.attempts || 0) + 1;
+  const remainingTtl = Math.max(60, Math.ceil((Number(challenge.expiresAt) - Date.now()) / 1000));
+  await env.RATE_LIMITS.put(key, JSON.stringify(challenge), { expirationTtl: remainingTtl });
+  const valid = challenge.accountUid
+    && constantTimeEqual(challenge.emailHash, emailHash)
+    && constantTimeEqual(challenge.codeHash, codeHash);
+  if (!valid) {
+    throw new RegistrationError(400, 'INCORRECT_CODE', 'Mã xác thực không đúng. Vui lòng kiểm tra lại.');
+  }
+  await updateFirebasePassword(env, challenge.accountUid, password, dependencies);
+  await env.RATE_LIMITS.delete(key);
+  return { updated: true };
 }
 
 async function createVerifiedFirebaseUser(env, { email, password, fullName }, dependencies) {
