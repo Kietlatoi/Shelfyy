@@ -1,7 +1,7 @@
 # Cấu hình OTP email 5 chữ số
 
 Luồng đăng ký và quên mật khẩu trên mobile gọi Cloudflare Worker để gửi mã qua
-Resend. Mã chỉ tồn tại dưới dạng HMAC-SHA256 trong KV `RATE_LIMITS`, hết hạn sau
+Gmail API. Mã chỉ tồn tại dưới dạng HMAC-SHA256 trong KV `RATE_LIMITS`, hết hạn sau
 10 phút và bị khóa sau 5 lần nhập sai. Firebase Auth account chỉ được tạo sau
 khi mã đăng ký đúng, với `emailVerified=true`. Mật khẩu chỉ được thay đổi sau khi
 mã đặt lại mật khẩu đúng.
@@ -10,17 +10,26 @@ Firestore Rules và Worker yêu cầu email đã xác thực đối với tài k
 tài khoản cũ đã có hồ sơ `users/{uid}` được tiếp tục sử dụng để tránh khóa người
 dùng hiện tại.
 
-## 1. Cấu hình Resend
+## 1. Cấu hình Gmail API
 
-1. Tạo tài khoản tại Resend và thêm domain gửi email.
-2. Thêm các bản ghi DNS mà Resend yêu cầu, rồi chờ domain chuyển sang trạng thái
-   `Verified`.
-3. Tạo API key chỉ dành cho Shelfy.
-4. Chọn địa chỉ gửi thuộc domain đã xác minh, ví dụ
-   `Shelfy <verify@shelfy.vn>`.
+1. Trong Google Cloud Console của project Shelfy, vào **APIs & Services →
+   Library** và bật **Gmail API**.
+2. Cấu hình **OAuth consent screen**. Khi còn ở trạng thái Testing, thêm tài
+   khoản Gmail gửi thư vào danh sách Test users.
+3. Vào **Credentials → Create credentials → OAuth client ID**, chọn **Web
+   application** và thêm redirect URI:
+   `https://developers.google.com/oauthplayground`.
+4. Mở [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/),
+   mở Settings, bật **Use your own OAuth credentials**, nhập Client ID và Client
+   Secret vừa tạo.
+5. Ở Step 1 nhập scope `https://www.googleapis.com/auth/gmail.send`, chọn
+   **Authorize APIs** và đăng nhập đúng Gmail sẽ gửi OTP.
+6. Ở Step 2 chọn **Exchange authorization code for tokens** và sao chép Refresh
+   token.
 
-`onboarding@resend.dev` chỉ phù hợp để thử với email chủ tài khoản Resend. Muốn
-gửi mã cho mọi người dùng, phải dùng domain đã xác minh.
+OAuth app loại External ở trạng thái Testing cấp refresh token chỉ có hiệu lực
+7 ngày. Trước khi phát hành, chuyển OAuth consent screen sang **In production**
+rồi tạo lại refresh token.
 
 ## 2. Cấp quyền Firebase cho Worker
 
@@ -39,15 +48,18 @@ account của Worker và thêm role **Firebase Authentication Admin**.
 Chạy trong thư mục `edge-worker`:
 
 ```powershell
-npx wrangler secret put RESEND_API_KEY
 npx wrangler secret put EMAIL_OTP_PEPPER
-npx wrangler secret put EMAIL_FROM
+npx wrangler secret put GMAIL_CLIENT_ID
+npx wrangler secret put GMAIL_CLIENT_SECRET
+npx wrangler secret put GMAIL_REFRESH_TOKEN
+npx wrangler secret put GMAIL_FROM
 ```
 
-- `RESEND_API_KEY`: API key vừa tạo trên Resend.
 - `EMAIL_OTP_PEPPER`: chuỗi ngẫu nhiên dài tối thiểu 32 byte, chỉ dùng để băm mã
   và email trong KV.
-- `EMAIL_FROM`: địa chỉ gửi đầy đủ, ví dụ `Shelfy <verify@shelfy.vn>`.
+- `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`: OAuth Web client ở bước 3.
+- `GMAIL_REFRESH_TOKEN`: refresh token ở bước 6.
+- `GMAIL_FROM`: tài khoản Gmail đã cấp quyền, ví dụ `toilakiet24@gmail.com`.
 
 Các cấu hình thời gian trong `edge-worker/wrangler.jsonc` đã có giá trị mặc định:
 
@@ -57,7 +69,7 @@ EMAIL_CODE_RESEND_SECONDS=60
 EMAIL_CODE_MAX_ATTEMPTS=5
 ```
 
-Không đặt ba secret trên vào `.env` của Expo hoặc biến `EXPO_PUBLIC_*`.
+Không đặt các secret Gmail vào `.env` của Expo hoặc biến `EXPO_PUBLIC_*`.
 
 ## 4. Deploy và kiểm tra
 

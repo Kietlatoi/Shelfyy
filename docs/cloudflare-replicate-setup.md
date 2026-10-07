@@ -56,9 +56,9 @@ npx wrangler secret put REPLICATE_MODEL_VERSION
 npx wrangler secret put TRY_ON_LIMIT_PER_DAY
 ```
 
-Luồng đăng ký bằng mã email cần thêm Resend và quyền Firebase Authentication cho
-service account. Xem `docs/email-registration-setup.md` để cấu hình các secret
-`RESEND_API_KEY`, `EMAIL_OTP_PEPPER` và `EMAIL_FROM`.
+Luồng đăng ký và quên mật khẩu bằng mã email cần Gmail API cùng quyền Firebase
+Authentication cho service account. Xem `docs/email-registration-setup.md` để
+cấu hình OAuth Gmail và các Worker secret liên quan.
 
 Giá trị cần dùng:
 

@@ -34,14 +34,38 @@ function response(data, status = 200) {
   });
 }
 
+const GMAIL_ENV = {
+  GMAIL_CLIENT_ID: 'gmail-client-id',
+  GMAIL_CLIENT_SECRET: 'gmail-client-secret',
+  GMAIL_REFRESH_TOKEN: 'gmail-refresh-token',
+  GMAIL_FROM: 'sender@gmail.com',
+};
+
+function gmailFetch(onMessage) {
+  return async (url, options) => {
+    if (url === 'https://oauth2.googleapis.com/token') {
+      return response({ access_token: 'gmail-access-token' });
+    }
+    assert.equal(url, 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send');
+    assert.equal(options.headers.authorization, 'Bearer gmail-access-token');
+    const { raw } = JSON.parse(options.body);
+    const message = Buffer.from(raw.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8');
+    const encodedSubject = message.match(/^Subject: =\?UTF-8\?B\?(.+)\?=$/m)?.[1];
+    onMessage?.({
+      message,
+      subject: Buffer.from(encodedSubject, 'base64').toString('utf8'),
+    });
+    return response({ id: 'gmail-message-id' });
+  };
+}
+
 test('registration code is emailed as five digits and only its hash is kept in KV', async () => {
   const kv = new FakeKv();
   let emailPayload;
   const env = {
     RATE_LIMITS: kv,
     EMAIL_OTP_PEPPER: 'test-pepper-with-enough-entropy',
-    RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Shelfy <verify@shelfy.test>',
+    ...GMAIL_ENV,
   };
   const result = await requestRegistrationCode(
     env,
@@ -50,16 +74,13 @@ test('registration code is emailed as five digits and only its hash is kept in K
     }),
     { email: ' User@Example.com ' },
     {
-      fetchImpl: async (_url, options) => {
-        emailPayload = JSON.parse(options.body);
-        return response({ id: 'email-1' });
-      },
+      fetchImpl: gmailFetch((payload) => { emailPayload = payload; }),
     },
   );
 
   const code = emailPayload.subject.slice(0, 5);
   assert.match(code, /^\d{5}$/);
-  assert.deepEqual(emailPayload.to, ['user@example.com']);
+  assert.match(emailPayload.message, /^To: user@example\.com$/m);
   const stored = await kv.get(`registration:challenge:${result.challengeId}`, 'json');
   assert.equal(Object.hasOwn(stored, 'code'), false);
   assert.match(stored.codeHash, /^[a-f0-9]{64}$/);
@@ -72,8 +93,7 @@ test('a valid code creates one verified Firebase account and consumes the challe
   const env = {
     RATE_LIMITS: kv,
     EMAIL_OTP_PEPPER: 'test-pepper-with-enough-entropy',
-    RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Shelfy <verify@shelfy.test>',
+    ...GMAIL_ENV,
     FIREBASE_PROJECT_ID: 'shelfy-test',
     FIREBASE_API_KEY: 'firebase-public-key',
   };
@@ -82,10 +102,7 @@ test('a valid code creates one verified Firebase account and consumes the challe
     new Request('https://worker.test/v1/auth/registration-codes'),
     { email: 'mai@example.com' },
     {
-      fetchImpl: async (_url, options) => {
-        code = JSON.parse(options.body).subject.slice(0, 5);
-        return response({ id: 'email-2' });
-      },
+      fetchImpl: gmailFetch((payload) => { code = payload.subject.slice(0, 5); }),
     },
   );
 
@@ -121,8 +138,7 @@ test('an incorrect code cannot create a Firebase account', async () => {
   const env = {
     RATE_LIMITS: kv,
     EMAIL_OTP_PEPPER: 'test-pepper-with-enough-entropy',
-    RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Shelfy <verify@shelfy.test>',
+    ...GMAIL_ENV,
     FIREBASE_PROJECT_ID: 'shelfy-test',
     FIREBASE_API_KEY: 'firebase-public-key',
   };
@@ -131,10 +147,7 @@ test('an incorrect code cannot create a Firebase account', async () => {
     new Request('https://worker.test/v1/auth/registration-codes'),
     { email: 'mai@example.com' },
     {
-      fetchImpl: async (_url, options) => {
-        sentCode = JSON.parse(options.body).subject.slice(0, 5);
-        return response({ id: 'email-3' });
-      },
+      fetchImpl: gmailFetch((payload) => { sentCode = payload.subject.slice(0, 5); }),
     },
   );
   const incorrectCode = sentCode === '99999' ? '00000' : '99999';
@@ -157,8 +170,7 @@ test('password reset sends an OTP only for an existing Firebase account', async 
   const env = {
     RATE_LIMITS: kv,
     EMAIL_OTP_PEPPER: 'test-pepper-with-enough-entropy',
-    RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Shelfy <verify@shelfy.test>',
+    ...GMAIL_ENV,
     FIREBASE_PROJECT_ID: 'shelfy-test',
   };
   const result = await requestPasswordResetCode(
@@ -171,8 +183,7 @@ test('password reset sends an OTP only for an existing Firebase account', async 
         if (url.includes('accounts:lookup')) {
           return response({ users: [{ localId: 'uid-1', email: 'mai@example.com' }] });
         }
-        emailPayload = JSON.parse(options.body);
-        return response({ id: 'email-reset-1' });
+        return gmailFetch((payload) => { emailPayload = payload; })(url, options);
       },
     },
   );
@@ -190,8 +201,7 @@ test('a valid password reset OTP updates Firebase and revokes older sessions', a
   const env = {
     RATE_LIMITS: kv,
     EMAIL_OTP_PEPPER: 'test-pepper-with-enough-entropy',
-    RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Shelfy <verify@shelfy.test>',
+    ...GMAIL_ENV,
     FIREBASE_PROJECT_ID: 'shelfy-test',
     FIREBASE_API_KEY: 'firebase-public-key',
   };
@@ -201,9 +211,8 @@ test('a valid password reset OTP updates Firebase and revokes older sessions', a
       if (url.includes('accounts:lookup')) {
         return response({ users: [{ localId: 'uid-1', email: 'mai@example.com' }] });
       }
-      if (url === 'https://api.resend.com/emails') {
-        sentCode = JSON.parse(options.body).subject.slice(0, 5);
-        return response({ id: 'email-reset-2' });
+      if (url.includes('googleapis.com/token') || url.includes('gmail.googleapis.com')) {
+        return gmailFetch((payload) => { sentCode = payload.subject.slice(0, 5); })(url, options);
       }
       updatePayload = JSON.parse(options.body);
       return response({ localId: 'uid-1' });
@@ -236,8 +245,7 @@ test('password reset does not reveal whether an email is registered', async () =
   const result = await requestPasswordResetCode({
     RATE_LIMITS: kv,
     EMAIL_OTP_PEPPER: 'test-pepper-with-enough-entropy',
-    RESEND_API_KEY: 're_test',
-    EMAIL_FROM: 'Shelfy <verify@shelfy.test>',
+    ...GMAIL_ENV,
     FIREBASE_PROJECT_ID: 'shelfy-test',
   }, new Request('https://worker.test/v1/auth/password-reset-codes'), {
     email: 'missing@example.com',

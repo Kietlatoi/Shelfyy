@@ -1,6 +1,7 @@
 import { serviceAccountAccessToken } from './firestore-rest.js';
 
-const RESEND_API = 'https://api.resend.com/emails';
+const GOOGLE_TOKEN_API = 'https://oauth2.googleapis.com/token';
+const GMAIL_SEND_API = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send';
 const DEFAULT_CODE_TTL_SECONDS = 600;
 const DEFAULT_RESEND_SECONDS = 60;
 const DEFAULT_MAX_ATTEMPTS = 5;
@@ -92,30 +93,67 @@ async function incrementLimit(kv, key, limit, ttl, message) {
   await kv.put(key, String(used + 1), { expirationTtl: ttl });
 }
 
+function base64(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+async function gmailAccessToken(env, fetchImpl) {
+  const response = await fetchImpl(GOOGLE_TOKEN_API, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: required(env, 'GMAIL_CLIENT_ID'),
+      client_secret: required(env, 'GMAIL_CLIENT_SECRET'),
+      refresh_token: required(env, 'GMAIL_REFRESH_TOKEN'),
+      grant_type: 'refresh_token',
+    }),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok || !result?.access_token) {
+    console.error('Gmail OAuth rejected token refresh', {
+      status: response.status,
+      error: result?.error,
+      description: result?.error_description,
+    });
+    throw new RegistrationError(502, 'EMAIL_AUTH_FAILED', 'Không thể kết nối dịch vụ gửi email.');
+  }
+  return result.access_token;
+}
+
 async function sendVerificationEmail(env, email, code, fetchImpl, purpose = 'registration') {
   const isPasswordReset = purpose === 'password-reset';
   const title = isPasswordReset ? 'Đặt lại mật khẩu Shelfy' : 'Xác thực email Shelfy';
   const action = isPasswordReset ? 'đặt lại mật khẩu' : 'xác thực email';
-  const response = await fetchImpl(RESEND_API, {
+  const subject = `${code} là mã ${action} Shelfy của bạn`;
+  const html = `<!doctype html><html lang="vi"><body style="font-family:Arial,sans-serif;color:#172033"><h2>${title}</h2><p>Mã ${action} của bạn là:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px;color:#625ff5">${code}</p><p>Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.</p><p>Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email.</p></body></html>`;
+  const from = normalizeEmail(required(env, 'GMAIL_FROM'));
+  const message = [
+    `From: =?UTF-8?B?${base64('Shelfy')}?= <${from}>`,
+    `To: ${email}`,
+    `Subject: =?UTF-8?B?${base64(subject)}?=`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/html; charset=UTF-8',
+    'Content-Transfer-Encoding: base64',
+    '',
+    base64(html),
+  ].join('\r\n');
+  const response = await fetchImpl(GMAIL_SEND_API, {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${required(env, 'RESEND_API_KEY')}`,
+      authorization: `Bearer ${await gmailAccessToken(env, fetchImpl)}`,
       'content-type': 'application/json',
     },
-    body: JSON.stringify({
-      from: required(env, 'EMAIL_FROM'),
-      to: [email],
-      subject: `${code} là mã ${action} Shelfy của bạn`,
-      text: `Mã ${action} Shelfy của bạn là ${code}. Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.`,
-      html: `<!doctype html><html lang="vi"><body style="font-family:Arial,sans-serif;color:#172033"><h2>${title}</h2><p>Mã ${action} của bạn là:</p><p style="font-size:32px;font-weight:700;letter-spacing:8px;color:#625ff5">${code}</p><p>Mã có hiệu lực trong 10 phút. Không chia sẻ mã này với bất kỳ ai.</p><p>Nếu bạn không yêu cầu thao tác này, hãy bỏ qua email.</p></body></html>`,
-    }),
+    body: JSON.stringify({ raw: base64(message).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') }),
   });
   if (!response.ok) {
     const providerError = await response.json().catch(() => null);
-    console.error('Resend rejected email', {
+    console.error('Gmail API rejected email', {
       status: response.status,
-      name: providerError?.name,
-      message: providerError?.message,
+      statusText: providerError?.error?.status,
+      message: providerError?.error?.message,
     });
     throw new RegistrationError(502, 'EMAIL_SEND_FAILED', 'Không thể gửi email xác thực. Vui lòng thử lại sau.');
   }
