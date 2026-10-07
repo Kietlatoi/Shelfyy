@@ -217,26 +217,23 @@ export async function getAdminUsers(env, url) {
     profiles = await runQuery(env, {
       from: [{ collectionId: 'users' }],
       orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
-      offset: page * size,
-      limit: size + 1,
+      limit: 10000,
     });
   }
-  profiles = profiles.filter((profile) => profile.id !== adminUid).slice(0, size);
+  profiles = profiles.filter((profile) => profile.id !== adminUid);
+  const total = profiles.length;
+  if (!search) profiles = profiles.slice(page * size, (page + 1) * size);
   const snapshots = profiles.length
     ? await batchGetDocuments(env, profiles.flatMap((profile) => [
       `_accountAccess/${profile.id}`,
       `users/${profile.id}/entitlements/current`,
     ]))
     : [];
-  const [total, adminProfile, content] = await Promise.all([
-    countCollection(env, 'users'),
-    getDocument(env, `users/${adminUid}`),
-    Promise.all(profiles.map((profile, index) => userDetails(env, profile, [
+  const content = await Promise.all(profiles.map((profile, index) => userDetails(env, profile, [
       snapshots[index * 2],
       snapshots[index * 2 + 1],
-    ]))),
-  ]);
-  const effectiveTotal = search ? content.length : Math.max(0, total - (adminProfile ? 1 : 0));
+    ])));
+  const effectiveTotal = search ? content.length : total;
   return {
     content,
     page,
