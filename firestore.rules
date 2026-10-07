@@ -341,6 +341,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /_accountAccess/{uid} {
+      allow read, write: if false;
+    }
+
+    match /_adminAuditEvents/{eventId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

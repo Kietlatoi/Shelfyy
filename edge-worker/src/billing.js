@@ -708,6 +708,23 @@ async function reconcilePayment(env, snapshot, { force = false } = {}) {
   return result;
 }
 
+export async function reconcilePaymentByOrderCode(env, orderCode) {
+  if (!/^\d{10,16}$/.test(String(orderCode || ''))) {
+    const error = new Error('Mã đơn hàng không hợp lệ.');
+    error.status = 400;
+    error.code = 'INVALID_ORDER_CODE';
+    throw error;
+  }
+  const snapshot = await getDocument(env, paymentPath(orderCode));
+  if (!snapshot) {
+    const error = new Error('Không tìm thấy giao dịch.');
+    error.status = 404;
+    error.code = 'PAYMENT_NOT_FOUND';
+    throw error;
+  }
+  return reconcilePayment(env, snapshot, { force: true });
+}
+
 export async function getPayment(env, user, orderCodeValue) {
   const orderCode = String(orderCodeValue || '');
   if (!/^\d{10,16}$/.test(orderCode)) {

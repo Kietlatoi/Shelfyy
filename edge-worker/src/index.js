@@ -12,6 +12,18 @@ import {
   quotaDescriptor,
   reconcilePendingPayments,
 } from './billing.js';
+import {
+  assertAdmin,
+  exportAdminPayments,
+  getAdminMe,
+  getAdminPayment,
+  getAdminPayments,
+  getAdminSummary,
+  getAdminUser,
+  getAdminUsers,
+  reconcileAdminPayment,
+  updateAdminUserAccess,
+} from './admin.js';
 import { createWardrobeItem } from './wardrobe.js';
 import {
   completePasswordReset,
@@ -49,7 +61,7 @@ function corsFor(request, env) {
   return {
     'access-control-allow-origin': origin,
     'access-control-allow-headers': 'authorization, content-type',
-    'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
+    'access-control-allow-methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     vary: 'Origin',
   };
 }
@@ -122,6 +134,10 @@ async function authenticate(request, env) {
     if (!existingProfile) {
       throw new ApiError(403, 'EMAIL_NOT_VERIFIED', 'Email của tài khoản chưa được xác thực.');
     }
+  }
+  const access = await getDocument(env, `_accountAccess/${user.localId}`).catch(() => null);
+  if (access?.data.status === 'locked') {
+    throw new ApiError(403, 'ACCOUNT_LOCKED', 'Tài khoản đã bị quản trị viên khóa.');
   }
   return { uid: user.localId, email: user.email || '' };
 }
@@ -456,6 +472,25 @@ async function route(request, env) {
 
   const user = await authenticate(request, env);
   const { uid } = user;
+  if (url.pathname.startsWith('/v1/admin/')) {
+    const admin = assertAdmin(env, user);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/me') return getAdminMe(admin);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/summary') return getAdminSummary(env, url);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/users') return getAdminUsers(env, url);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/payments') return getAdminPayments(env, url);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/payments/export.csv') return exportAdminPayments(env, admin, url);
+    const adminUserMatch = url.pathname.match(/^\/v1\/admin\/users\/([^/]+)$/);
+    if (request.method === 'GET' && adminUserMatch) return getAdminUser(env, decodeURIComponent(adminUserMatch[1]));
+    const adminAccessMatch = url.pathname.match(/^\/v1\/admin\/users\/([^/]+)\/access$/);
+    if (request.method === 'PATCH' && adminAccessMatch) {
+      return updateAdminUserAccess(env, admin, decodeURIComponent(adminAccessMatch[1]), await readJson(request));
+    }
+    const adminPaymentMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16})$/);
+    if (request.method === 'GET' && adminPaymentMatch) return getAdminPayment(env, adminPaymentMatch[1]);
+    const adminReconcileMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16})\/reconcile$/);
+    if (request.method === 'POST' && adminReconcileMatch) return reconcileAdminPayment(env, admin, adminReconcileMatch[1]);
+    throw new ApiError(404, 'NOT_FOUND', 'Không tìm thấy API quản trị này.');
+  }
   if (request.method === 'GET' && url.pathname === '/v1/billing/plans') {
     return getBillingPlans(env);
   }
@@ -509,7 +544,11 @@ export default {
       corsHeaders = corsFor(request, env);
       if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders });
       const result = await route(request, env);
-      if (result instanceof Response) return result;
+      if (result instanceof Response) {
+        const headers = new Headers(result.headers);
+        for (const [name, value] of Object.entries(corsHeaders)) headers.set(name, value);
+        return new Response(result.body, { status: result.status, statusText: result.statusText, headers });
+      }
       return json({ data: result }, 200, corsHeaders);
     } catch (error) {
       const status = Number(error?.status) || (error instanceof ApiError ? error.status : 500);

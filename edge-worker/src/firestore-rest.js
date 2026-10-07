@@ -258,6 +258,26 @@ export async function countCollection(env, collectionId, parentPath = '') {
   return Number(decodeValue(value) || 0);
 }
 
+export async function aggregateQuery(env, structuredQuery, aggregations, parentPath = '') {
+  const parent = encodePath(parentPath);
+  const suffix = parent ? `documents/${parent}:runAggregationQuery` : 'documents:runAggregationQuery';
+  const result = await firestoreFetch(env, suffix, {
+    method: 'POST',
+    body: JSON.stringify({
+      structuredAggregationQuery: {
+        structuredQuery,
+        aggregations: aggregations.map((aggregation) => (
+          aggregation.type === 'sum'
+            ? { alias: aggregation.alias, sum: { field: { fieldPath: aggregation.fieldPath } } }
+            : { alias: aggregation.alias, count: {} }
+        )),
+      },
+    }),
+  });
+  const fields = result?.[0]?.result?.aggregateFields || {};
+  return Object.fromEntries(aggregations.map(({ alias }) => [alias, Number(decodeValue(fields[alias]) || 0)]));
+}
+
 export const query = {
   fieldFilter(fieldPath, op, value) {
     return { fieldFilter: { field: { fieldPath }, op, value: encodeValue(value) } };
