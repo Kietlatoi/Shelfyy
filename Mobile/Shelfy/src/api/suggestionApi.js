@@ -13,10 +13,8 @@ import {
 import { auth, db } from '../firebase/client';
 import { generateStylingSuggestion, getConfig } from '../utils/ruleBasedStylist';
 import { localDateKey, shiftDateKey, timestampMillis, validTimeZone } from '../utils/dateTime';
-import { calendarApi } from './calendarApi';
 
 const MAX_WARDROBE_ITEMS = 60;
-const MAX_EVENTS = 12;
 let retryableGenerationRequestId = null;
 
 function requireUser() {
@@ -88,12 +86,10 @@ function suggestionResponse(id, data) {
 }
 
 async function buildContext(uid, profile, date, timeZone) {
-  await calendarApi.today().catch(() => null);
   const userPath = ['users', uid];
-  const [wardrobeResult, weatherSnapshot, eventsResult, outfitsResult, suggestionsResult] = await Promise.all([
+  const [wardrobeResult, weatherSnapshot, outfitsResult, suggestionsResult] = await Promise.all([
     getDocs(query(collection(db, ...userPath, 'wardrobe'), limit(100))),
     getDoc(doc(db, ...userPath, 'weatherSnapshots', 'current')),
-    getDocs(query(collection(db, ...userPath, 'calendarEvents'), where('dateKey', '==', date), limit(MAX_EVENTS))),
     getDocs(query(collection(db, ...userPath, 'dailyOutfits'), where('dateKey', '>=', shiftDateKey(date, -6)), limit(100))),
     getDocs(query(
       collection(db, ...userPath, 'suggestions'),
@@ -112,9 +108,6 @@ async function buildContext(uid, profile, date, timeZone) {
       || left.wearCount - right.wearCount)
     .slice(0, MAX_WARDROBE_ITEMS);
 
-  const events = eventsResult.docs
-    .map((entry) => ({ id: entry.id, ...entry.data() }))
-    .sort((left, right) => timestampMillis(left.start) - timestampMillis(right.start));
   const recentItemIds = [];
   outfitsResult.docs.forEach((entry) => {
     const outfit = entry.data();
@@ -132,7 +125,6 @@ async function buildContext(uid, profile, date, timeZone) {
     date,
     timeZone,
     weather: weatherSnapshot.exists() ? { id: 'current', ...weatherSnapshot.data() } : null,
-    events,
     wardrobeItems,
     wardrobeCount: wardrobeItems.length,
     recentItemIds: recentItemIds.slice(0, 80),
@@ -158,13 +150,6 @@ function compactContext(context) {
       cloudCover: context.weather.cloudCover ?? null,
       windSpeed: context.weather.windSpeed ?? null,
     } : null,
-    events: context.events.slice(0, MAX_EVENTS).map((event) => ({
-      id: event.id,
-      title: event.title,
-      startTime: event.startTime || null,
-      endTime: event.endTime || null,
-      location: event.location || '',
-    })),
     wardrobeCount: context.wardrobeCount,
     recentItemIds: context.recentItemIds,
     previousSuggestionItemIds: context.previousSuggestionItemIds,
@@ -235,7 +220,6 @@ export const suggestionApi = {
       tips: generated.suggestion.tips || [],
       modelName: generated.modelName || getConfig().model,
       weatherSnapshotId: context.weather?.id || null,
-      calendarEventId: context.events[0]?.id || null,
       confirmedDailyOutfitId: null,
       items,
       mediaPublicIds: [...new Set(items.flatMap((item) => [

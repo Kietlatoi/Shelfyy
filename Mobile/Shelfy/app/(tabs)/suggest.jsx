@@ -262,7 +262,7 @@ export default function SuggestScreen() {
 
             <Text style={styles.emptyTitle}>Sẵn sàng cho ngày mới?</Text>
             <Text style={styles.emptyDesc}>
-              Shelfy sẽ phân tích thời tiết hôm nay, lịch trình các sự kiện và tủ đồ hiện tại để phối set đồ phù hợp và thoải mái nhất cho bạn.
+              Shelfy sẽ phân tích thời tiết hôm nay, tủ đồ và lịch sử mặc để phối set đồ phù hợp, thoải mái cho bạn.
             </Text>
 
             <AppButton

@@ -5,9 +5,6 @@ var LIGHT_MATERIALS = ['cotton', 'linen', 'viscose', 'rayon', 'modal', 'silk', '
 var HEAVY_MATERIALS = ['wool', 'len', 'fleece', 'leather', 'da', 'denim', 'nỉ'];
 var NEUTRAL_COLORS = ['black', 'white', 'gray', 'grey', 'beige', 'cream', 'navy', 'brown', 'đen', 'trắng', 'xám', 'kem', 'nâu'];
 var LIGHT_COLORS = ['white', 'cream', 'beige', 'pastel', 'trắng', 'kem', 'be', 'xanh nhạt'];
-var FORMAL_WORDS = ['họp', 'meeting', 'office', 'văn phòng', 'work', 'client', 'khách hàng', 'phỏng vấn', 'interview', 'presentation', 'thuyết trình', 'lớp', 'học', 'chấm', 'thi'];
-var ACTIVE_WORDS = ['gym', 'workout', 'sport', 'chạy', 'yoga', 'bóng', 'tennis', 'cầu lông'];
-var OUTDOOR_WORDS = ['ngoài trời', 'picnic', 'park', 'công viên', 'cafe', 'cà phê', 'đi chơi', 'dinner', 'lunch', 'ăn', 'tiệc', 'party', 'date'];
 
 function normalizeText(value, maxLength) {
   var text = String(value || '').replace(/\s+/g, ' ').trim();
@@ -60,21 +57,6 @@ function weatherTraits(weather) {
   };
 }
 
-function eventTraits(events) {
-  var list = Array.isArray(events) ? events : [];
-  var text = list.map(function(event) {
-    return [event.title, event.location, event.description, event.context].filter(Boolean).join(' ');
-  }).join(' ').toLowerCase();
-
-  return {
-    count: list.length,
-    primaryTitle: list[0] && list[0].title ? normalizeText(list[0].title, 80) : '',
-    formal: includesAny(text, FORMAL_WORDS),
-    active: includesAny(text, ACTIVE_WORDS),
-    outdoor: includesAny(text, OUTDOOR_WORDS),
-  };
-}
-
 function categoryOf(item) {
   var category = String(item.category || 'OTHER').toUpperCase();
   return SLOT_ORDER.includes(category) ? category : 'OTHER';
@@ -86,7 +68,6 @@ function seasonMatchesHot(text) {
 
 function scoreItem(item, context) {
   var weather = weatherTraits(context.weather);
-  var events = eventTraits(context.events);
   var recentIds = new Set((context.recentItemIds || []).map(String));
   var previousSuggestionIds = new Set((context.previousSuggestionItemIds || []).map(String));
   var text = itemText(item);
@@ -136,28 +117,6 @@ function scoreItem(item, context) {
     if (includesAny(text, LIGHT_MATERIALS) && category !== 'TOP') addScore(state, -3, 'hơi mỏng khi trời mát');
   }
 
-  if (events.formal) {
-    if (category === 'OUTERWEAR' && includesAny(text, ['blazer', 'jacket', 'vest'])) addScore(state, 20, 'chỉn chu cho lịch trình công việc');
-    if (category === 'TOP' && includesAny(text, ['shirt', 'sơ mi', 'blouse', 'polo'])) addScore(state, 15, 'lịch sự cho sự kiện trong ngày');
-    if (category === 'BOTTOM' && includesAny(text, ['trouser', 'quần tây', 'slack', 'chino'])) addScore(state, 14, 'phù hợp bối cảnh công việc');
-    if (category === 'DRESS' && includesAny(text, ['minimal', 'trơn', 'linen', 'midi'])) addScore(state, 12, 'gọn gàng và lịch sự');
-    if (category === 'BAG' && includesAny(text, ['tote', 'work', 'da'])) addScore(state, 10, 'phù hợp mang đồ đi làm');
-    if (category === 'SHOES' && includesAny(text, ['loafer', 'heel', 'leather', 'da'])) addScore(state, 8, 'giày lịch sự hơn');
-    if (category === 'SHOES' && includesAny(text, ['sneaker'])) addScore(state, -3, 'hơi casual cho lịch công việc');
-    if (includesAny(text, ['trơn', 'minimal', 'basic'])) addScore(state, 5, 'dễ phối theo phong cách gọn gàng');
-  }
-
-  if (events.active) {
-    if (category === 'SHOES' && includesAny(text, ['sneaker', 'sport', 'running'])) addScore(state, 16, 'thoải mái cho hoạt động');
-    if (category === 'TOP' && includesAny(text, ['tee', 'áo thun', 'cotton'])) addScore(state, 8, 'thoải mái khi vận động');
-    if (category === 'DRESS' || category === 'OUTERWEAR') addScore(state, -8, 'kém linh hoạt cho hoạt động');
-  }
-
-  if (events.outdoor) {
-    if (category === 'SHOES') addScore(state, 7, 'dễ di chuyển ngoài trời');
-    if (category === 'ACCESSORY' && includesAny(text, ['hat', 'nón', 'kính'])) addScore(state, 8, 'hữu ích khi ra ngoài');
-  }
-
   if (includesAny(text, NEUTRAL_COLORS)) addScore(state, 4, 'màu trung tính dễ phối');
 
   return state;
@@ -178,13 +137,12 @@ function uniqueEntries(entries) {
   });
 }
 
-function shouldUseOuterwear(weather, events) {
-  return weather.cold || weather.cool || weather.rainy || (events.formal && !weather.hot);
+function shouldUseOuterwear(weather) {
+  return weather.cold || weather.cool || weather.rainy;
 }
 
 function buildLook(scoredItems, context, type) {
   var weather = weatherTraits(context.weather);
-  var events = eventTraits(context.events);
   var entries = [];
   var requiredScore = 0;
 
@@ -206,9 +164,9 @@ function buildLook(scoredItems, context, type) {
   var accessory = bestByCategory(scoredItems, 'ACCESSORY');
   var outerwear = bestByCategory(scoredItems, 'OUTERWEAR');
 
-  if (shouldUseOuterwear(weather, events) && outerwear) entries.push(outerwear);
+  if (shouldUseOuterwear(weather) && outerwear) entries.push(outerwear);
   if (shoes) entries.push(shoes);
-  if (bag && (events.formal || events.outdoor || bag.score >= 54)) entries.push(bag);
+  if (bag && bag.score >= 54) entries.push(bag);
   if (accessory && accessory.score >= 54) entries.push(accessory);
 
   entries = uniqueEntries(entries);
@@ -255,20 +213,8 @@ function weatherReason(weather) {
   return 'Dựa trên ' + parts.join(', ') + '.';
 }
 
-function occasionText(events) {
-  var traits = eventTraits(events);
-  if (traits.primaryTitle) return traits.primaryTitle;
-  if (traits.formal) return 'Lịch trình công việc';
-  if (traits.active) return 'Hoạt động trong ngày';
-  if (traits.outdoor) return 'Đi ra ngoài';
-  return 'Hôm nay';
-}
-
 function titleFor(context, look) {
   var weather = weatherTraits(context.weather);
-  var events = eventTraits(context.events);
-  if (events.formal && weather.hot) return 'Gọn gàng cho ngày nóng có lịch trình';
-  if (events.formal) return 'Chỉn chu cho lịch trình hôm nay';
   if (weather.rainy) return 'Linh hoạt cho ngày có mưa';
   if (weather.hot || weather.warm) return 'Mát nhẹ cho ngày nóng';
   if (look.type === 'dress') return 'Tối giản với đầm liền';
@@ -277,11 +223,9 @@ function titleFor(context, look) {
 
 function confidenceFor(context, look) {
   var weather = weatherTraits(context.weather);
-  var events = eventTraits(context.events);
   var confidence = 0.56;
   confidence += Math.min(look.entries.length, 5) * 0.055;
   if (weather.hasWeather) confidence += 0.08;
-  if (events.count) confidence += 0.05;
   if (look.type === 'dress' || look.entries.some(function(entry) { return entry.category === 'TOP'; })) confidence += 0.04;
   if (look.entries.some(function(entry) { return entry.category === 'SHOES'; })) confidence += 0.04;
   return Math.min(0.94, Number(confidence.toFixed(3)));
@@ -289,13 +233,10 @@ function confidenceFor(context, look) {
 
 function tipsFor(context) {
   var weather = weatherTraits(context.weather);
-  var events = eventTraits(context.events);
   var tips = [];
 
   if (weather.hot || weather.humid) tips.push('Ưu tiên mặc thoáng, hạn chế layer dày nếu phải di chuyển nhiều.');
   if (weather.rainy) tips.push('Nên chuẩn bị thêm ô hoặc áo khoác nhẹ chống mưa.');
-  if (events.formal) tips.push('Giữ phụ kiện gọn để outfit trông chỉn chu hơn.');
-  if (events.count) tips.push('Kiểm tra lại giờ sự kiện trước khi ra ngoài.');
   if (!tips.length) tips.push('Có thể đổi phụ kiện nếu muốn outfit nổi bật hơn.');
 
   return tips.slice(0, 4);
@@ -314,14 +255,11 @@ function normalizeSuggestion(context, look) {
     return SLOT_ORDER.indexOf(a.category) - SLOT_ORDER.indexOf(b.category);
   });
   var categoryNames = selected.map(function(entry) { return entry.category; }).join(', ');
-  var event = eventTraits(context.events);
-
   return {
     title: titleFor(context, look),
-    occasion: occasionText(context.events),
-    summary: 'Set đồ được chọn bằng luật phối dựa trên thời tiết, lịch trình và dữ liệu tủ đồ hiện tại.',
+    occasion: 'Hôm nay',
+    summary: 'Set đồ được chọn bằng luật phối dựa trên thời tiết và dữ liệu tủ đồ hiện tại.',
     reason: weatherReason(context.weather) + ' ' +
-      (event.count ? 'Lịch trình hôm nay có ' + event.count + ' sự kiện nên outfit ưu tiên tính phù hợp ngữ cảnh. ' : '') +
       'Hệ thống cũng giảm điểm các món đã mặc gần đây và ưu tiên món đang dùng/yêu thích. Nhóm item đã chọn: ' + categoryNames + '.',
     confidence: confidenceFor(context, look),
     tips: tipsFor(context),

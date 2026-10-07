@@ -18,9 +18,6 @@ module.exports = ({ config }) => {
     ...config,
     plugins: [
       ...(config.plugins || []),
-      ['expo-calendar', {
-        calendarPermission: 'Cho phép Shelfy đọc lịch để gợi ý trang phục phù hợp với sự kiện trong ngày.',
-      }],
       ['expo-location', {
         locationWhenInUsePermission: 'Cho phép Shelfy dùng vị trí để lấy thời tiết tại nơi bạn đang ở.',
       }],
@@ -37,8 +34,6 @@ module.exports = ({ config }) => {
       googleServicesFile: './google-services.json',
       permissions: [
         ...(config.android?.permissions || []),
-        'android.permission.READ_CALENDAR',
-        'android.permission.WRITE_CALENDAR',
         'android.permission.ACCESS_COARSE_LOCATION',
         'android.permission.ACCESS_FINE_LOCATION',
         'android.permission.CAMERA',

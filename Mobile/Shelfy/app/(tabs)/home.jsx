@@ -12,7 +12,6 @@ import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../src/contexts/AuthContext';
 import WeatherCard from '../../src/components/home/WeatherCard';
-import CalendarCard from '../../src/components/home/CalendarCard';
 import TodayOutfitPanel from '../../src/components/home/TodayOutfitPanel';
 import Avatar from '../../src/components/common/Avatar';
 import { colors } from '../../src/constants/colors';
@@ -90,8 +89,6 @@ export default function HomeScreen() {
         {/* Today's Outfit */}
         <TodayOutfitPanel key={`outfit-${refreshKey}`} />
 
-        {/* Calendar Schedule */}
-        <CalendarCard key={`calendar-${refreshKey}`} />
       </ScrollView>
     </SafeAreaView>
   );

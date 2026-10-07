@@ -98,7 +98,7 @@ export default function TodayOutfitPanel() {
           </View>
           <Text style={styles.emptyTitle}>Bạn chưa chọn outfit hôm nay</Text>
           <Text style={styles.emptyDesc}>
-            Hãy để AI gợi ý trang phục hoàn hảo theo thời tiết và lịch trình của bạn.
+            Hãy để AI gợi ý trang phục phù hợp theo thời tiết và tủ đồ của bạn.
           </Text>
 
           <View style={styles.actionButtonsRow}>
