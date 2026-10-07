@@ -208,7 +208,7 @@ export async function deleteAccount(currentPassword) {
 
   const subcollections = [
     'wardrobe', 'dailyOutfits', 'suggestions', 'tryOns', 'weatherSnapshots',
-    'calendarEvents', 'integrationStatus', 'mediaAssets',
+    'mediaAssets',
   ];
   const snapshots = await Promise.all(subcollections.map((name) => getDocs(
     collection(db, 'users', user.uid, name),
