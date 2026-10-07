@@ -292,22 +292,17 @@ export async function getAdminPayments(env, url) {
   const { period, status, cutoff } = paymentFilters(url);
   const page = Math.max(0, Number.parseInt(url.searchParams.get('page') || '0', 10) || 0);
   const size = Math.min(50, Math.max(1, Number.parseInt(url.searchParams.get('size') || String(PAGE_SIZE), 10) || PAGE_SIZE));
-  const structuredQuery = paymentQuery({ cutoff, status, limit: size, offset: page * size });
-  const aggregateBase = paymentQuery({ cutoff, status });
-  delete aggregateBase.limit;
-  delete aggregateBase.orderBy;
-  const [documents, aggregate] = await Promise.all([
-    runQuery(env, structuredQuery),
-    aggregateQuery(env, aggregateBase, [{ type: 'count', alias: 'total' }]),
-  ]);
+  // ponytail: admin lists cap at 10k; use Firestore cursors when transaction volume exceeds it.
+  const documents = await runQuery(env, paymentQuery({ cutoff, status, limit: CSV_LIMIT }));
+  const start = page * size;
   return {
-    content: documents.map(paymentFields),
+    content: documents.slice(start, start + size).map(paymentFields),
     page,
     size,
     period,
     status,
-    totalElements: aggregate.total,
-    totalPages: Math.ceil(aggregate.total / size),
+    totalElements: documents.length,
+    totalPages: Math.ceil(documents.length / size),
   };
 }
 
