@@ -5,6 +5,7 @@
   "compatibility_date": "2026-09-30",
   "vars": {
     "PUBLIC_BASE_URL": "https://shelfy-edge.shelfy-edge-worker.workers.dev",
+    "ALLOWED_ORIGIN": "https://shelfy-web-d7d.pages.dev",
     "APP_DEEP_LINK": "shelfy://payment/result",
     "PAYMENT_LINK_TTL_SECONDS": "900",
     "BILLING_RETENTION_DAYS": "3650",
