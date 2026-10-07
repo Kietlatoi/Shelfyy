@@ -1,6 +1,5 @@
 import { reconcilePaymentByOrderCode } from './billing.js';
 import {
-  aggregateQuery,
   batchGetDocuments,
   commitWrites,
   countCollection,
@@ -143,29 +142,18 @@ export async function getAdminSummary(env, url) {
   const cutoff = cutoffFor(period);
   const transactionQuery = paymentQuery({ cutoff, limit: 10000 });
   const paidQuery = paymentQuery({ cutoff, status: 'PAID', timeField: 'paidAt', limit: 10000 });
-  const transactionAggregateQuery = paymentQuery({ cutoff });
-  const paidAggregateQuery = paymentQuery({ cutoff, status: 'PAID', timeField: 'paidAt' });
-  delete transactionAggregateQuery.limit;
-  delete transactionAggregateQuery.orderBy;
-  delete paidAggregateQuery.limit;
-  delete paidAggregateQuery.orderBy;
-  const [transactions, paid, transactionTotals, paidTotals, totalUsers, adminProfile] = await Promise.all([
+  const [transactions, paid, totalUsers, adminProfile] = await Promise.all([
     runQuery(env, transactionQuery),
     runQuery(env, paidQuery),
-    aggregateQuery(env, transactionAggregateQuery, [{ type: 'count', alias: 'count' }]),
-    aggregateQuery(env, paidAggregateQuery, [
-      { type: 'count', alias: 'count' },
-      { type: 'sum', alias: 'revenue', fieldPath: 'amountPaid' },
-    ]),
     countCollection(env, 'users'),
     getDocument(env, `users/${required(env, 'ADMIN_UID')}`),
   ]);
   return {
     period,
-    revenue: paidTotals.revenue,
+    revenue: paid.reduce((total, payment) => total + Number(payment.data.amountPaid || 0), 0),
     users: Math.max(0, totalUsers - (adminProfile ? 1 : 0)),
-    transactions: transactionTotals.count,
-    successfulTransactions: paidTotals.count,
+    transactions: transactions.length,
+    successfulTransactions: paid.length,
     series: groupSeries(transactions, paid, period === 'all'),
     recentPayments: transactions.slice(0, 10).map(paymentFields),
   };

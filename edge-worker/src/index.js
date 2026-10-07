@@ -553,6 +553,9 @@ export default {
     } catch (error) {
       const status = Number(error?.status) || (error instanceof ApiError ? error.status : 500);
       const code = error?.code || (error instanceof ApiError ? error.code : 'INTERNAL_ERROR');
+      if (status >= 500 || code === 'INTERNAL_ERROR') {
+        console.error('Worker request failed', { status, code, message: error?.message });
+      }
       const message = status < 500 ? error.message : 'Máy chủ gặp lỗi. Vui lòng thử lại.';
       return json({ error: { code, message } }, status, corsHeaders);
     }
