@@ -111,6 +111,12 @@ async function sendVerificationEmail(env, email, code, fetchImpl, purpose = 'reg
     }),
   });
   if (!response.ok) {
+    const providerError = await response.json().catch(() => null);
+    console.error('Resend rejected email', {
+      status: response.status,
+      name: providerError?.name,
+      message: providerError?.message,
+    });
     throw new RegistrationError(502, 'EMAIL_SEND_FAILED', 'Không thể gửi email xác thực. Vui lòng thử lại sau.');
   }
 }
