@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 
 const DEFAULT_LOCATION = { lat: 10.7769, lon: 106.7009, isFallback: true };
+const GPS_TIMEOUT_MS = 8_000;
 
 export async function getCurrentLocation() {
   try {
@@ -13,9 +14,13 @@ export async function getCurrentLocation() {
       return { ...DEFAULT_LOCATION };
     }
 
-    const location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.Balanced,
-    });
+    let timeout;
+    const location = await Promise.race([
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+      new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(new Error('GPS timeout')), GPS_TIMEOUT_MS);
+      }),
+    ]).finally(() => clearTimeout(timeout));
 
     return {
       lat: location.coords.latitude,

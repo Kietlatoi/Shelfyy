@@ -28,9 +28,10 @@ function pemBytes(pem) {
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
-export async function serviceAccountAccessToken(env) {
+export async function serviceAccountAccessToken(env, scope = GOOGLE_CLOUD_SCOPE) {
   const now = Math.floor(Date.now() / 1000);
   if (cachedAccessToken?.projectId === env.FIREBASE_PROJECT_ID
+    && cachedAccessToken.scope === scope
     && cachedAccessToken.expiresAt > now + 60) {
     return cachedAccessToken.value;
   }
@@ -40,7 +41,7 @@ export async function serviceAccountAccessToken(env) {
   const header = base64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
   const claims = base64Url(JSON.stringify({
     iss: clientEmail,
-    scope: GOOGLE_CLOUD_SCOPE,
+    scope,
     aud: GOOGLE_TOKEN_URL,
     iat: now,
     exp: now + 3600,
@@ -72,6 +73,7 @@ export async function serviceAccountAccessToken(env) {
     throw new Error(`Unable to authenticate Firestore service account (${response.status})`);
   }
   cachedAccessToken = {
+    scope,
     projectId: env.FIREBASE_PROJECT_ID,
     value: result.access_token,
     expiresAt: now + Number(result.expires_in || 3600),

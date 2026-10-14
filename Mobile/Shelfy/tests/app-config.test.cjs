@@ -3,14 +3,37 @@ const assert = require('node:assert/strict');
 const appConfig = require('../app.config');
 const { checkBuildEnvironment } = require('../scripts/check-build-env.cjs');
 
+test('Google Play uses its registered Android package and a separate Firebase file', () => {
+  const previousChannel = process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL;
+  try {
+    process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL = 'GOOGLE_PLAY';
+    const play = appConfig({ config: require('../app.json').expo });
+    assert.equal(play.android.package, 'com.duongminhkiet.shelfy');
+    assert.equal(play.android.googleServicesFile, './google-services.play.json');
+    const plugin = play.plugins.find((entry) => Array.isArray(entry) && entry[0] === 'expo-iap');
+    assert.equal(plugin[1].android.store, 'play');
+    process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL = 'DIRECT';
+    const direct = appConfig({ config: require('../app.json').expo });
+    assert.equal(direct.android.package, 'com.shelfy.app');
+    assert.equal(direct.android.googleServicesFile, './google-services.json');
+  } finally {
+    if (previousChannel === undefined) delete process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL;
+    else process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL = previousChannel;
+  }
+});
+
 test('release builds reject missing Firebase configuration and emulator targets', () => {
-  assert.throws(() => checkBuildEnvironment({}), /Thiếu cấu hình EAS/);
+  assert.throws(() => checkBuildEnvironment({}), /DISTRIBUTION_CHANNEL/);
   const valid = { EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'shelfy-stage', EXPO_PUBLIC_FIREBASE_APP_ID: '1:123:web:abc',
     EXPO_PUBLIC_FIREBASE_API_KEY: 'public-project-key', EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: 'shelfy-stage.firebaseapp.com',
-    EXPO_PUBLIC_EDGE_API_URL: 'https://shelfy-edge.example.workers.dev', EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'false' };
+    EXPO_PUBLIC_EDGE_API_URL: 'https://shelfy-edge.example.workers.dev', EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'false',
+    EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'DIRECT' };
   assert.doesNotThrow(() => checkBuildEnvironment(valid));
   assert.throws(() => checkBuildEnvironment({ ...valid, EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'true' }), /project thật/);
   assert.throws(() => checkBuildEnvironment({ ...valid, EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'demo-shelfy' }), /project thật/);
+  assert.throws(() => checkBuildEnvironment({ ...valid, EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'INVALID' }), /DISTRIBUTION_CHANNEL/);
+  assert.throws(() => checkBuildEnvironment({ ...valid, EAS_BUILD_PROFILE: 'production' }), /không được bật PayOS/);
+  assert.doesNotThrow(() => checkBuildEnvironment({ ...valid, EAS_BUILD_PROFILE: 'production', EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'GOOGLE_PLAY' }));
 });
 
 test('Expo sets the accepted Android package and verifies Firebase Hosting reset links', () => {

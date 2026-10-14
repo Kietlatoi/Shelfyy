@@ -1,4 +1,10 @@
 function checkBuildEnvironment(env) {
+  if (!['DIRECT', 'GOOGLE_PLAY'].includes(env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL)) {
+    throw new Error('EXPO_PUBLIC_DISTRIBUTION_CHANNEL phải là DIRECT hoặc GOOGLE_PLAY.');
+  }
+  if (env.EAS_BUILD_PROFILE === 'production' && env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL !== 'GOOGLE_PLAY') {
+    throw new Error('Profile production dành cho Google Play không được bật PayOS.');
+  }
   const keys = [
     'EXPO_PUBLIC_FIREBASE_PROJECT_ID',
     'EXPO_PUBLIC_FIREBASE_APP_ID',

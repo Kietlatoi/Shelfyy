@@ -15,6 +15,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { subscriptionApi } from '../../../src/api/subscriptionApi';
 import { paymentApi } from '../../../src/api/paymentApi';
+import { isGooglePlayBuild } from '../../../src/constants/distribution';
+import { useGooglePlayBilling } from '../../../src/contexts/GooglePlayBillingContext';
 import AppButton from '../../../src/components/common/AppButton';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
@@ -31,6 +33,7 @@ function formatDate(value) {
 
 export default function PremiumScreen() {
   const { user } = useAuth();
+  const play = useGooglePlayBilling();
   const [catalog, setCatalog] = useState(null);
   const [planStatus, setPlanStatus] = useState(null);
   const [pendingPayment, setPendingPayment] = useState(null);
@@ -54,21 +57,30 @@ export default function PremiumScreen() {
 
   useEffect(() => {
     Promise.resolve().then(loadData).catch(() => {});
-  }, [loadData]);
+  }, [loadData, play.revision]);
 
   const getPlan = (id) => catalog?.plans?.find((plan) => plan.id === id);
   const currentPlan = planStatus?.planId || user?.plan || 'FREE';
-  const purchaseEnabled = Boolean(catalog?.purchaseEnabled);
+  const purchaseEnabled = isGooglePlayBuild
+    ? Boolean(play.catalog?.purchaseEnabled && !play.busy)
+    : Boolean(catalog?.purchaseEnabled);
   const proPrice = getPlan('PRO')?.price;
   const premiumPrice = getPlan('PREMIUM')?.price;
 
   const handleUpgrade = async (planType) => {
     if (!purchaseEnabled) {
-      Alert.alert('Chưa thể thanh toán', 'PayOS chưa được cấu hình đầy đủ trên máy chủ.');
+      Alert.alert('Chưa thể thanh toán', isGooglePlayBuild
+        ? 'Mua gói chưa khả dụng trên bản Google Play.'
+        : 'PayOS chưa được cấu hình đầy đủ trên máy chủ.');
       return;
     }
     if (currentPlan === 'PREMIUM' && planType === 'PRO') {
       Alert.alert('Gói PREMIUM đang hoạt động', 'Bạn có thể mua PRO sau khi gói PREMIUM hết hạn.');
+      return;
+    }
+    if (isGooglePlayBuild) {
+      try { await play.buy(planType); }
+      catch (error) { Alert.alert('Không thể thanh toán', error.message); }
       return;
     }
     setProcessingPlan(planType);
@@ -97,7 +109,7 @@ export default function PremiumScreen() {
   };
 
   const resumePendingPayment = async () => {
-    if (!pendingPayment?.checkoutUrl) return;
+    if (isGooglePlayBuild || !pendingPayment?.checkoutUrl) return;
     setProcessingPlan(pendingPayment.planId);
     try {
       await WebBrowser.openAuthSessionAsync(
@@ -124,7 +136,7 @@ export default function PremiumScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {pendingPayment && (
+        {!isGooglePlayBuild && pendingPayment && (
           <Pressable style={styles.pendingCard} onPress={resumePendingPayment}>
             <MaterialIcons name="schedule" size={22} color={colors.primary} />
             <View style={styles.pendingTextWrap}>
@@ -189,7 +201,7 @@ export default function PremiumScreen() {
             <View>
               <Text style={[styles.planName, styles.proTitle]}>Gói PRO</Text>
               <Text style={styles.planPrice}>
-                <Text style={styles.priceHighlight}>{proPrice ? formatPrice(proPrice) : '69.000 ₫'}</Text> / tháng
+                <Text style={styles.priceHighlight}>{isGooglePlayBuild ? play.offers.PRO?.displayPrice || 'Đang lấy giá từ Google...' : proPrice ? formatPrice(proPrice) : '69.000 ₫'}</Text> / 30 ngày
               </Text>
             </View>
             {currentPlan === 'PRO' && (
@@ -215,11 +227,11 @@ export default function PremiumScreen() {
           </View>
 
           <AppButton
-            title={processingPlan === 'PRO'
+            title={isGooglePlayBuild ? (play.busy ? 'Đang xác nhận...' : 'Mua PRO qua Google Play') : processingPlan === 'PRO'
               ? 'Đang tạo thanh toán...'
               : currentPlan === 'PRO' ? 'Gia hạn gói PRO' : 'Mua gói PRO qua PayOS'}
             onPress={() => handleUpgrade('PRO')}
-            disabled={!purchaseEnabled || Boolean(processingPlan) || currentPlan === 'PREMIUM'}
+            disabled={!purchaseEnabled || (isGooglePlayBuild && !play.offers.PRO) || Boolean(processingPlan) || currentPlan === 'PREMIUM'}
             size="lg"
             style={styles.planBtn}
           />
@@ -227,15 +239,15 @@ export default function PremiumScreen() {
 
         {/* PREMIUM Plan */}
         <View style={[styles.planCard, styles.premiumCard]}>
-          <View style={styles.discountBadge}>
+          {!isGooglePlayBuild && <View style={styles.discountBadge}>
             <Text style={styles.discountText}>TIẾT KIỆM 28%</Text>
-          </View>
+          </View>}
 
           <View style={styles.planHeader}>
             <View>
               <Text style={[styles.planName, styles.premiumTitle]}>Gói PREMIUM</Text>
               <Text style={styles.planPrice}>
-                <Text style={styles.priceHighlight}>{premiumPrice ? formatPrice(premiumPrice) : '599.000 ₫'}</Text> / năm
+                <Text style={styles.priceHighlight}>{isGooglePlayBuild ? play.offers.PREMIUM?.displayPrice || 'Đang lấy giá từ Google...' : premiumPrice ? formatPrice(premiumPrice) : '599.000 ₫'}</Text> / 365 ngày
               </Text>
             </View>
             {currentPlan === 'PREMIUM' && (
@@ -261,21 +273,25 @@ export default function PremiumScreen() {
           </View>
 
           <AppButton
-            title={processingPlan === 'PREMIUM'
+            title={isGooglePlayBuild ? (play.busy ? 'Đang xác nhận...' : 'Mua PREMIUM qua Google Play') : processingPlan === 'PREMIUM'
               ? 'Đang tạo thanh toán...'
               : currentPlan === 'PREMIUM' ? 'Gia hạn gói PREMIUM' : 'Mua gói PREMIUM qua PayOS'}
             onPress={() => handleUpgrade('PREMIUM')}
-            disabled={!purchaseEnabled || Boolean(processingPlan)}
+            disabled={!purchaseEnabled || (isGooglePlayBuild && !play.offers.PREMIUM) || Boolean(processingPlan)}
             size="lg"
             variant="secondary"
             style={styles.planBtn}
           />
         </View>
         <Text style={styles.paymentNote}>
-          {purchaseEnabled
+          {isGooglePlayBuild
+            ? play.error || 'Thanh toán qua Google Play. Mua theo từng kỳ, không tự động gia hạn.'
+            : purchaseEnabled
             ? 'Thanh toán một lần qua PayOS. Gói không tự động gia hạn.'
             : 'Thanh toán tạm khóa vì PayOS chưa được cấu hình đầy đủ.'}
         </Text>
+        {isGooglePlayBuild && <AppButton title="Kiểm tra giao dịch" variant="ghost" disabled={play.busy}
+          onPress={() => play.recover().then(loadData).catch((error) => Alert.alert('Chưa thể kiểm tra', error.message))} />}
       </ScrollView>
     </SafeAreaView>
   );

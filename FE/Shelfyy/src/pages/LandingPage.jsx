@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { login, register } from '../api/authApi'
 import { LandingExtension } from '../components/LandingExtension'
 import { LandingFeatures } from '../components/LandingFeatures'
 import { LandingFooter } from '../components/LandingFooter'

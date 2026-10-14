@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
 import { edgeRequest } from './edgeApi';
+import { isGooglePlayBuild, requireDirectPayments } from '../constants/distribution';
 
 const PENDING_PAYMENT_KEY = 'shelfy:pending-payment';
 
@@ -23,6 +24,7 @@ async function remember(payment) {
 
 export const paymentApi = {
   async createPayment(planId, appReturnUrl) {
+    requireDirectPayments();
     const payment = await edgeRequest('/v1/billing/checkout', {
       body: { planId, requestId: requestId(), appReturnUrl },
     });
@@ -31,6 +33,7 @@ export const paymentApi = {
   },
 
   async getPayment(orderCode) {
+    requireDirectPayments();
     const payment = await edgeRequest(`/v1/billing/payments/${encodeURIComponent(orderCode)}`, {
       method: 'GET',
     });
@@ -39,6 +42,7 @@ export const paymentApi = {
   },
 
   async cancelPayment(orderCode) {
+    requireDirectPayments();
     const payment = await edgeRequest(`/v1/billing/payments/${encodeURIComponent(orderCode)}/cancel`, {
       method: 'POST',
       body: {},
@@ -59,6 +63,7 @@ export const paymentApi = {
   },
 
   async getPendingPayment() {
+    if (isGooglePlayBuild) return null;
     const raw = await AsyncStorage.getItem(PENDING_PAYMENT_KEY);
     if (!raw) return null;
     try {

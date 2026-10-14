@@ -273,7 +273,7 @@ function publicPayment(payment) {
   };
 }
 
-function effectivePlanFromEntitlement(entitlement, now = Date.now()) {
+export function effectivePlanFromEntitlement(entitlement, now = Date.now()) {
   const plan = PLANS[entitlement?.planId];
   const active = plan && plan.id !== 'FREE'
     && entitlement?.status === 'ACTIVE'
@@ -522,7 +522,7 @@ export async function createCheckout(env, user, body) {
   }
 }
 
-async function withTransaction(env, work) {
+export async function withTransaction(env, work) {
   let lastError;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const transaction = await beginTransaction(env);
@@ -709,6 +709,10 @@ async function reconcilePayment(env, snapshot, { force = false } = {}) {
 }
 
 export async function reconcilePaymentByOrderCode(env, orderCode) {
+  if (/^gp_[a-f0-9]{64}$/.test(String(orderCode))) {
+    const { reconcilePlayPayment } = await import('./google-play.js');
+    return reconcilePlayPayment(env, orderCode);
+  }
   if (!/^\d{10,16}$/.test(String(orderCode || ''))) {
     const error = new Error('Mã đơn hàng không hợp lệ.');
     error.status = 400;
@@ -835,7 +839,7 @@ export async function anonymizeBilling(env, user) {
   const writes = [];
   for (const paymentDoc of payments) {
     let payment = paymentDoc.data;
-    if (payment.status === 'PENDING') {
+    if (payment.status === 'PENDING' && payment.provider !== 'GOOGLE_PLAY') {
       try {
         await payOsRequest(env, `/v2/payment-requests/${encodeURIComponent(payment.orderCode)}/cancel`, {
           method: 'POST',
@@ -883,6 +887,7 @@ export async function reconcilePendingPayments(env) {
   });
   let processed = 0;
   for (const payment of pending) {
+    if (payment.data.provider === 'GOOGLE_PLAY') continue;
     await reconcilePayment(env, payment, { force: true }).catch(() => null);
     processed += 1;
   }

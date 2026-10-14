@@ -50,8 +50,8 @@ export function LandingFooter({ data }) {
           <p className="text-[10px] text-gray-500">{data.copyright}</p>
           <div className="flex gap-6 text-[10px] text-gray-500">
             {data.legal.map((item) => (
-              <a className="hover:text-white" href="#" key={item}>
-                {item}
+              <a className="hover:text-white" href={item.href} key={item.label}>
+                {item.label}
               </a>
             ))}
           </div>

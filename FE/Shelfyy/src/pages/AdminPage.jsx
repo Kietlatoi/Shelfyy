@@ -80,7 +80,7 @@ function Metric({ icon, label, value, note }) {
 
 function PaymentTable({ rows, onSelect }) {
   if (!rows?.length) return <div className="p-10 text-center text-sm text-slate-500">Chưa có giao dịch.</div>;
-  return <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-4 py-3">Mã đơn</th><th className="px-4 py-3">Người mua</th><th className="px-4 py-3">Gói</th><th className="px-4 py-3">Số tiền</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3">Thời gian</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((payment) => <tr className="cursor-pointer hover:bg-slate-50" key={payment.orderCode} onClick={() => onSelect?.(payment.orderCode)}><td className="px-4 py-3 font-bold text-slate-900">{payment.orderCode}</td><td className="px-4 py-3 text-slate-600">{payment.buyerEmail || 'Đã ẩn danh'}</td><td className="px-4 py-3 font-semibold">{payment.planId}</td><td className="px-4 py-3 font-bold">{money(payment.amountPaid || payment.price)}</td><td className="px-4 py-3"><Status value={payment.status} /></td><td className="px-4 py-3 text-slate-500">{dateTime(payment.createdAt)}</td></tr>)}</tbody></table></div>;
+  return <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-4 py-3">Mã đơn</th><th className="px-4 py-3">Người mua</th><th className="px-4 py-3">Gói</th><th className="px-4 py-3">Số tiền</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3">Thời gian</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((payment) => <tr className="cursor-pointer hover:bg-slate-50" key={payment.orderCode} onClick={() => onSelect?.(payment.orderCode)}><td className="px-4 py-3 font-bold text-slate-900">{payment.orderCode}</td><td className="px-4 py-3 text-slate-600">{payment.buyerEmail || 'Đã ẩn danh'}</td><td className="px-4 py-3 font-semibold">{payment.planId}</td><td className="px-4 py-3 font-bold">{money(payment.status === 'PAID' ? payment.amountPaid : payment.price)}</td><td className="px-4 py-3"><Status value={payment.status} /></td><td className="px-4 py-3 text-slate-500">{dateTime(payment.createdAt)}</td></tr>)}</tbody></table></div>;
 }
 
 function Overview({ onPayment }) {
@@ -89,10 +89,12 @@ function Overview({ onPayment }) {
   const [error, setError] = useState('');
   useEffect(() => {
     let active = true;
-    setData(null);
-    setError('');
-    adminApi.summary(period).then((value) => active && setData(value)).catch((reason) => active && setError(reason.message));
-    return () => { active = false; };
+    const timer = setTimeout(() => {
+      setData(null);
+      setError('');
+      adminApi.summary(period).then((value) => active && setData(value)).catch((reason) => active && setError(reason.message));
+    }, 0);
+    return () => { active = false; clearTimeout(timer); };
   }, [period]);
   const max = Math.max(1, ...(data?.series || []).flatMap((item) => [item.revenue, item.transactions * 69000]));
   return <section><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-extrabold text-slate-950">Tổng quan</h1><p className="mt-1 text-sm text-slate-500">Số liệu tài chính và hoạt động của Shelfy.</p></div><select className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold" onChange={(event) => setPeriod(event.target.value)} value={period}>{periods.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div><ErrorBox message={error} />{!data ? <Loading /> : <><div className="grid gap-4 md:grid-cols-3"><Metric icon="paid" label="Doanh thu đã thanh toán" value={money(data.revenue)} note="Chỉ tính giao dịch PAID" /><Metric icon="group" label="Tổng người dùng" value={Number(data.users).toLocaleString('vi-VN')} note="Không tính tài khoản quản trị" /><Metric icon="receipt_long" label="Tổng giao dịch" value={Number(data.transactions).toLocaleString('vi-VN')} note={`${data.successfulTransactions} giao dịch thành công`} /></div><article className="mt-6 rounded-2xl border border-slate-200 bg-white p-5"><h2 className="text-lg font-extrabold">Doanh thu và giao dịch</h2><div className="mt-6 flex h-64 items-end gap-2 overflow-x-auto border-b border-slate-200 pb-1">{data.series.length ? data.series.map((item) => <div className="flex min-w-10 flex-1 flex-col items-center justify-end gap-1" key={item.label} title={`${item.label}: ${money(item.revenue)}, ${item.transactions} giao dịch`}><div className="flex h-48 items-end gap-1"><span className="w-3 rounded-t bg-secondary" style={{ height: `${Math.max(3, item.revenue / max * 100)}%` }} /><span className="w-3 rounded-t bg-slate-800" style={{ height: `${Math.max(3, item.transactions * 69000 / max * 100)}%` }} /></div><span className="text-[10px] font-semibold text-slate-500">{item.label.slice(5)}</span></div>) : <p className="m-auto text-sm text-slate-500">Chưa có dữ liệu trong kỳ.</p>}</div><div className="mt-3 flex gap-5 text-xs font-semibold text-slate-600"><span><i className="mr-2 inline-block h-2.5 w-2.5 rounded-sm bg-secondary" />Doanh thu</span><span><i className="mr-2 inline-block h-2.5 w-2.5 rounded-sm bg-slate-800" />Giao dịch</span></div></article><article className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white"><div className="border-b border-slate-200 px-5 py-4"><h2 className="font-extrabold">Giao dịch gần đây</h2></div><PaymentTable onSelect={onPayment} rows={data.recentPayments} /></article></>}</section>;
@@ -114,7 +116,10 @@ function Users({ onSelect }) {
     setError('');
     adminApi.users({ page, size: 20, q: search }).then(setData).catch((reason) => setError(reason.message));
   }, [page, search]);
-  useEffect(load, [load]);
+  useEffect(() => {
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
+  }, [load]);
   return <section><h1 className="text-2xl font-extrabold">Người dùng</h1><p className="mt-1 text-sm text-slate-500">Tìm kiếm, xem hồ sơ và kiểm soát quyền truy cập.</p><form className="my-6 flex gap-2" onSubmit={(event) => { event.preventDefault(); setPage(0); setSearch(draft.trim()); }}><input className="h-11 min-w-0 flex-1 rounded-xl border border-slate-300 px-4 outline-none focus:border-secondary" onChange={(event) => setDraft(event.target.value)} placeholder="Nhập chính xác email hoặc UID" value={draft} /><button className="rounded-xl bg-slate-950 px-5 text-sm font-bold text-white">Tìm kiếm</button>{search && <button className="rounded-xl border px-4 text-sm font-bold" onClick={() => { setDraft(''); setSearch(''); setPage(0); }} type="button">Xóa</button>}</form><ErrorBox message={error} /><div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">{!data ? <Loading /> : <><div className="overflow-x-auto"><table className="w-full min-w-[950px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Người dùng</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3">Gói</th><th className="px-4 py-3">Tủ đồ</th><th className="px-4 py-3">Đã thanh toán</th><th className="px-4 py-3">Ngày tạo</th><th /></tr></thead><tbody className="divide-y divide-slate-100">{data.content.map((user) => <tr key={user.uid}><td className="px-4 py-3"><p className="font-bold">{user.fullName || 'Người dùng Shelfy'}</p><p className="text-xs text-slate-500">{user.email}</p></td><td className="px-4 py-3"><Status value={user.status} /></td><td className="px-4 py-3 font-bold">{user.planId}</td><td className="px-4 py-3">{user.wardrobeCount}</td><td className="px-4 py-3 font-bold">{money(user.totalPaid)}</td><td className="px-4 py-3 text-slate-500">{dateTime(user.createdAt)}</td><td className="px-4 py-3 text-right"><button className="rounded-lg border px-3 py-2 text-xs font-bold hover:border-secondary" onClick={() => onSelect(user.uid)}>Chi tiết</button></td></tr>)}</tbody></table></div><Pagination onChange={setPage} page={data.page} totalPages={data.totalPages} /></>}</div></section>;
 }
 
@@ -130,13 +135,16 @@ function Payments({ onSelect }) {
     setError('');
     adminApi.payments({ page, size: 20, period, status }).then(setData).catch((reason) => setError(reason.message));
   }, [page, period, status]);
-  useEffect(load, [load]);
+  useEffect(() => {
+    const timer = setTimeout(load, 0);
+    return () => clearTimeout(timer);
+  }, [load]);
   const exportCsv = async () => {
     setExporting(true);
     setError('');
     try { await adminApi.exportPayments({ period, status }); } catch (reason) { setError(reason.message); } finally { setExporting(false); }
   };
-  return <section><div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Giao dịch</h1><p className="mt-1 text-sm text-slate-500">Theo dõi và đối soát thanh toán PayOS.</p></div><button className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white disabled:opacity-60" disabled={exporting} onClick={exportCsv}><MaterialIcon name="download" size={18} />{exporting ? 'Đang xuất…' : 'Xuất CSV'}</button></div><div className="my-6 flex flex-wrap gap-3"><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setPeriod(event.target.value); }} value={period}>{periods.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setStatus(event.target.value); }} value={status}>{paymentStatuses.map((item) => <option key={item || 'all'} value={item}>{item || 'Tất cả trạng thái'}</option>)}</select></div><ErrorBox message={error} /><div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">{!data ? <Loading /> : <><PaymentTable onSelect={onSelect} rows={data.content} /><Pagination onChange={setPage} page={data.page} totalPages={data.totalPages} /></>}</div></section>;
+  return <section><div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Giao dịch</h1><p className="mt-1 text-sm text-slate-500">Theo dõi và đối soát thanh toán PayOS và Google Play.</p></div><button className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white disabled:opacity-60" disabled={exporting} onClick={exportCsv}><MaterialIcon name="download" size={18} />{exporting ? 'Đang xuất…' : 'Xuất CSV'}</button></div><div className="my-6 flex flex-wrap gap-3"><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setPeriod(event.target.value); }} value={period}>{periods.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setStatus(event.target.value); }} value={status}>{paymentStatuses.map((item) => <option key={item || 'all'} value={item}>{item || 'Tất cả trạng thái'}</option>)}</select></div><ErrorBox message={error} /><div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">{!data ? <Loading /> : <><PaymentTable onSelect={onSelect} rows={data.content} /><Pagination onChange={setPage} page={data.page} totalPages={data.totalPages} /></>}</div></section>;
 }
 
 function Drawer({ title, onClose, children }) {
@@ -192,11 +200,13 @@ function PaymentDrawer({ orderCode, onClose, onUpdated }) {
   const facts = payment ? [
     ['Email', payment.buyerEmail || 'Đã ẩn danh'], ['UID', payment.uid || '—'],
     ['Gói', payment.planId], ['Giá niêm yết', money(payment.price)],
+    ['Kênh thanh toán', payment.provider || 'PAYOS'], ['Giao dịch thử nghiệm', payment.isTest ? 'Có' : 'Không'],
+    ['Cần kiểm tra quyền lợi', payment.entitlementReviewRequired ? 'Có' : 'Không'],
     ['PayOS paymentLinkId', payment.paymentLinkId || '—'], ['Mã tham chiếu', payment.providerReference || '—'],
     ['Ngày tạo', dateTime(payment.createdAt)], ['Ngày thanh toán', dateTime(payment.paidAt)],
     ['Cập nhật', dateTime(payment.updatedAt)], ['Mã lỗi', payment.failureCode || '—'],
   ] : [];
-  return <Drawer onClose={onClose} title={`Giao dịch ${orderCode}`}><ErrorBox message={error} />{!payment ? <Loading /> : <div className="mt-6 grid gap-4"><div className="flex items-center justify-between rounded-2xl bg-slate-50 p-5"><div><p className="text-sm text-slate-500">Số tiền</p><p className="mt-1 text-2xl font-extrabold">{money(payment.amountPaid || payment.price)}</p></div><Status value={payment.status} /></div><dl className="grid gap-3">{facts.map(([label, value]) => <div className="rounded-xl border p-4" key={label}><dt className="text-xs font-bold uppercase text-slate-500">{label}</dt><dd className="mt-1 break-all font-semibold">{value}</dd></div>)}</dl><button className="h-12 rounded-xl bg-slate-950 font-bold text-white disabled:opacity-60" disabled={busy} onClick={reconcile}>{busy ? 'Đang đối soát…' : 'Đối soát PayOS'}</button></div>}</Drawer>;
+  return <Drawer onClose={onClose} title={`Giao dịch ${orderCode}`}><ErrorBox message={error} />{!payment ? <Loading /> : <div className="mt-6 grid gap-4"><div className="flex items-center justify-between rounded-2xl bg-slate-50 p-5"><div><p className="text-sm text-slate-500">Số tiền</p><p className="mt-1 text-2xl font-extrabold">{money(payment.status === 'PAID' ? payment.amountPaid : payment.price)}</p></div><Status value={payment.status} /></div><dl className="grid gap-3">{facts.map(([label, value]) => <div className="rounded-xl border p-4" key={label}><dt className="text-xs font-bold uppercase text-slate-500">{label}</dt><dd className="mt-1 break-all font-semibold">{value}</dd></div>)}</dl><button className="h-12 rounded-xl bg-slate-950 font-bold text-white disabled:opacity-60" disabled={busy} onClick={reconcile}>{busy ? 'Đang đối soát…' : 'Đối soát giao dịch'}</button></div>}</Drawer>;
 }
 
 export function AdminPage() {

@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-10-14T23:04:59.753Z",
+  "workerVersion": "ef242cf5-6eff-494f-bf56-75b422cb5953",
+  "billingEnabled": true,
+  "packageName": "com.duongminhkiet.shelfy",
+  "serviceAccount": "shelfy-worker@shelfy-acf38.iam.gserviceaccount.com",
+  "catalog": [
+    {
+      "productId": "shelfy_pro_30_days",
+      "status": 200,
+      "product": {
+        "packageName": "com.duongminhkiet.shelfy",
+        "productId": "shelfy_pro_30_days",
+        "listings": [
+          {
+            "languageCode": "vi",
+            "title": "Shelfy PRO 30 ngày",
+            "description": "Sử dụng Shelfy PRO trong 30 ngày: 100 lượt thử đồ AI mỗi tháng và tủ đồ không giới hạn. Thanh toán một lần, không tự động gia hạn."
+          }
+        ],
+        "purchaseOptions": [
+          {
+            "purchaseOptionId": "pro-30-days",
+            "state": "ACTIVE",
+            "buyOption": {
+              "legacyCompatible": true
+            },
+            "regionalPricingAndAvailabilityConfigs": [
+              {
+                "regionCode": "VN",
+                "price": {
+                  "currencyCode": "VND",
+                  "units": "69000"
+                },
+                "availability": "AVAILABLE"
+              }
+            ],
+            "taxAndComplianceSettings": {
+              "withdrawalRightType": "WITHDRAWAL_RIGHT_DIGITAL_CONTENT"
+            }
+          }
+        ],
+        "regionsVersion": {
+          "version": "2026/01"
+        }
+      }
+    },
+    {
+      "productId": "shelfy_premium_365_days",
+      "status": 200,
+      "product": {
+        "packageName": "com.duongminhkiet.shelfy",
+        "productId": "shelfy_premium_365_days",
+        "listings": [
+          {
+            "languageCode": "vi",
+            "title": "Shelfy PREMIUM 365 ngày",
+            "description": "Sử dụng Shelfy PREMIUM trong 365 ngày: 500 lượt thử đồ AI mỗi tháng và tủ đồ không giới hạn. Thanh toán một lần, không tự động gia hạn."
+          }
+        ],
+        "purchaseOptions": [
+          {
+            "purchaseOptionId": "premium-365-days",
+            "state": "ACTIVE",
+            "buyOption": {
+              "legacyCompatible": true
+            },
+            "regionalPricingAndAvailabilityConfigs": [
+              {
+                "regionCode": "VN",
+                "price": {
+                  "currencyCode": "VND",
+                  "units": "599000"
+                },
+                "availability": "AVAILABLE"
+              }
+            ],
+            "taxAndComplianceSettings": {
+              "withdrawalRightType": "WITHDRAWAL_RIGHT_DIGITAL_CONTENT"
+            }
+          }
+        ],
+        "regionsVersion": {
+          "version": "2026/01"
+        }
+      }
+    }
+  ],
+  "probes": [
+    {
+      "endpoint": "purchases",
+      "status": 400,
+      "error": "Invalid Value"
+    },
+    {
+      "endpoint": "orders",
+      "status": 404,
+      "error": "The following order(s) were not found: GPA.0000-0000-0000-00000."
+    }
+  ],
+  "workerTests": {
+    "passed": 24,
+    "failed": 0
+  },
+  "devicePurchaseVerified": false
+}

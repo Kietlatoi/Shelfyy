@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 
-function load(overrides = {}) {
+function load(overrides = {}, timers = { setTimeout, clearTimeout }) {
   const calls = { gps: 0, warnings: 0 };
   const Location = {
     Accuracy: { Balanced: 3 },
@@ -19,7 +19,7 @@ function load(overrides = {}) {
   const source = fs.readFileSync(path.join(__dirname, '../src/utils/geolocation.js'), 'utf8')
     .replace("import * as Location from 'expo-location';", '')
     .replace('export async function', 'async function');
-  const context = vm.createContext({ Location, console: { warn: () => { calls.warnings += 1; } } });
+  const context = vm.createContext({ Location, ...timers, console: { warn: () => { calls.warnings += 1; } } });
   vm.runInContext(source, context);
   return { getLocation: context.getCurrentLocation, calls };
 }
@@ -51,4 +51,13 @@ test('available GPS uses device coordinates', async () => {
   assert.equal(location.lat, 21.0285);
   assert.equal(location.lon, 105.8542);
   assert.equal(location.isFallback, false);
+});
+
+test('GPS timeout falls back instead of leaving weather loading forever', async () => {
+  const timers = {
+    setTimeout: (callback) => { queueMicrotask(callback); return 1; },
+    clearTimeout: () => {},
+  };
+  const { getLocation } = load({ getCurrentPositionAsync: () => new Promise(() => {}) }, timers);
+  assert.equal((await getLocation()).isFallback, true);
 });

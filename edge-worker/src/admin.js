@@ -47,6 +47,10 @@ function paymentFields(document) {
   const value = document.data;
   return {
     orderCode: String(value.orderCode || document.id),
+    provider: value.provider || 'PAYOS',
+    isTest: Boolean(value.isTest),
+    entitlementReviewRequired: Boolean(value.entitlementReviewRequired),
+    productId: value.productId || null,
     uid: value.uid || null,
     buyerEmail: value.buyerEmail || null,
     planId: value.planId || '',
@@ -307,7 +311,7 @@ export async function getAdminPayments(env, url) {
 }
 
 export async function getAdminPayment(env, orderCode) {
-  if (!/^\d{10,16}$/.test(orderCode)) throw apiError(400, 'INVALID_ORDER_CODE', 'Mã đơn hàng không hợp lệ.');
+  if (!/^(\d{10,16}|gp_[a-f0-9]{64})$/.test(orderCode)) throw apiError(400, 'INVALID_ORDER_CODE', 'Mã đơn hàng không hợp lệ.');
   const payment = await getDocument(env, `_billingPayments/${orderCode}`);
   if (!payment) throw apiError(404, 'PAYMENT_NOT_FOUND', 'Không tìm thấy giao dịch.');
   return paymentFields(payment);
@@ -328,12 +332,12 @@ export async function exportAdminPayments(env, admin, url) {
   const { period, status, cutoff } = paymentFilters(url);
   const documents = await runQuery(env, paymentQuery({ cutoff, status, limit: CSV_LIMIT + 1 }));
   if (documents.length > CSV_LIMIT) throw apiError(413, 'EXPORT_TOO_LARGE', 'Báo cáo vượt quá 10.000 giao dịch. Vui lòng chọn khoảng thời gian ngắn hơn.');
-  const header = ['Mã đơn', 'UID', 'Email', 'Gói', 'Giá', 'Đã thanh toán', 'Tiền tệ', 'Trạng thái', 'PayOS payment link ID', 'Mã tham chiếu', 'Ngày tạo', 'Ngày thanh toán', 'Ngày cập nhật'];
+  const header = ['Mã đơn', 'UID', 'Email', 'Gói', 'Giá', 'Đã thanh toán', 'Tiền tệ', 'Trạng thái', 'PayOS payment link ID', 'Mã tham chiếu', 'Ngày tạo', 'Ngày thanh toán', 'Ngày cập nhật', 'Kênh', 'Giao dịch test', 'Cần kiểm tra quyền lợi'];
   const rows = documents.map((document) => {
     const payment = paymentFields(document);
     return [payment.orderCode, payment.uid, payment.buyerEmail, payment.planId, payment.price, payment.amountPaid,
       payment.currency, payment.status, payment.paymentLinkId, payment.providerReference, payment.createdAt,
-      payment.paidAt, payment.updatedAt].map(csvCell).join(',');
+      payment.paidAt, payment.updatedAt, payment.provider, payment.isTest, payment.entitlementReviewRequired].map(csvCell).join(',');
   });
   await writeAudit(env, admin, 'PAYMENTS_EXPORTED', `${period}:${status || 'ALL'}`, { count: documents.length });
   return new Response(`\uFEFF${[header.map(csvCell).join(','), ...rows].join('\r\n')}`, {

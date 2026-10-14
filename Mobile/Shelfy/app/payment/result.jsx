@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { paymentApi } from '../../src/api/paymentApi';
+import { isGooglePlayBuild } from '../../src/constants/distribution';
 import AppButton from '../../src/components/common/AppButton';
 import { colors } from '../../src/constants/colors';
 import { typography } from '../../src/constants/typography';
@@ -16,9 +17,14 @@ export default function PaymentResultScreen() {
   const orderCode = Array.isArray(params.orderCode) ? params.orderCode[0] : params.orderCode;
   const [payment, setPayment] = useState(null);
   const [error, setError] = useState('');
-  const [checking, setChecking] = useState(true);
+  const [checking, setChecking] = useState(!isGooglePlayBuild);
 
   const checkPayment = useCallback(async (waitForWebhook = true) => {
+    if (isGooglePlayBuild) {
+      setError('Đường dẫn thanh toán này không dùng cho bản Google Play. Vui lòng mở trang gói để mua trong ứng dụng.');
+      setChecking(false);
+      return;
+    }
     if (!orderCode) {
       setError('Thiếu mã giao dịch PayOS.');
       setChecking(false);
@@ -44,13 +50,15 @@ export default function PaymentResultScreen() {
 
   const status = payment?.status;
   const paid = status === 'PAID';
-  const pending = !error && (!status || !FINAL_STATES.has(status));
+  const pending = !isGooglePlayBuild && !error && (!status || !FINAL_STATES.has(status));
   const icon = paid ? 'check-circle' : pending ? 'schedule' : 'error-outline';
   const iconColor = paid ? colors.success : pending ? colors.primary : colors.error;
   const title = paid
     ? 'Thanh toán thành công'
     : pending ? 'Đang xác nhận thanh toán' : 'Thanh toán chưa hoàn tất';
-  const description = paid
+  const description = isGooglePlayBuild
+    ? 'Đường dẫn thanh toán này không dùng cho bản Google Play. Vui lòng mở trang gói để mua trong ứng dụng.'
+    : paid
     ? `Gói ${payment.planId} đã được kích hoạt cho tài khoản của bạn.`
     : pending
       ? 'Shelfy đang chờ PayOS xác nhận. Bạn có thể kiểm tra lại sau nếu ngân hàng đã trừ tiền.'
@@ -67,8 +75,8 @@ export default function PaymentResultScreen() {
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
         {orderCode && <Text style={styles.orderCode}>Mã đơn: {orderCode}</Text>}
-        {checking && <Text style={styles.checking}>Đang kết nối PayOS...</Text>}
-        {!checking && !paid && (
+        {!isGooglePlayBuild && checking && <Text style={styles.checking}>Đang kết nối PayOS...</Text>}
+        {!isGooglePlayBuild && !checking && !paid && (
           <AppButton title="Kiểm tra lại" onPress={() => checkPayment(false)} style={styles.button} />
         )}
         <AppButton

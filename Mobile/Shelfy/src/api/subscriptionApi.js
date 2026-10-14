@@ -1,6 +1,7 @@
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/client';
 import { edgeRequest } from './edgeApi';
+import { isGooglePlayBuild } from '../constants/distribution';
 
 const catalog = {
   purchaseEnabled: false,
@@ -40,6 +41,7 @@ function entitlementFallback(data) {
 
 export const subscriptionApi = {
   async getPlans() {
+    if (isGooglePlayBuild) return { ...catalog, provider: 'GOOGLE_PLAY', purchaseEnabled: false };
     try {
       return await edgeRequest('/v1/billing/plans', { method: 'GET' });
     } catch {

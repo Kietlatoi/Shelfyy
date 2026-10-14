@@ -32,6 +32,8 @@ import {
   requestRegistrationCode,
 } from './registration.js';
 import { getDocument } from './firestore-rest.js';
+import { reportAiContent } from './ai-content.js';
+import { getPlayContext, verifyPlayPurchase, reconcilePlayPayments } from './google-play.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 const TRY_ON_CATEGORIES = new Set(['TOP', 'BOTTOM', 'DRESS', 'OUTERWEAR']);
@@ -485,9 +487,9 @@ async function route(request, env) {
     if (request.method === 'PATCH' && adminAccessMatch) {
       return updateAdminUserAccess(env, admin, decodeURIComponent(adminAccessMatch[1]), await readJson(request));
     }
-    const adminPaymentMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16})$/);
+    const adminPaymentMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16}|gp_[a-f0-9]{64})$/);
     if (request.method === 'GET' && adminPaymentMatch) return getAdminPayment(env, adminPaymentMatch[1]);
-    const adminReconcileMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16})\/reconcile$/);
+    const adminReconcileMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16}|gp_[a-f0-9]{64})\/reconcile$/);
     if (request.method === 'POST' && adminReconcileMatch) return reconcileAdminPayment(env, admin, adminReconcileMatch[1]);
     throw new ApiError(404, 'NOT_FOUND', 'Không tìm thấy API quản trị này.');
   }
@@ -497,6 +499,8 @@ async function route(request, env) {
   if (request.method === 'GET' && url.pathname === '/v1/billing/me') {
     return getMyPlan(env, user);
   }
+  if (request.method === 'GET' && url.pathname === '/v1/billing/google-play/context') return getPlayContext(env, user);
+  if (request.method === 'POST' && url.pathname === '/v1/billing/google-play/verify') return verifyPlayPurchase(env, user, await readJson(request));
   if (request.method === 'POST' && url.pathname === '/v1/billing/checkout') {
     return createCheckout(env, user, await readJson(request));
   }
@@ -521,6 +525,14 @@ async function route(request, env) {
   const statusMatch = url.pathname.match(/^\/v1\/try-on\/predictions\/([^/]+)\/status$/);
   if (request.method === 'POST' && statusMatch) {
     return getPredictionStatus(env, uid, statusMatch[1], await readJson(request));
+  }
+  const reportMatch = url.pathname.match(/^\/v1\/try-on\/predictions\/([^/]+)\/report$/);
+  if (request.method === 'POST' && reportMatch) {
+    const jobId = assertSafeId(reportMatch[1], 'jobId');
+    if (await predictionOwner(env, jobId) !== uid) {
+      throw new ApiError(404, 'PREDICTION_NOT_FOUND', 'Không tìm thấy lượt thử đồ này.');
+    }
+    return reportAiContent(env, user, jobId, await readJson(request));
   }
   const cancelMatch = url.pathname.match(/^\/v1\/try-on\/predictions\/([^/]+)$/);
   if (request.method === 'DELETE' && cancelMatch) {
@@ -564,6 +576,7 @@ export default {
     context.waitUntil(Promise.all([
       ensurePayOsWebhook(env).catch(() => null),
       reconcilePendingPayments(env),
+      reconcilePlayPayments(env),
     ]));
   },
 };

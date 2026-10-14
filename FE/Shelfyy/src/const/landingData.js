@@ -150,10 +150,12 @@ export const landingFooterData = {
   ],
   contact: {
     title: "LIÊN HỆ",
-    email: "support@Shelfy.app",
-    address:
-      "Looko Inc. 10F, 506 Teheran-ro, Gangnam-gu, Seoul, Republic of Korea",
+    email: "toilakiet24@gmail.com",
+    address: "Việt Nam",
   },
-  legal: ["Chính sách bảo mật", "Điều khoản dịch vụ"],
-  copyright: "© 2024 Looko Inc. Mọi quyền được bảo lưu.",
+  legal: [
+    { label: "Chính sách bảo mật", href: "/privacy" },
+    { label: "Xóa tài khoản", href: "/account-deletion" },
+  ],
+  copyright: "© 2026 Shelfy. Mọi quyền được bảo lưu.",
 };

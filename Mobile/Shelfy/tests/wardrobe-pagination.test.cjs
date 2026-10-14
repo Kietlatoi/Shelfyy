@@ -41,8 +41,9 @@ function fixture(rows) {
   const exports = {};
   const mocks = {
     'firebase/firestore': firestore,
-    'firebase/functions': { httpsCallable: () => async () => ({ data: {} }) },
-    '../firebase/client': { db: {}, auth: { currentUser: { uid: 'user-a' } }, functions: {} },
+    '../firebase/client': { db: {}, auth: { currentUser: { uid: 'user-a' } } },
+    './edgeApi': { edgeRequest: async () => ({}) },
+    './subscriptionApi': { subscriptionApi: { getMyPlan: async () => ({ wardrobeLimit: 100 }) } },
   };
   vm.runInNewContext(code, { exports, require: name => {
     assert.ok(Object.hasOwn(mocks, name), `Missing mock: ${name}`);

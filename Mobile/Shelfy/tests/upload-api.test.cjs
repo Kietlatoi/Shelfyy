@@ -11,66 +11,86 @@ function loadUploadApi({ signedUpload, response }) {
     plugins: ['@babel/plugin-transform-modules-commonjs'],
   });
   const exports = {};
-  const formDataInstances = [];
-  class MockFormData {
-    constructor() { this.fields = []; formDataInstances.push(this); }
-    append(name, value) { this.fields.push([name, value]); }
-  }
   let uploadRequest;
+  class MockFile {
+    constructor(uri) {
+      this.uri = uri;
+      this.exists = true;
+      this.size = 1024;
+      this.type = 'image/jpeg';
+    }
+
+    async upload(url, options) {
+      uploadRequest = { url, options, uri: this.uri };
+      return { status: response.status ?? 200, body: JSON.stringify(response.body) };
+    }
+  }
+  const edgeCalls = [];
   const mocks = {
-    'firebase/functions': { httpsCallable: (_functions, name) => async (payload) => {
-      if (name === 'completeCloudinaryUpload') { assert.equal(payload.publicId, response.public_id); return { data: { secureUrl: response.secure_url, publicId: response.public_id, format: response.format, deliveryType: response.type } }; }
-      assert.equal(name, 'createCloudinaryUploadSignature');
-      assert.equal(payload.intent, 'tryOnInput');
-      return { data: signedUpload };
-    } },
-    '../firebase/client': { functions: {} },
+    'expo-file-system': { File: MockFile, UploadType: { MULTIPART: 'multipart' } },
+    './edgeApi': {
+      edgeRequest: async (url, options) => {
+        edgeCalls.push({ url, options });
+        return signedUpload;
+      },
+    },
   };
   vm.runInNewContext(code, {
+    AbortController,
+    clearTimeout,
     exports,
-    FormData: MockFormData,
-    fetch: async (url, options) => {
-      uploadRequest = { url, options };
-      return { ok: true, json: async () => response };
-    },
+    setTimeout,
     require: (name) => {
       assert.ok(Object.hasOwn(mocks, name), `Missing mock: ${name}`);
       return mocks[name];
     },
   });
-  return { uploadApi: exports.uploadApi, formDataInstances, getUploadRequest: () => uploadRequest };
+  return { uploadApi: exports.uploadApi, edgeCalls, getUploadRequest: () => uploadRequest };
 }
 
-test('try-on input upload includes the authenticated delivery type and validates Cloudinary response', async () => {
+const signedUpload = {
+  apiKey: 'public-key',
+  cloudName: 'shelfy',
+  timestamp: 1710000000,
+  folder: 'alice/tryon-input',
+  public_id: 'input-123',
+  signature: 'signature',
+};
+
+test('try-on upload uses the Worker signature and validates the Cloudinary response', async () => {
   const fixture = loadUploadApi({
-    signedUpload: {
-      apiKey: 'public-key', cloudName: 'shelfy', timestamp: 1710000000,
-      folder: 'alice/tryon-input', public_id: 'input-123', type: 'authenticated', signature: 'signature',
-    },
+    signedUpload,
     response: {
-      secure_url: 'https://res.cloudinary.com/shelfy/image/authenticated/v1/alice/tryon-input/input-123.jpg',
-      public_id: 'alice/tryon-input/input-123', type: 'authenticated', format: 'jpg', bytes: 1024,
+      body: {
+        secure_url: 'https://res.cloudinary.com/shelfy/image/upload/v1/alice/tryon-input/input-123.jpg',
+        public_id: 'alice/tryon-input/input-123',
+        type: 'upload',
+        format: 'jpg',
+        bytes: 1024,
+      },
     },
   });
   const result = await fixture.uploadApi.uploadTryOnInput('file:///photo.jpg', 'photo.jpg', 'image/jpeg');
-  const form = fixture.formDataInstances[0].fields;
 
-  assert.equal(form.find(([name]) => name === 'type')[1], 'authenticated');
+  assert.equal(fixture.edgeCalls[0].url, '/v1/uploads/signatures');
+  assert.equal(fixture.edgeCalls[0].options.body.intent, 'tryOnInput');
   assert.match(fixture.getUploadRequest().url, /\/image\/upload$/);
-  assert.equal(result.deliveryType, 'authenticated');
-  assert.equal(result.format, 'jpg');
+  assert.equal(fixture.getUploadRequest().options.parameters.public_id, 'input-123');
+  assert.equal(result.deliveryType, 'upload');
   assert.equal(result.publicId, 'alice/tryon-input/input-123');
 });
 
-test('try-on upload rejects an upload response with a different delivery type', async () => {
+test('try-on upload rejects a Cloudinary response outside the signed folder', async () => {
   const fixture = loadUploadApi({
-    signedUpload: {
-      apiKey: 'public-key', cloudName: 'shelfy', timestamp: 1710000000,
-      folder: 'alice/tryon-input', public_id: 'input-123', type: 'authenticated', signature: 'signature',
-    },
+    signedUpload,
     response: {
-      secure_url: 'https://res.cloudinary.com/shelfy/image/upload/v1/alice/tryon-input/input-123.jpg',
-      public_id: 'alice/tryon-input/input-123', type: 'upload', format: 'jpg', bytes: 1024,
+      body: {
+        secure_url: 'https://res.cloudinary.com/shelfy/image/upload/v1/mallory/input-123.jpg',
+        public_id: 'mallory/input-123',
+        type: 'upload',
+        format: 'jpg',
+        bytes: 1024,
+      },
     },
   });
 

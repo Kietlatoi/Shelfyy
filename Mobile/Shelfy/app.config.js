@@ -1,4 +1,5 @@
 module.exports = ({ config }) => {
+  const isGooglePlay = process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL === 'GOOGLE_PLAY';
   if (['preview', 'production'].includes(process.env.EAS_BUILD_PROFILE)) {
     require('./scripts/check-build-env.cjs').checkBuildEnvironment(process.env);
   }
@@ -18,6 +19,7 @@ module.exports = ({ config }) => {
     ...config,
     plugins: [
       ...(config.plugins || []),
+      ...(isGooglePlay ? [['expo-iap', { android: { store: 'play' } }]] : []),
       ['expo-location', {
         locationWhenInUsePermission: 'Cho phép Shelfy dùng vị trí để lấy thời tiết tại nơi bạn đang ở.',
       }],
@@ -30,14 +32,18 @@ module.exports = ({ config }) => {
     ],
     android: {
       ...config.android,
-      package: 'com.shelfy.app',
-      googleServicesFile: './google-services.json',
+      package: isGooglePlay ? 'com.duongminhkiet.shelfy' : 'com.shelfy.app',
+      googleServicesFile: isGooglePlay ? './google-services.play.json' : './google-services.json',
       permissions: [
         ...(config.android?.permissions || []),
         'android.permission.ACCESS_COARSE_LOCATION',
         'android.permission.ACCESS_FINE_LOCATION',
         'android.permission.CAMERA',
+      ],
+      blockedPermissions: [
+        ...(config.android?.blockedPermissions || []),
         'android.permission.READ_MEDIA_IMAGES',
+        'android.permission.READ_MEDIA_VIDEO',
       ],
       intentFilters: [...(config.android?.intentFilters || []), intentFilter],
     },

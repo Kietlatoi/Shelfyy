@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
   Modal,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -229,7 +230,7 @@ export default function ProfileScreen() {
                   styles.progressBarFill,
                   {
                     width: `${storageLimit < 0 ? 100 : Math.min(100, (storageUsed / storageLimit) * 100)}%`,
-                    backgroundColor: storageUsed > storageLimit ? colors.error : colors.primary,
+                    backgroundColor: storageLimit >= 0 && storageUsed > storageLimit ? colors.error : colors.primary,
                   },
                 ]}
               />
@@ -352,6 +353,14 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        <AppButton
+          title="Chính sách quyền riêng tư"
+          variant="ghost"
+          size="md"
+          onPress={() => Linking.openURL('https://shelfy-web-d7d.pages.dev/privacy').catch(() => {
+            Alert.alert('Không thể mở trang', 'Vui lòng thử lại khi có kết nối mạng.');
+          })}
+        />
         {/* Logout Button */}
         <AppButton title="Xóa tài khoản" variant="ghost" size="md"
           textStyle={{ color: colors.error }}

@@ -40,6 +40,7 @@ export default function TrialScreen() {
   const [processing, setProcessing] = useState(false);
   const [jobStatus, setJobStatus] = useState('');
   const [result, setResult] = useState(null);
+  const [reportedJobIds, setReportedJobIds] = useState(() => new Set());
   const pollIntervalRef = useRef(null);
   const pollInFlightRef = useRef(false);
 
@@ -189,6 +190,25 @@ export default function TrialScreen() {
     }
   };
 
+  const submitReport = async (reason) => {
+    if (!result?.jobId || reportedJobIds.has(result.jobId)) return;
+    try {
+      await trialApi.reportResult(result.jobId, reason);
+      setReportedJobIds((current) => new Set(current).add(result.jobId));
+      Alert.alert('Đã gửi báo cáo', 'Cảm ơn bạn. Shelfy sẽ kiểm tra kết quả AI này.');
+    } catch (err) {
+      Alert.alert('Lỗi', err.message || 'Không thể gửi báo cáo lúc này.');
+    }
+  };
+
+  const handleReportResult = () => {
+    Alert.alert('Báo cáo kết quả AI', 'Kết quả này có vấn đề gì?', [
+      { text: 'Không phù hợp hoặc không an toàn', onPress: () => submitReport('OFFENSIVE') },
+      { text: 'Sai lệch hoặc gây hiểu nhầm', onPress: () => submitReport('MISLEADING') },
+      { text: 'Hủy', style: 'cancel' },
+    ]);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <LoadingOverlay visible={processing} message={jobStatus || 'Đang xử lý...'} />
@@ -288,6 +308,17 @@ export default function TrialScreen() {
                 icon={<MaterialIcons name="bookmark" size={18} color={colors.white} />}
                 style={styles.saveBtn}
               />
+              <Pressable
+                onPress={handleReportResult}
+                disabled={reportedJobIds.has(result.jobId)}
+                accessibilityRole="button"
+                style={styles.reportBtn}
+              >
+                <MaterialIcons name="flag" size={18} color={colors.error} />
+                <Text style={styles.reportText}>
+                  {reportedJobIds.has(result.jobId) ? 'Đã báo cáo kết quả' : 'Báo cáo kết quả AI'}
+                </Text>
+              </Pressable>
             </View>
           </View>
         )}
@@ -507,6 +538,17 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     width: '100%',
+  },
+  reportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.md,
+  },
+  reportText: {
+    ...typography.labelSm,
+    color: colors.error,
   },
   historySection: {
     marginTop: spacing.sm,

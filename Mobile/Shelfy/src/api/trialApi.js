@@ -159,6 +159,11 @@ export const trialApi = {
     });
     return { jobId: String(jobId), isSaved: Boolean(saved) };
   },
+  reportResult: async (jobId, reason = 'OTHER', note = '') => (
+    edgeRequest(`/v1/try-on/predictions/${encodeURIComponent(jobId)}/report`, {
+      body: { reason, note },
+    })
+  ),
   deleteHistory: async (jobId) => {
     const uid = auth.currentUser?.uid;
     if (!uid) throw new Error('Vui lòng đăng nhập để xóa kết quả.');

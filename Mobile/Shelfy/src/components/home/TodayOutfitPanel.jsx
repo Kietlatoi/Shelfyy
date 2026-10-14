@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { dailyOutfitApi } from '../../api/dailyOutfitApi';
 import AppButton from '../common/AppButton';
@@ -25,10 +25,10 @@ export default function TodayOutfitPanel() {
     }
   }, []);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     const timer = setTimeout(() => { void fetchTodayOutfit(); }, 0);
     return () => clearTimeout(timer);
-  }, [fetchTodayOutfit]);
+  }, [fetchTodayOutfit]));
 
   if (loading) {
     return (

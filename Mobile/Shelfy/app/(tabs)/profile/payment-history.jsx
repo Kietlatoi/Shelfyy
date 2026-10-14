@@ -64,7 +64,7 @@ export default function PaymentHistoryScreen() {
           <View style={styles.empty}>
             <MaterialIcons name="receipt-long" size={44} color={colors.onSurfaceDisabled} />
             <Text style={styles.emptyTitle}>Chưa có giao dịch</Text>
-            <Text style={styles.emptyText}>Các lần thanh toán PayOS sẽ xuất hiện tại đây.</Text>
+            <Text style={styles.emptyText}>Các giao dịch của bạn sẽ xuất hiện tại đây.</Text>
           </View>
         ) : payments.map((payment) => {
           const createdAt = dateValue(payment.createdAt);
@@ -74,6 +74,7 @@ export default function PaymentHistoryScreen() {
               <View style={styles.row}>
                 <View>
                   <Text style={styles.plan}>Gói {payment.planName || payment.planId}</Text>
+                  <Text style={styles.date}>{payment.provider === 'GOOGLE_PLAY' ? 'Google Play' : 'PayOS'}{payment.isTest ? ' · Thử nghiệm' : ''}</Text>
                   <Text style={styles.order}>Mã đơn {payment.orderCode}</Text>
                 </View>
                 <View style={[styles.badge, paid && styles.paidBadge]}>

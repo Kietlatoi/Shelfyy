@@ -1,16 +1,16 @@
 {
-  "cli": { "version": ">= 16.0.0", "appVersionSource": "local" },
+  "cli": { "version": ">= 16.0.0", "appVersionSource": "remote" },
   "build": {
     "preview": {
       "distribution": "internal",
       "environment": "preview",
       "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false" }
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false", "EXPO_PUBLIC_DISTRIBUTION_CHANNEL": "DIRECT" }
     },
     "production": {
       "environment": "production",
-      "android": { "buildType": "app-bundle" },
-      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false" }
+      "android": { "buildType": "app-bundle", "autoIncrement": true },
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false", "EXPO_PUBLIC_DISTRIBUTION_CHANNEL": "GOOGLE_PLAY" }
     }
   }
 }

@@ -31,6 +31,29 @@ OAuth app loại External ở trạng thái Testing cấp refresh token chỉ c�
 7 ngày. Trước khi phát hành, chuyển OAuth consent screen sang **In production**
 rồi tạo lại refresh token.
 
+### Khi Gmail từ chối refresh token
+
+Sự cố xác nhận ngày 15/10/2026: `/v1/auth/password-reset-codes` trả HTTP 502,
+`EMAIL_AUTH_FAILED`. Log Gmail OAuth trả HTTP 400, `invalid_grant`,
+`Token has been expired or revoked.`. Đây là lỗi thông tin ủy quyền Gmail,
+không phải bằng chứng lỗi Firebase hoặc lỗi bản cài Android. Chưa xác định
+token hết hạn do Testing hay bị thu hồi cho đến khi kiểm tra OAuth Console.
+
+1. Kiểm tra **Google Auth Platform → Audience → Publishing status** trong
+   project `shelfy-acf38`. Nếu còn Testing, chuyển sang In production trước
+   khi xin token mới; việc này không thay thế các yêu cầu xác minh OAuth của Google.
+2. Làm lại bước OAuth Playground 4–6 bên trên bằng **đúng OAuth client** và
+   Gmail gửi OTP. Không tái sử dụng token đã bị Google từ chối.
+3. Trong `edge-worker`, chạy `npx wrangler secret put GMAIL_REFRESH_TOKEN`,
+   nhập token trực tiếp ở terminal; không ghi vào Git, mobile hoặc gửi qua chat.
+4. Thử gửi OTP một lần và kiểm tra email thực nhận. Không đổi mật khẩu khi
+   chỉ kiểm tra bước gửi thư. Cả đăng ký và quên mật khẩu dùng chung token này.
+
+Chuyển sang In production không tự làm token cũ hợp lệ trở lại. Không cần
+build lại APK/AAB để cập nhật secret Gmail trên Worker.
+
+Tham khảo: [Google refresh token expiration](https://developers.google.com/identity/protocols/oauth2#expiration).
+
 ## 2. Cấp quyền Firebase cho Worker
 
 Service account đang dùng `FIREBASE_CLIENT_EMAIL` và `FIREBASE_PRIVATE_KEY` cần

@@ -27,3 +27,6 @@ BILLING_RETENTION_DAYS="3650"
 # Set only if the Expo web build will call this Worker.
 # ALLOWED_ORIGIN="https://your-landing-page.example"
 ADMIN_UID="your-firebase-admin-uid"
+GOOGLE_PLAY_BILLING_ENABLED="false"
+GOOGLE_PLAY_PRO_PRODUCT_ID="shelfy_pro_30_days"
+GOOGLE_PLAY_PREMIUM_PRODUCT_ID="shelfy_premium_365_days"

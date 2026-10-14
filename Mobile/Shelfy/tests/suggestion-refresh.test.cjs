@@ -20,39 +20,99 @@ function loadModule(file, mocks) {
 
 const outfit = { id: 7, title: 'Outfit đã tạo', items: [{ id: 11, name: 'Áo trắng' }] };
 
-test('latest API unwraps the saved suggestion returned by Firebase', async () => {
-  const { suggestionApi } = loadModule('src/api/suggestionApi.js', {
-    'firebase/functions': { httpsCallable: () => async () => ({ data: { suggestion: outfit } }) },
-    '../firebase/client': { functions: {} },
-  });
-  assert.equal(await suggestionApi.latestToday(), outfit);
+function apiFixture({ latest = [], failFirstWrite = false } = {}) {
+  const writes = [];
+  const documents = new Map([
+    ['users/alice', { id: 'alice', exists: () => true, data: () => ({ email: 'alice@example.com', timeZone: 'Asia/Ho_Chi_Minh' }) }],
+  ]);
+  let shouldFail = failFirstWrite;
+  const wardrobe = {
+    id: 'top-1',
+    data: () => ({
+      name: 'Áo trắng',
+      category: 'TOP',
+      status: 'IN_USE',
+      image: { secureUrl: 'https://example.com/top.jpg', publicId: 'alice/top' },
+    }),
+  };
+  const firestore = {
+    collection: (_db, ...segments) => segments.join('/'),
+    doc: (_db, ...segments) => segments.join('/'),
+    getDoc: async (reference) => documents.get(reference) || {
+      id: reference.split('/').at(-1), exists: () => false, data: () => null,
+    },
+    getDocs: async (request) => {
+      if (request.base.endsWith('/wardrobe')) return { docs: [wardrobe] };
+      if (request.base.endsWith('/weatherSnapshots')) return { docs: [] };
+      if (request.base.endsWith('/dailyOutfits')) return { docs: [] };
+      return { docs: latest };
+    },
+    limit: (value) => ({ type: 'limit', value }),
+    orderBy: (field, direction) => ({ type: 'orderBy', field, direction }),
+    query: (base, ...constraints) => ({ base, constraints }),
+    serverTimestamp: () => 'SERVER_TIME',
+    setDoc: async (reference, data) => {
+      writes.push(reference);
+      if (shouldFail) {
+        shouldFail = false;
+        throw new Error('Connection lost after write');
+      }
+      documents.set(reference, {
+        id: reference.split('/').at(-1), exists: () => true, data: () => data,
+      });
+    },
+    where: (field, operator, value) => ({ type: 'where', field, operator, value }),
+  };
+  const mocks = {
+    'firebase/firestore': firestore,
+    '../firebase/client': { auth: { currentUser: { uid: 'alice' } }, db: {} },
+    '../utils/ruleBasedStylist': {
+      getConfig: () => ({ model: 'rule-based-v1' }),
+      generateStylingSuggestion: () => ({
+        modelName: 'rule-based-v1',
+        suggestion: {
+          title: 'Outfit đã tạo',
+          occasion: 'Hằng ngày',
+          summary: 'Gọn gàng',
+          reason: 'Phù hợp',
+          confidence: 0.8,
+          tips: [],
+          items: [{ itemId: 'top-1', slotName: 'TOP', reason: 'Dễ mặc' }],
+        },
+      }),
+    },
+    '../utils/dateTime': {
+      localDateKey: () => '2026-09-26',
+      shiftDateKey: () => '2026-09-20',
+      timestampMillis: (value) => Number(value) || 0,
+      validTimeZone: () => 'Asia/Ho_Chi_Minh',
+    },
+  };
+  return { suggestionApi: loadModule('src/api/suggestionApi.js', mocks).suggestionApi, writes };
+}
+
+test('latest API returns the newest Firestore suggestion', async () => {
+  const saved = {
+    id: 'suggestion-1',
+    data: () => ({ dateKey: '2026-09-26', status: 'GENERATED', title: outfit.title, items: outfit.items, createdAt: 2 }),
+  };
+  const { suggestionApi } = apiFixture({ latest: [saved] });
+  const result = await suggestionApi.latestToday();
+  assert.equal(result.id, 'suggestion-1');
+  assert.equal(result.title, outfit.title);
 });
 
 test('latest API returns null when no suggestion exists today', async () => {
-  const { suggestionApi } = loadModule('src/api/suggestionApi.js', {
-    'firebase/functions': { httpsCallable: () => async () => ({ data: { suggestion: null } }) },
-    '../firebase/client': { functions: {} },
-  });
+  const { suggestionApi } = apiFixture();
   assert.equal(await suggestionApi.latestToday(), null);
 });
 
-test('generation reuses its request ID when a callable response is lost', async () => {
-  const requests = [];
-  let calls = 0;
-  const { suggestionApi } = loadModule('src/api/suggestionApi.js', {
-    'firebase/functions': { httpsCallable: (_functions, name) => async (payload) => {
-      if (name !== 'generateTodaySuggestion') return { data: {} };
-      requests.push(payload.requestId);
-      calls += 1;
-      if (calls === 1) throw new Error('Connection lost after request');
-      return { data: outfit };
-    } },
-    '../firebase/client': { functions: {} },
-  });
-
+test('generation reuses its Firestore document ID after a lost write response', async () => {
+  const { suggestionApi, writes } = apiFixture({ failFirstWrite: true });
   await assert.rejects(suggestionApi.generateToday(), /Connection lost/);
-  assert.equal(await suggestionApi.generateToday(), outfit);
-  assert.equal(requests[0], requests[1]);
+  const result = await suggestionApi.generateToday();
+  assert.equal(result.title, outfit.title);
+  assert.equal(writes[0], writes[1]);
 });
 
 // Exercise the actual screen handlers with mocked native views and hook state.

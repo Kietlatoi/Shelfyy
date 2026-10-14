@@ -4,6 +4,9 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-30",
   "vars": {
+    "GOOGLE_PLAY_BILLING_ENABLED": "true",
+    "GOOGLE_PLAY_PRO_PRODUCT_ID": "shelfy_pro_30_days",
+    "GOOGLE_PLAY_PREMIUM_PRODUCT_ID": "shelfy_premium_365_days",
     "PUBLIC_BASE_URL": "https://shelfy-edge.shelfy-edge-worker.workers.dev",
     "ALLOWED_ORIGIN": "https://shelfy-web-d7d.pages.dev",
     "APP_DEEP_LINK": "shelfy://payment/result",
