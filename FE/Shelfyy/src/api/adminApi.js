@@ -25,13 +25,17 @@ async function request(path, options = {}) {
   });
   if (options.download && response.ok) return response;
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error?.message || 'Không thể kết nối máy chủ.');
+  if (!response.ok) throw new Error(payload?.error?.code === 'GA4_UNAVAILABLE'
+    ? 'Chưa đọc được GA4. Kiểm tra Property ID, Google Analytics Data API và quyền Viewer của service account trong GA4.'
+    : payload?.error?.message || 'Không thể kết nối máy chủ.');
   return payload?.data;
 }
 
 export const adminApi = {
   me: () => request('/v1/admin/me'),
   summary: (period) => request(`/v1/admin/summary${queryString({ period })}`),
+  reviews: (params) => request(`/v1/admin/reviews${queryString(params)}`),
+  analytics: (period) => request(`/v1/admin/analytics${queryString({ period })}`),
   users: (params) => request(`/v1/admin/users${queryString(params)}`),
   user: (uid) => request(`/v1/admin/users/${encodeURIComponent(uid)}`),
   updateAccess: (uid, status) => request(`/v1/admin/users/${encodeURIComponent(uid)}/access`, {

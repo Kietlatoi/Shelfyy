@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <article className="mx-auto max-w-3xl rounded-3xl bg-white p-8 shadow-sm">
         <a className="text-sm font-semibold text-indigo-600" href="/">← Về Shelfy</a>
         <h1 className="mt-6 text-3xl font-bold text-slate-950">Chính sách quyền riêng tư Shelfy</h1>
-        <p className="mt-2 text-sm text-slate-500">Cập nhật ngày 09/10/2026</p>
+        <p className="mt-2 text-sm text-slate-500">Cập nhật ngày 15/10/2026</p>
 
         <div className="mt-8 space-y-7 leading-7">
           <section>
@@ -14,6 +14,11 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-xl font-semibold">Mục đích và dịch vụ hỗ trợ</h2>
             <p className="mt-2">Dữ liệu được dùng để đăng nhập, đồng bộ tủ đồ, cung cấp thời tiết, tạo gợi ý, thử đồ AI, hỗ trợ tài khoản và ghi nhận thanh toán. Shelfy sử dụng Firebase, Cloudinary, Cloudflare, Open-Meteo, Replicate và nhà cung cấp thanh toán được hiển thị trong ứng dụng.</p>
+          </section>
+          <section>
+            <h2 className="text-xl font-semibold">Đánh giá và đo lường</h2>
+            <p className="mt-2">Khi bạn gửi đánh giá trong Shelfy, số sao, góp ý, tên, email và thời gian gửi được lưu để quản trị viên xem và cải thiện ứng dụng. Nội dung không công khai và được xóa khi bạn xóa tài khoản.</p>
+            <p className="mt-2">Khi website được kết nối Google Analytics 4, Shelfy chỉ bật đo lường sau khi bạn đồng ý. Google Analytics dùng cookie để thống kê lượt truy cập, nguồn giới thiệu và lượt bấm tải app; Shelfy không gửi email, tên tài khoản hoặc nội dung góp ý vào các sự kiện đo lường. Bạn có thể từ chối hoặc đổi lựa chọn bằng nút “Tùy chọn đo lường” trên trang chủ. Trang quản trị không bật đo lường này.</p>
           </section>
           <section>
             <h2 className="text-xl font-semibold">Lưu trữ và xóa dữ liệu</h2>

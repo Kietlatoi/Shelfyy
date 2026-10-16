@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
+import { AdminOverview, AdminReviews, AdminAnalytics } from '../components/admin/AdminInsights';
 import { adminApi } from '../api/adminApi';
 import { BrandLogo } from '../components/BrandLogo';
 import { MaterialIcon } from '../components/MaterialIcon';
@@ -9,6 +10,8 @@ const tabs = [
   { id: 'overview', label: 'Tổng quan', icon: 'dashboard' },
   { id: 'users', label: 'Người dùng', icon: 'group' },
   { id: 'payments', label: 'Giao dịch', icon: 'payments' },
+  { id: 'reviews', label: 'Đánh giá', icon: 'star' },
+  { id: 'analytics', label: 'Đo lường', icon: 'monitoring' },
 ];
 const periods = [
   { value: '7d', label: '7 ngày' },
@@ -74,30 +77,9 @@ function Login({ onSuccess }) {
   return <main className="grid min-h-screen place-items-center bg-slate-50 px-4"><form className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-xl shadow-slate-900/5" onSubmit={submit}><BrandLogo tagline="Admin console" /><h1 className="mt-8 text-2xl font-extrabold text-slate-950">Đăng nhập quản trị</h1><p className="mt-2 text-sm text-slate-500">Chỉ tài khoản chủ sở hữu Shelfy được phép truy cập.</p><ErrorBox message={error} /><label className="mt-6 grid gap-2 text-sm font-bold text-slate-700">Email<input className="h-12 rounded-xl border border-slate-300 px-4 font-normal outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10" onChange={(event) => setEmail(event.target.value)} required type="email" value={email} /></label><label className="mt-4 grid gap-2 text-sm font-bold text-slate-700">Mật khẩu<input className="h-12 rounded-xl border border-slate-300 px-4 font-normal outline-none focus:border-secondary focus:ring-4 focus:ring-secondary/10" minLength="6" onChange={(event) => setPassword(event.target.value)} required type="password" value={password} /></label><button className="mt-6 h-12 w-full rounded-xl bg-slate-950 font-bold text-white disabled:opacity-60" disabled={busy} type="submit">{busy ? 'Đang kiểm tra…' : 'Đăng nhập'}</button><a className="mt-5 block text-center text-sm font-semibold text-slate-500 hover:text-secondary" href="/">Về landing page</a></form></main>;
 }
 
-function Metric({ icon, label, value, note }) {
-  return <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p><p className="mt-3 text-3xl font-extrabold text-slate-950">{value}</p></div><span className="grid h-11 w-11 place-items-center rounded-xl bg-rose-50 text-secondary"><MaterialIcon name={icon} /></span></div><p className="mt-4 text-sm text-slate-500">{note}</p></article>;
-}
-
 function PaymentTable({ rows, onSelect }) {
   if (!rows?.length) return <div className="p-10 text-center text-sm text-slate-500">Chưa có giao dịch.</div>;
   return <div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left text-sm"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-4 py-3">Mã đơn</th><th className="px-4 py-3">Người mua</th><th className="px-4 py-3">Gói</th><th className="px-4 py-3">Số tiền</th><th className="px-4 py-3">Trạng thái</th><th className="px-4 py-3">Thời gian</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((payment) => <tr className="cursor-pointer hover:bg-slate-50" key={payment.orderCode} onClick={() => onSelect?.(payment.orderCode)}><td className="px-4 py-3 font-bold text-slate-900">{payment.orderCode}</td><td className="px-4 py-3 text-slate-600">{payment.buyerEmail || 'Đã ẩn danh'}</td><td className="px-4 py-3 font-semibold">{payment.planId}</td><td className="px-4 py-3 font-bold">{money(payment.status === 'PAID' ? payment.amountPaid : payment.price)}</td><td className="px-4 py-3"><Status value={payment.status} /></td><td className="px-4 py-3 text-slate-500">{dateTime(payment.createdAt)}</td></tr>)}</tbody></table></div>;
-}
-
-function Overview({ onPayment }) {
-  const [period, setPeriod] = useState('30d');
-  const [data, setData] = useState(null);
-  const [error, setError] = useState('');
-  useEffect(() => {
-    let active = true;
-    const timer = setTimeout(() => {
-      setData(null);
-      setError('');
-      adminApi.summary(period).then((value) => active && setData(value)).catch((reason) => active && setError(reason.message));
-    }, 0);
-    return () => { active = false; clearTimeout(timer); };
-  }, [period]);
-  const max = Math.max(1, ...(data?.series || []).flatMap((item) => [item.revenue, item.transactions * 69000]));
-  return <section><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-2xl font-extrabold text-slate-950">Tổng quan</h1><p className="mt-1 text-sm text-slate-500">Số liệu tài chính và hoạt động của Shelfy.</p></div><select className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold" onChange={(event) => setPeriod(event.target.value)} value={period}>{periods.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></div><ErrorBox message={error} />{!data ? <Loading /> : <><div className="grid gap-4 md:grid-cols-3"><Metric icon="paid" label="Doanh thu đã thanh toán" value={money(data.revenue)} note="Chỉ tính giao dịch PAID" /><Metric icon="group" label="Tổng người dùng" value={Number(data.users).toLocaleString('vi-VN')} note="Không tính tài khoản quản trị" /><Metric icon="receipt_long" label="Tổng giao dịch" value={Number(data.transactions).toLocaleString('vi-VN')} note={`${data.successfulTransactions} giao dịch thành công`} /></div><article className="mt-6 rounded-2xl border border-slate-200 bg-white p-5"><h2 className="text-lg font-extrabold">Doanh thu và giao dịch</h2><div className="mt-6 flex h-64 items-end gap-2 overflow-x-auto border-b border-slate-200 pb-1">{data.series.length ? data.series.map((item) => <div className="flex min-w-10 flex-1 flex-col items-center justify-end gap-1" key={item.label} title={`${item.label}: ${money(item.revenue)}, ${item.transactions} giao dịch`}><div className="flex h-48 items-end gap-1"><span className="w-3 rounded-t bg-secondary" style={{ height: `${Math.max(3, item.revenue / max * 100)}%` }} /><span className="w-3 rounded-t bg-slate-800" style={{ height: `${Math.max(3, item.transactions * 69000 / max * 100)}%` }} /></div><span className="text-[10px] font-semibold text-slate-500">{item.label.slice(5)}</span></div>) : <p className="m-auto text-sm text-slate-500">Chưa có dữ liệu trong kỳ.</p>}</div><div className="mt-3 flex gap-5 text-xs font-semibold text-slate-600"><span><i className="mr-2 inline-block h-2.5 w-2.5 rounded-sm bg-secondary" />Doanh thu</span><span><i className="mr-2 inline-block h-2.5 w-2.5 rounded-sm bg-slate-800" />Giao dịch</span></div></article><article className="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white"><div className="border-b border-slate-200 px-5 py-4"><h2 className="font-extrabold">Giao dịch gần đây</h2></div><PaymentTable onSelect={onPayment} rows={data.recentPayments} /></article></>}</section>;
 }
 
 function Pagination({ page, totalPages, onChange }) {
@@ -235,7 +217,9 @@ export function AdminPage() {
   const content = useMemo(() => {
     if (tab === 'users') return <Users key={`users-${revision}`} onSelect={setSelectedUser} />;
     if (tab === 'payments') return <Payments key={`payments-${revision}`} onSelect={setSelectedPayment} />;
-    return <Overview key={`overview-${revision}`} onPayment={setSelectedPayment} />;
+    if (tab === 'reviews') return <AdminReviews />;
+    if (tab === 'analytics') return <AdminAnalytics />;
+    return <AdminOverview key={`overview-${revision}`} onPayment={setSelectedPayment} PaymentTable={PaymentTable} />;
   }, [tab, revision]);
   if (!authReady) return <main className="grid min-h-screen place-items-center bg-slate-50 font-semibold text-slate-500">Đang kiểm tra phiên quản trị…</main>;
   if (!authorized) return <Login onSuccess={() => setAuthorized(true)} />;

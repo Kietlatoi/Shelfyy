@@ -34,6 +34,8 @@ import {
 import { getDocument } from './firestore-rest.js';
 import { reportAiContent } from './ai-content.js';
 import { getPlayContext, verifyPlayPurchase, reconcilePlayPayments } from './google-play.js';
+import { deleteOwnReview, getAdminReviews, getOwnReview, submitReview } from './reviews.js';
+import { getAdminAnalytics } from './admin-analytics.js';
 
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8' };
 const TRY_ON_CATEGORIES = new Set(['TOP', 'BOTTOM', 'DRESS', 'OUTERWEAR']);
@@ -478,6 +480,8 @@ async function route(request, env) {
     const admin = assertAdmin(env, user);
     if (request.method === 'GET' && url.pathname === '/v1/admin/me') return getAdminMe(admin);
     if (request.method === 'GET' && url.pathname === '/v1/admin/summary') return getAdminSummary(env, url);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/reviews') return getAdminReviews(env, url);
+    if (request.method === 'GET' && url.pathname === '/v1/admin/analytics') return getAdminAnalytics(env, url);
     if (request.method === 'GET' && url.pathname === '/v1/admin/users') return getAdminUsers(env, url);
     if (request.method === 'GET' && url.pathname === '/v1/admin/payments') return getAdminPayments(env, url);
     if (request.method === 'GET' && url.pathname === '/v1/admin/payments/export.csv') return exportAdminPayments(env, admin, url);
@@ -505,8 +509,12 @@ async function route(request, env) {
     return createCheckout(env, user, await readJson(request));
   }
   if (request.method === 'POST' && url.pathname === '/v1/account/anonymize-billing') {
-    return anonymizeBilling(env, user);
+    const result = await anonymizeBilling(env, user);
+    await deleteOwnReview(env, user);
+    return result;
   }
+  if (url.pathname === '/v1/reviews/me' && request.method === 'GET') return getOwnReview(env, user);
+  if (url.pathname === '/v1/reviews/me' && request.method === 'POST') return submitReview(env, user, await readJson(request));
   if (request.method === 'POST' && url.pathname === '/v1/wardrobe/items') {
     return createWardrobeItem(env, user, await readJson(request), (ownerUid, image, folder) => (
       assertCloudinaryImage(env, ownerUid, image, folder)

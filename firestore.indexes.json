@@ -72,11 +72,44 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "paidAt", "order": "DESCENDING" }
       ]
-    }
+    },
+    { "collectionGroup": "_billingPayments", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "status", "order": "ASCENDING" },
+      { "fieldPath": "paidAt", "order": "DESCENDING" },
+      { "fieldPath": "amountPaid", "order": "DESCENDING" }
+    ] },
+    { "collectionGroup": "_appReviews", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "rating", "order": "ASCENDING" },
+      { "fieldPath": "createdAt", "order": "DESCENDING" }
+    ] }
   ],
   "fieldOverrides": [
     { "collectionGroup": "mediaAssets", "fieldPath": "cleanupAfterMillis", "indexes": [
       { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "ASCENDING", "queryScope": "COLLECTION" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION" }
+    ] },
+    { "collectionGroup": "wardrobe", "fieldPath": "createdAt", "indexes": [
+      { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "ASCENDING", "queryScope": "COLLECTION" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION" }
+    ] },
+    { "collectionGroup": "tryOns", "fieldPath": "createdAt", "indexes": [
+      { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "ASCENDING", "queryScope": "COLLECTION" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION" }
+    ] },
+    { "collectionGroup": "suggestions", "fieldPath": "createdAt", "indexes": [
+      { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "ASCENDING", "queryScope": "COLLECTION" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION" }
+    ] },
+    { "collectionGroup": "dailyOutfits", "fieldPath": "createdAt", "indexes": [
+      { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION_GROUP" },
       { "order": "ASCENDING", "queryScope": "COLLECTION" },
       { "order": "DESCENDING", "queryScope": "COLLECTION" }
     ] }

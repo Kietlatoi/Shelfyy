@@ -320,6 +320,16 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        <View style={styles.menuSection}>
+          <Pressable onPress={() => router.push('/(tabs)/profile/review')} style={styles.menuItem}>
+            <View style={[styles.menuIconCircle, { backgroundColor: colors.goldLight }]}>
+              <MaterialIcons name="star" size={20} color={colors.gold} />
+            </View>
+            <Text style={styles.menuTitle}>Đánh giá Shelfy</Text>
+            <MaterialIcons name="chevron-right" size={24} color={colors.onSurfaceVariant} />
+          </Pressable>
+        </View>
+
         {/* Account Settings Menu */}
         <View style={styles.menuSection}>
           <Pressable

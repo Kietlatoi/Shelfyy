@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { AnalyticsConsent } from '../components/AnalyticsConsent'
+import { trackDownload } from '../analytics'
 import { LandingExtension } from '../components/LandingExtension'
 import { LandingFeatures } from '../components/LandingFeatures'
 import { LandingFooter } from '../components/LandingFooter'
@@ -21,6 +23,7 @@ export function LandingPage() {
   const [isAppNoticeOpen, setIsAppNoticeOpen] = useState(false)
   const downloadUrl = import.meta.env.VITE_ANDROID_DOWNLOAD_URL?.trim()
   const handleDownload = () => {
+    trackDownload(Boolean(downloadUrl?.startsWith('https://')))
     if (downloadUrl?.startsWith('https://')) window.location.assign(downloadUrl)
     else setIsAppNoticeOpen(true)
   }
@@ -39,6 +42,7 @@ export function LandingPage() {
         <LandingHowItWorks steps={landingSteps} />
       </main>
       <LandingFooter data={landingFooterData} />
+      <AnalyticsConsent />
 
       {isAppNoticeOpen && (
         <LandingAppNoticeModal onClose={() => setIsAppNoticeOpen(false)} />

@@ -1,5 +1,7 @@
 import { reconcilePaymentByOrderCode } from './billing.js';
+import { reviewStats, reviewWindow } from './reviews.js';
 import {
+  aggregateQuery,
   batchGetDocuments,
   commitWrites,
   countCollection,
@@ -35,12 +37,7 @@ function periodFromUrl(url) {
 }
 
 function cutoffFor(period) {
-  if (period === 'all') return null;
-  const now = new Date();
-  const vietnamNow = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
-  vietnamNow.setHours(0, 0, 0, 0);
-  vietnamNow.setDate(vietnamNow.getDate() - PERIOD_DAYS[period] + 1);
-  return new Date(vietnamNow.getTime() - 7 * 60 * 60 * 1000).toISOString();
+  return reviewWindow(period).start;
 }
 
 function paymentFields(document) {
@@ -141,24 +138,66 @@ export function getAdminMe(user) {
   return { uid: user.uid, email: user.email, role: 'OWNER' };
 }
 
-export async function getAdminSummary(env, url) {
+export async function getAdminSummary(env, url, dependencies = {}) {
+  const run = dependencies.runQuery || runQuery;
+  const aggregate = dependencies.aggregateQuery || aggregateQuery;
+  const count = dependencies.countCollection || countCollection;
+  const get = dependencies.getDocument || getDocument;
   const period = periodFromUrl(url);
-  const cutoff = cutoffFor(period);
-  const transactionQuery = paymentQuery({ cutoff, limit: 10000 });
-  const paidQuery = paymentQuery({ cutoff, status: 'PAID', timeField: 'paidAt', limit: 10000 });
-  const [transactions, paid, totalUsers, adminProfile] = await Promise.all([
-    runQuery(env, transactionQuery),
-    runQuery(env, paidQuery),
-    countCollection(env, 'users'),
-    getDocument(env, `users/${required(env, 'ADMIN_UID')}`),
+  const window = reviewWindow(period);
+  const range = (field, start, end, timestamp = false) => query.and(
+    ...(start ? [query.fieldFilter(field, 'GREATER_THAN_OR_EQUAL', timestamp ? new Date(start) : start)] : []),
+    query.fieldFilter(field, 'LESS_THAN_OR_EQUAL', timestamp ? new Date(end) : end),
+  );
+  const transactionQuery = { from: [{ collectionId: '_billingPayments' }], where: range('createdAt', window.start, window.end) };
+  const paidQuery = { from: [{ collectionId: '_billingPayments' }], where: query.and(query.fieldFilter('status', 'EQUAL', 'PAID'), range('paidAt', window.start, window.end)), orderBy: [{ field: { fieldPath: 'paidAt' }, direction: 'DESCENDING' }] };
+  const sumAndCount = [{ alias: 'revenue', type: 'sum', fieldPath: 'amountPaid' }, { alias: 'count', type: 'count' }];
+  const activity = async (collectionId) => {
+    try {
+      const result = await aggregate(env, { from: [{ collectionId, allDescendants: true }], where: range('createdAt', window.start, window.end, true) }, [{ alias: 'count', type: 'count' }]);
+      return result.count;
+    } catch { return null; }
+  };
+  const [transactions, paid, totalUsers, adminProfile, transactionTotals, paidTotals, newUsers, ratings, wardrobe, tryOns, suggestions, dailyOutfits, previous] = await Promise.all([
+    run(env, { ...transactionQuery, orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }], limit: 10001 }),
+    run(env, { ...paidQuery, orderBy: [{ field: { fieldPath: 'paidAt' }, direction: 'DESCENDING' }], limit: 10001 }),
+    count(env, 'users'), get(env, `users/${required(env, 'ADMIN_UID')}`),
+    aggregate(env, transactionQuery, [{ alias: 'count', type: 'count' }]),
+    aggregate(env, paidQuery, sumAndCount),
+    aggregate(env, { from: [{ collectionId: 'users' }], where: range('createdAt', window.start, window.end, true) }, [{ alias: 'count', type: 'count' }]),
+    reviewStats(env, url, aggregate),
+    activity('wardrobe'), activity('tryOns'), activity('suggestions'), activity('dailyOutfits'),
+    window.previousStart ? aggregate(env, { ...paidQuery, where: query.and(
+      query.fieldFilter('status', 'EQUAL', 'PAID'),
+      query.fieldFilter('paidAt', 'GREATER_THAN_OR_EQUAL', window.previousStart),
+      query.fieldFilter('paidAt', 'LESS_THAN', window.start),
+    ) }, sumAndCount) : null,
   ]);
+  const adminCreated = adminProfile?.data.createdAt || adminProfile?.createTime;
+  const adminInPeriod = adminCreated && (!window.start || adminCreated >= window.start) && adminCreated <= window.end;
+  const detailsLimited = transactions.length > 10000 || paid.length > 10000;
+  const detailTransactions = transactions.slice(0, 10000);
+  const detailPaid = paid.slice(0, 10000);
+  const series = groupSeries(detailTransactions, detailPaid, period === 'all');
+  if (window.start) {
+    const byDate = new Map(series.map((row) => [row.label, row]));
+    for (let date = Date.parse(window.start); date <= Date.parse(window.end); date += 86400000) {
+      const key = dateKey(date, false);
+      if (!byDate.has(key)) byDate.set(key, { label: key, revenue: 0, transactions: 0 });
+    }
+    series.splice(0, series.length, ...[...byDate.values()].sort((a, b) => a.label.localeCompare(b.label)));
+  }
   return {
-    period,
-    revenue: paid.reduce((total, payment) => total + Number(payment.data.amountPaid || 0), 0),
+    period, generatedAt: window.end, detailsLimited,
+    revenue: paidTotals.revenue,
     users: Math.max(0, totalUsers - (adminProfile ? 1 : 0)),
-    transactions: transactions.length,
-    successfulTransactions: paid.length,
-    series: groupSeries(transactions, paid, period === 'all'),
+    newUsers: Math.max(0, newUsers.count - (adminInPeriod ? 1 : 0)),
+    transactions: transactionTotals.count,
+    successfulTransactions: paidTotals.count,
+    previous, ratings, activity: { wardrobe, tryOns, suggestions, dailyOutfits },
+    paymentStatuses: [...PAYMENT_STATUSES].map((status) => ({ status, count: detailTransactions.filter((row) => row.data.status === status).length })),
+    revenueByProvider: ['PAYOS', 'GOOGLE_PLAY'].map((provider) => ({ provider, revenue: detailPaid.filter((row) => (row.data.provider || 'PAYOS') === provider).reduce((sum, row) => sum + Number(row.data.amountPaid || 0), 0) })),
+    series,
     recentPayments: transactions.slice(0, 10).map(paymentFields),
   };
 }
