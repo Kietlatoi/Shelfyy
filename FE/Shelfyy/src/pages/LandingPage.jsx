@@ -22,6 +22,7 @@ import {
 export function LandingPage() {
   const [isAppNoticeOpen, setIsAppNoticeOpen] = useState(false)
   const downloadUrl = import.meta.env.VITE_ANDROID_DOWNLOAD_URL?.trim()
+    || 'https://apkpure.com/p/com.duongminhkiet.shelfy'
   const handleDownload = () => {
     trackDownload(Boolean(downloadUrl?.startsWith('https://')))
     if (downloadUrl?.startsWith('https://')) window.location.assign(downloadUrl)

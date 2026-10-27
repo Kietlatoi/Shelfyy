@@ -1,6 +1,7 @@
 module.exports = ({ config }) => {
   const isGooglePlay = process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL === 'GOOGLE_PLAY';
-  if (['preview', 'production'].includes(process.env.EAS_BUILD_PROFILE)) {
+  const usesRegisteredPackage = isGooglePlay || process.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL === 'APKPURE';
+  if (['preview', 'production', 'apkpure'].includes(process.env.EAS_BUILD_PROFILE)) {
     require('./scripts/check-build-env.cjs').checkBuildEnvironment(process.env);
   }
   const projectId = process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID?.trim() || 'demo-shelfy';
@@ -32,8 +33,8 @@ module.exports = ({ config }) => {
     ],
     android: {
       ...config.android,
-      package: isGooglePlay ? 'com.duongminhkiet.shelfy' : 'com.shelfy.app',
-      googleServicesFile: isGooglePlay ? './google-services.play.json' : './google-services.json',
+      package: usesRegisteredPackage ? 'com.duongminhkiet.shelfy' : 'com.shelfy.app',
+      googleServicesFile: usesRegisteredPackage ? './google-services.play.json' : './google-services.json',
       permissions: [
         ...(config.android?.permissions || []),
         'android.permission.ACCESS_COARSE_LOCATION',

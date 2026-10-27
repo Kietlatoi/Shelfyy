@@ -7,6 +7,12 @@
       "android": { "buildType": "apk" },
       "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false", "EXPO_PUBLIC_DISTRIBUTION_CHANNEL": "DIRECT" }
     },
+    "apkpure": {
+      "distribution": "internal",
+      "environment": "production",
+      "android": { "buildType": "apk", "autoIncrement": true },
+      "env": { "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "false", "EXPO_PUBLIC_DISTRIBUTION_CHANNEL": "APKPURE" }
+    },
     "production": {
       "environment": "production",
       "android": { "buildType": "app-bundle", "autoIncrement": true },

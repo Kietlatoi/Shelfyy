@@ -1,0 +1,20 @@
+{
+  "buildId": "1e619a79-4fb4-40c3-969b-e4da21f1549e",
+  "profile": "preview",
+  "version": "1.0.0",
+  "versionCode": "1",
+  "status": "FINISHED",
+  "path": "D:\\project\\Shelfy\\Shelfyy\\artifacts\\Shelfy-Direct-1.0.0-2026-10-18.apk",
+  "bytes": 110348794,
+  "sha256": "9668526F3F0F0C08465D57B157C9A32BAC6A4FD7518E6C0C43B9FED1AF79F29E",
+  "downloadUrl": "https://expo.dev/artifacts/eas/XTHFaaWrHn7zjzAHEMF7B_l4dS9VS13L2EKi25SgaV8.apk",
+  "iconSource": "Mobile/Shelfy/assets/image.png",
+  "iconSha256": "B321967A0CF79CB3ADD2CE951B57C5BCAA706AE5421997F49BDB8136EDA14FD0",
+  "validation": {
+    "adaptiveIconMatchesBetweenBuilds": true,
+    "manifestChecked": true,
+    "deviceSmokeTested": false,
+    "lintPassed": true,
+    "mobileTestsPassed": 44
+  }
+}

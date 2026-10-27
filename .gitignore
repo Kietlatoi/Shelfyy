@@ -82,6 +82,12 @@ android/build/
 android/.gradle/
 android/app/build/
 .eas/
+
+# Local Cloudflare state and Firebase native configuration
+.wrangler/
+**/.wrangler/
+Mobile/Shelfy/google-services.json
+Mobile/Shelfy/google-services.play.json
 .claude/
 .claudebk/
 .taw/

@@ -34,6 +34,23 @@ test('release builds reject missing Firebase configuration and emulator targets'
   assert.throws(() => checkBuildEnvironment({ ...valid, EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'INVALID' }), /DISTRIBUTION_CHANNEL/);
   assert.throws(() => checkBuildEnvironment({ ...valid, EAS_BUILD_PROFILE: 'production' }), /không được bật PayOS/);
   assert.doesNotThrow(() => checkBuildEnvironment({ ...valid, EAS_BUILD_PROFILE: 'production', EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'GOOGLE_PLAY' }));
+  assert.doesNotThrow(() => checkBuildEnvironment({ ...valid, EAS_BUILD_PROFILE: 'apkpure', EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'APKPURE' }));
+  assert.throws(() => checkBuildEnvironment({ ...valid, EAS_BUILD_PROFILE: 'apkpure', EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'GOOGLE_PLAY' }), /kênh APKPURE/);
+});
+
+test('APKPure keeps the Play package and Firebase registration with direct payments', () => {
+  const { execFileSync } = require('node:child_process');
+  const result = execFileSync(process.execPath, ['-e', `
+    const app = require('./app.config')({ config: require('./app.json').expo });
+    console.log(JSON.stringify({ package: app.android.package, firebase: app.android.googleServicesFile,
+      playPlugin: app.plugins.some((entry) => Array.isArray(entry) && entry[0] === 'expo-iap') }));
+  `], { cwd: require('node:path').join(__dirname, '..'), env: { ...process.env,
+    EAS_BUILD_PROFILE: 'apkpure', EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'APKPURE',
+    EXPO_PUBLIC_USE_FIREBASE_EMULATOR: 'false', EXPO_PUBLIC_FIREBASE_PROJECT_ID: 'shelfy-stage',
+    EXPO_PUBLIC_FIREBASE_APP_ID: '1:123:web:abc', EXPO_PUBLIC_FIREBASE_API_KEY: 'public-project-key',
+    EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: 'shelfy-stage.firebaseapp.com',
+    EXPO_PUBLIC_EDGE_API_URL: 'https://shelfy-edge.example.workers.dev' }, encoding: 'utf8' });
+  assert.deepEqual(JSON.parse(result), { package: 'com.duongminhkiet.shelfy', firebase: './google-services.play.json', playPlugin: false });
 });
 
 test('Expo sets the accepted Android package and verifies Firebase Hosting reset links', () => {

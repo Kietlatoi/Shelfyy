@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { adminApi } from '../../api/adminApi';
 import { MaterialIcon } from '../MaterialIcon';
+import { analyticsDemo } from './analyticsDemo';
+import { sourcePie } from './sourcePie';
 
 const periods = [['7d', '7 ngày'], ['30d', '30 ngày'], ['90d', '90 ngày'], ['all', 'Tất cả']];
 const panel = 'rounded-2xl border border-slate-200 bg-white p-5 shadow-sm';
@@ -40,6 +42,14 @@ function ReportState({ loading, error, retry }) {
 
 function Metric({ label, value, note, icon }) {
   return <article className={panel}><div className="flex items-start justify-between gap-2"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><MaterialIcon name={icon} className="text-secondary" size={22} /></div><p className="mt-3 break-words text-3xl font-extrabold tracking-tight text-slate-950">{value}</p><p className="mt-3 text-xs leading-5 text-slate-500">{note}</p></article>;
+}
+
+function SourcePieChart({ sources }) {
+  const { total, slices, background } = sourcePie(sources);
+  return <figure className="mt-5 flex flex-col items-center gap-6 rounded-xl bg-slate-50 p-5 sm:flex-row sm:gap-10">
+    <div role="img" aria-label={total ? `Tỷ lệ phiên truy cập: ${slices.map((row) => `${row.source} ${row.share.toFixed(1)}%`).join(', ')}` : 'Chưa có phiên truy cập'} className="h-44 w-44 shrink-0 rounded-full" style={{ background }} />
+    <figcaption className="w-full max-w-sm"><p className="font-bold text-slate-900">Tỷ lệ phiên theo nguồn</p><p className="mt-1 text-xs text-slate-500">{number(total)} phiên trong kỳ · {total ? 'mỗi màu tương ứng một nguồn' : 'chưa có dữ liệu'}</p><ul className="mt-4 space-y-3">{slices.map((row) => <li className="flex items-center justify-between gap-4 text-sm" key={row.source}><span className="flex min-w-0 items-center gap-2 text-slate-600"><span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: row.color }} aria-hidden="true" />{row.source}</span><strong className="tabular-nums">{number(Number(row.share.toFixed(1)))}%</strong></li>)}</ul></figcaption>
+  </figure>;
 }
 
 function RatingSummary({ data }) {
@@ -105,15 +115,18 @@ export function AdminReviews() {
 }
 
 export function AdminAnalytics() {
+  const demo = true;
   const [period, setPeriod] = useState('30d');
   const [revision, setRevision] = useState(0);
   const refresh = () => setRevision((v) => v + 1);
-  const report = useReport(() => adminApi.analytics(period), `${period}:${revision}`);
-  const data = report.data;
+  const report = useReport(() => demo ? Promise.resolve(analyticsDemo(period)) : adminApi.analytics(period), `${demo}:${period}:${revision}`);
+  const data = report.data && Boolean(report.data.demo) === demo
+    && (!report.data.configured || report.data.period === period) ? report.data : null;
   return <section><ReportHeader title="Đo lường nguồn truy cập" description="Google Analytics 4 giúp so sánh nguồn dẫn khách đến website Shelfy và số lần bấm tải ứng dụng." period={period} onPeriod={setPeriod} refresh={refresh} /><ReportState {...report} retry={refresh} />{data && <div className="space-y-5">
     {!data.configured ? <article className={`${panel} max-w-3xl`}><span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">Chưa kết nối GA4</span><h2 className="mt-4 text-xl font-extrabold">Bắt đầu thu thập dữ liệu thật</h2><p className="mt-2 text-sm leading-6 text-slate-600">{data.reason} Chưa có số liệu để kết luận Facebook, TikTok hay Google thu hút khách tốt hơn.</p><ol className="mt-5 list-decimal space-y-3 pl-5 text-sm leading-6 text-slate-600"><li>Tạo GA4 và luồng dữ liệu Web cho website Shelfy; chọn múi giờ Việt Nam.</li><li>Lấy Measurement ID dạng G-… để bật đo lường trên website.</li><li>Cấp quyền Viewer trong GA4 cho <code className="break-all">shelfy-worker@shelfy-acf38.iam.gserviceaccount.com</code>.</li><li>Bật Google Analytics Data API và cấu hình Property ID cho máy chủ để đọc báo cáo.</li></ol><a className="mt-5 inline-block text-sm font-bold text-secondary underline" href="https://analytics.google.com/" target="_blank" rel="noreferrer">Mở Google Analytics ↗</a><p className="mt-4 text-xs text-slate-500">Không cần gửi mật khẩu hoặc khóa bí mật. Dữ liệu bắt đầu ghi nhận sau khi kết nối và người truy cập đồng ý đo lường.</p></article> : <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric icon="group" label="Người truy cập web" value={number(data.users)} note="Người dùng do GA4 ghi nhận." /><Metric icon="travel_explore" label="Phiên truy cập" value={number(data.sessions)} note="Một người có thể có nhiều phiên." /><Metric icon="visibility" label="Lượt xem" value={number(data.views)} note="Lượt xem trang trên website." /><Metric icon="download" label="Bấm tải app" value={number(data.downloadClicks)} note="Số lần bấm liên kết tải; chưa phải lượt cài đặt." /></div>
-      <article className={panel}><h2 className="font-bold">Nguồn nào mang khách đến?</h2><div className="mt-4 overflow-x-auto"><table className="w-full min-w-96 text-left text-sm"><thead className="text-xs uppercase text-slate-500"><tr><th className="py-3">Nguồn / phương tiện</th><th>Phiên</th><th>Phiên tương tác</th></tr></thead><tbody className="divide-y">{data.sources.map((row) => <tr key={row.source}><td className="py-3 font-semibold">{row.source}</td><td>{number(row.sessions)}</td><td>{number(row.engagedSessions)}</td></tr>)}</tbody></table></div>{!data.sources.length && <p className="py-8 text-center text-sm text-slate-500">GA4 chưa có dữ liệu cho kỳ này.</p>}{data.sourcesLimited && <p className="text-xs text-amber-800">Hiển thị 100 nguồn có nhiều phiên nhất.</p>}</article><p className="text-xs text-slate-500">Dữ liệu GA4 có độ trễ; máy chủ lưu báo cáo 5 phút. Cập nhật {time(data.generatedAt)}.</p>
+      <div className="grid gap-4 sm:grid-cols-2"><Metric icon="visibility" label="Lượt xem" value={number(data.views)} note="Lượt xem trang trên website." /><Metric icon="download" label="Bấm tải app" value={number(data.downloadClicks)} note="Số lần bấm liên kết tải; chưa phải lượt cài đặt." /></div>
+      <article className={panel}><h2 className="font-bold">Nguồn nào mang khách đến?</h2><SourcePieChart sources={data.sources} /><div className="mt-4 overflow-x-auto"><table className="w-full min-w-96 text-left text-sm"><thead className="text-xs uppercase text-slate-500"><tr><th className="py-3">Nguồn / phương tiện</th><th>Phiên</th><th>Phiên tương tác</th></tr></thead><tbody className="divide-y">{data.sources.map((row) => <tr key={row.source}><td className="py-3 pr-6 font-semibold"><span>{row.source}</span><div className="mt-2 h-1.5 max-w-64 overflow-hidden rounded-full bg-slate-100" aria-hidden="true"><div className="h-full rounded-full bg-violet-500" style={{ width: `${data.sessions ? row.sessions / data.sessions * 100 : 0}%` }} /></div></td><td>{number(row.sessions)}</td><td>{number(row.engagedSessions)}</td></tr>)}</tbody></table></div>{!data.sources.length && <p className="py-8 text-center text-sm text-slate-500">GA4 chưa có dữ liệu cho kỳ này.</p>}{data.sourcesLimited && <p className="text-xs text-amber-800">Hiển thị 100 nguồn có nhiều phiên nhất.</p>}</article>{data.demo && <article className={panel}><h2 className="font-bold">Khách truy cập mẫu</h2><p className="mt-1 text-xs text-slate-500">Mã giả lập, không liên kết tài khoản thật. Lượt bấm tải có thể khác số người đã cài app.</p><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[600px] text-left text-sm"><thead className="text-xs uppercase text-slate-500"><tr>{['Mã khách', 'Nguồn truy cập', 'Hoạt động mẫu', 'Phiên', 'Lượt xem', 'Bấm tải'].map((label) => <th className="py-3 pr-4" key={label}>{label}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{data.visitors.map((visitor) => <tr key={visitor.id}><td className="py-3 font-bold">{visitor.id}</td><td>{visitor.source}</td><td className="text-slate-500">{visitor.daysAgo === 0 ? 'Hôm nay' : `${visitor.daysAgo} ngày trước`}</td><td>{visitor.sessions}</td><td>{visitor.views}</td><td>{visitor.downloadClicks}</td></tr>)}</tbody></table></div></article>}
+      <p className="text-xs text-slate-500">{data.demo ? 'Số liệu minh họa cố định để xem trước giao diện; không gửi sự kiện đến GA4.' : `Dữ liệu GA4 có độ trễ; máy chủ lưu báo cáo 5 phút. Cập nhật ${time(data.generatedAt)}.`}</p>
     </>}
     <article className={panel}><h2 className="font-bold">Gắn nguồn cho đường link quảng bá</h2><p className="mt-2 text-sm leading-6 text-slate-600">Dùng tham số UTM để phân biệt nền tảng. Ví dụ link đăng trên Facebook:</p><code className="mt-3 block overflow-x-auto rounded-xl bg-slate-50 p-4 text-xs">https://shelfy-web-d7d.pages.dev/?utm_source=facebook&amp;utm_medium=social&amp;utm_campaign=ra_mat</code><p className="mt-3 text-xs leading-5 text-slate-500">Đổi facebook thành tiktok cho link TikTok. Không đặt email hoặc thông tin cá nhân vào UTM. Báo cáo này đo website, chưa đo cài đặt, nguồn khách trong app hay doanh thu theo chiến dịch.</p></article>
   </div>}</section>;

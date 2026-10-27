@@ -92,12 +92,18 @@ test('EAS profiles select their payment channel at build time', () => {
   const profiles = require('../eas.json').build;
   assert.equal(profiles.preview.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL, 'DIRECT');
   assert.equal(profiles.production.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL, 'GOOGLE_PLAY');
+  assert.equal(profiles.apkpure.env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL, 'APKPURE');
+  assert.equal(profiles.apkpure.android.buildType, 'apk');
+  assert.equal(profiles.apkpure.android.autoIncrement, true);
 });
 
 test('distribution guard blocks Google Play while allowing direct builds', () => {
   const direct = loadModule('src/constants/distribution.js', {}, { EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'DIRECT' });
   assert.equal(direct.isGooglePlayBuild, false);
   assert.doesNotThrow(() => direct.requireDirectPayments());
+  const apkpure = loadModule('src/constants/distribution.js', {}, { EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'APKPURE' });
+  assert.equal(apkpure.isGooglePlayBuild, false);
+  assert.doesNotThrow(() => apkpure.requireDirectPayments());
   const play = loadModule('src/constants/distribution.js', {}, { EXPO_PUBLIC_DISTRIBUTION_CHANNEL: 'GOOGLE_PLAY' });
   assert.equal(play.isGooglePlayBuild, true);
   assert.throws(() => play.requireDirectPayments(), /Google Play/);

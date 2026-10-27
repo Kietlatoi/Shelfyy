@@ -1,9 +1,12 @@
 function checkBuildEnvironment(env) {
-  if (!['DIRECT', 'GOOGLE_PLAY'].includes(env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL)) {
-    throw new Error('EXPO_PUBLIC_DISTRIBUTION_CHANNEL phải là DIRECT hoặc GOOGLE_PLAY.');
+  if (!['DIRECT', 'GOOGLE_PLAY', 'APKPURE'].includes(env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL)) {
+    throw new Error('EXPO_PUBLIC_DISTRIBUTION_CHANNEL phải là DIRECT, GOOGLE_PLAY hoặc APKPURE.');
   }
   if (env.EAS_BUILD_PROFILE === 'production' && env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL !== 'GOOGLE_PLAY') {
     throw new Error('Profile production dành cho Google Play không được bật PayOS.');
+  }
+  if (env.EAS_BUILD_PROFILE === 'apkpure' && env.EXPO_PUBLIC_DISTRIBUTION_CHANNEL !== 'APKPURE') {
+    throw new Error('Profile apkpure phải dùng kênh APKPURE để thanh toán ngoài Google Play.');
   }
   const keys = [
     'EXPO_PUBLIC_FIREBASE_PROJECT_ID',
