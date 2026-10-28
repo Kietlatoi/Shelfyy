@@ -26,7 +26,7 @@ export default function PrivacyPage() {
           </section>
           <section>
             <h2 className="text-xl font-semibold">Liên hệ</h2>
-            <p className="mt-2">Email: <a className="text-indigo-600 underline" href="mailto:toilakiet24@gmail.com">toilakiet24@gmail.com</a></p>
+            <p className="mt-2">Email: <a className="text-indigo-600 underline" href="mailto:minkiet.duong.dev@gmail.com">minkiet.duong.dev@gmail.com</a></p>
           </section>
         </div>
       </article>

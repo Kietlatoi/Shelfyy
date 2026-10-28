@@ -1,5 +1,5 @@
 export default function AccountDeletionPage() {
-  const requestUrl = 'mailto:toilakiet24@gmail.com?subject=Y%C3%AAu%20c%E1%BA%A7u%20x%C3%B3a%20t%C3%A0i%20kho%E1%BA%A3n%20Shelfy&body=Email%20t%C3%A0i%20kho%E1%BA%A3n%20Shelfy%3A%20'
+  const requestUrl = 'mailto:minkiet.duong.dev@gmail.com?subject=Y%C3%AAu%20c%E1%BA%A7u%20x%C3%B3a%20t%C3%A0i%20kho%E1%BA%A3n%20Shelfy&body=Email%20t%C3%A0i%20kho%E1%BA%A3n%20Shelfy%3A%20'
 
   return (
     <main className="min-h-screen bg-slate-50 px-5 py-12 text-slate-800">
