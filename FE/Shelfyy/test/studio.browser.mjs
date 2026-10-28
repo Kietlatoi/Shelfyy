@@ -72,15 +72,23 @@ try {
   results.push('Desktop demo: navigation, filters, add/remove, occasions, swaps, save, screen gallery, reset')
 
   const hero = page.locator('.studio-hero')
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
   await hero.dispatchEvent('pointermove', { pointerType: 'mouse', clientX: 1000, clientY: 300 })
   const pointer = await hero.evaluate((el) => el.style.getPropertyValue('--px'))
   assert.notEqual(pointer, '0px')
   const initial = await page.locator('.studio-fashion-plane').evaluate((el) => getComputedStyle(el).transform)
-  await page.evaluate(() => window.scrollTo(0, 350))
+  await page.evaluate(() => window.scrollTo({ top: 350, behavior: 'instant' }))
   await page.waitForTimeout(400)
   assert.notEqual(await page.locator('.studio-fashion-plane').evaluate((el) => getComputedStyle(el).transform), initial)
   results.push('Independent scroll and pointer depth respond')
+  assert.ok(Math.abs(await page.locator('.studio-header').evaluate((el) => el.getBoundingClientRect().top)) < 1)
+  await page.locator('#studio-navigation').getByRole('link', { name: 'Về Shelfy', exact: true }).click()
+  await page.waitForFunction(() => {
+    const target = document.getElementById('about-shelfy').getBoundingClientRect()
+    const header = document.querySelector('.studio-header').getBoundingClientRect()
+    return target.top >= header.bottom && target.top < header.bottom + 50
+  })
+  results.push('Sticky header stays visible and anchor navigation clears it')
 
   await page.locator('#questions summary').first().focus()
   await page.keyboard.press('Enter')
@@ -107,6 +115,8 @@ try {
     await p.evaluate(() => document.fonts.ready)
     await p.waitForSelector('.studio-motion-ready')
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false)
+    await p.evaluate(() => window.scrollTo({ top: 1300, behavior: 'instant' }))
+    assert.ok(Math.abs(await p.locator('.studio-header').evaluate((el) => el.getBoundingClientRect().top)) < 1)
     if (width < 500) {
       const toggle = p.locator('#studio-menu-toggle')
       await toggle.click()
@@ -120,9 +130,10 @@ try {
       await p.locator('.studio-phone').getByRole('button', { name: 'Đi làm', exact: true }).click()
       assert.match(await p.locator('.studio-phone-look img').nth(1).getAttribute('src'), /trousers/)
     } else {
+      assert.equal(await p.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior), 'auto')
       assert.equal(await p.locator('.studio-fashion-plane').evaluate((el) => getComputedStyle(el).transform), 'none')
     }
-    await p.evaluate(() => window.scrollTo(0, 0))
+    await p.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }))
     await p.screenshot({ path: `${output}/${width}-${reducedMotion}-hero.png` })
     await p.locator('.studio-phone').scrollIntoViewIfNeeded()
     await p.screenshot({ path: `${output}/${width}-${reducedMotion}-phone.png` })

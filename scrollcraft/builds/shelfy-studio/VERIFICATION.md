@@ -42,6 +42,8 @@ Without `PLAYWRIGHT_PACKAGE_JSON`, it resolves Playwright from the project norma
 
 ## Limits
 
+Sticky header (2026-10-29): use native CSS sticky positioning with a translucent blurred background, without scroll listeners or header resizing. Anchor offsets keep section titles clear of the header. Native smooth anchor scrolling is disabled under reduced motion. Build and complete browser regression pass, including sticky placement on desktop/390px/360px, menu use while scrolled, anchor clearance and reduced-motion scrolling. Evidence: `temp/studio-sticky-header-{desktop,mobile}.png`; automated checks in `test/studio.browser.mjs`.
+
 Soft display revision (2026-10-29): user rejected the rigid condensed Archivo titles. Replaced display headings with regular-weight Lora, using same-family italics sparingly in the hero and demo payoff. Removed condensed font stretching; retained Be Vietnam Pro for body/UI and wordmark. Confirmed Vietnamese font subset loads and inspected hero, persona and demo screenshots. Build passes; heading/page fit checked at 360/390/768/1024/1440px. Evidence in `temp/studio-soft-type-*.png`. No behavior or content changes.
 
 About addition (2026-10-29): added a brand-authored letter before FAQ under `#about-shelfy`, plus a navigation link on desktop/mobile. User explicitly authorized creating the story. The copy introduces Shelfy's purpose, respect for individual style and a contact email, without inventing named founders, credentials, milestones or social proof. Build and lint pass. Browser checks cover menu closure, anchor navigation, contact destination and overflow at 360/390/768/820/1024/1440px. Desktop and mobile section screenshots were visually inspected: `temp/studio-about-{desktop,mobile}.png`.
