@@ -1,0 +1,22 @@
+{
+  "buildId": "4b76a1e4-6423-4116-a1e2-f317481f6429",
+  "profile": "production",
+  "channel": "GOOGLE_PLAY",
+  "package": "com.duongminhkiet.shelfy",
+  "version": "1.0.1",
+  "versionCode": 5,
+  "status": "FINISHED",
+  "path": "D:\\project\\Shelfy\\Shelfyy\\artifacts\\Shelfy-GooglePlay-1.0.1-v5.aab",
+  "bytes": 76707502,
+  "sha256": "DAD65653BD4323DC575A96A97BE12C75A1BB06D155EBD8DC76D4515E272A79F0",
+  "signingCertificateSha256": "3775f0a534fb2308087b2c52787ed3fbc7a169fb9010c8e90763e154d1ad871f",
+  "downloadUrl": "https://expo.dev/artifacts/eas/6_KQaZmzDz8gEjuY4-PqYsII8Ifdm6S0xl6YAIDZH3I.aab",
+  "validation": {
+    "bundletoolPassed": true,
+    "manifestChecked": true,
+    "mobileTestsPassed": 50,
+    "lintPassed": true,
+    "deviceSmokeTested": false,
+    "uploadedToGooglePlay": false
+  }
+}

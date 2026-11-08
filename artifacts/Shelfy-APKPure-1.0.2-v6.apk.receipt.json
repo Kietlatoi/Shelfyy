@@ -1,0 +1,28 @@
+{
+  "buildId": "10a6e543-2b02-4abd-bdd7-50f1699efedd",
+  "buildUrl": "https://expo.dev/accounts/duongminhkiet/projects/Shelfy/builds/10a6e543-2b02-4abd-bdd7-50f1699efedd",
+  "profile": "apkpure",
+  "channel": "APKPURE",
+  "paymentProvider": "PAYOS",
+  "package": "com.duongminhkiet.shelfy",
+  "version": "1.0.2",
+  "versionCode": 6,
+  "status": "FINISHED",
+  "path": "D:\\project\\Shelfy\\Shelfyy\\artifacts\\Shelfy-APKPure-1.0.2-v6.apk",
+  "bytes": 110626890,
+  "sha256": "AE7316CC900935A7412A4CFA74DBA17763721CFF18A956D4DBC14ABDDFEC5076",
+  "signingCertificateSha256": "3775f0a534fb2308087b2c52787ed3fbc7a169fb9010c8e90763e154d1ad871f",
+  "downloadUrl": "https://expo.dev/artifacts/eas/3fjFKh_7MapIqrdy-E0nOXzms9jeaEiAzMlYN_IH0Yw.apk",
+  "uploadedToStore": false,
+  "validation": {
+    "manifestChecked": true,
+    "signatureVerified": true,
+    "distributionFlagCheckedInHermesBytecode": true,
+    "brandFontsBundled": true,
+    "mobileTestsPassed": 54,
+    "lintPassed": true,
+    "agentNativeSmokeTestCompleted": false,
+    "manualTestReportedByUser": true,
+    "newReleaseBinaryDeviceTested": false
+  }
+}

@@ -18,6 +18,7 @@ import { dailyOutfitApi } from '../../src/api/dailyOutfitApi';
 import { weatherApi } from '../../src/api/weatherApi';
 import { getCurrentLocation } from '../../src/utils/geolocation';
 import AppButton from '../../src/components/common/AppButton';
+import ScreenHeader from '../../src/components/common/ScreenHeader';
 import EmptyState from '../../src/components/common/EmptyState';
 import LoadingOverlay from '../../src/components/common/LoadingOverlay';
 import { colors } from '../../src/constants/colors';
@@ -136,12 +137,7 @@ export default function SuggestScreen() {
       <LoadingOverlay visible={generating} message="AI đang phân tích tủ đồ & thời tiết..." />
 
       {/* Screen Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Gợi ý hôm nay</Text>
-        <Text style={styles.headerSubtitle}>
-          Phối đồ thông minh theo thời tiết và phong cách
-        </Text>
-      </View>
+      <ScreenHeader eyebrow="PHỐI ĐỒ THEO GU CỦA BẠN" title="Hôm nay mặc gì?" subtitle="Một bộ phối mới, bắt đầu từ những món đang có." />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -256,11 +252,16 @@ export default function SuggestScreen() {
         ) : (
           /* Empty / Initial State */
           <View style={styles.emptyHero}>
-            <View style={styles.emptyIconCircle}>
-              <MaterialIcons name="auto-awesome" size={44} color={colors.primary} />
+            <Text style={styles.emptyEyebrow}>TỪ TỦ ĐỒ ĐẾN BỘ PHỐI</Text>
+            <View style={styles.outfitIllustration} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              {['checkroom', 'style', 'directions-walk'].map((icon, index) => (
+                <View key={icon} style={[styles.illustrationPiece, index === 1 && styles.illustrationAccent]}>
+                  <MaterialIcons name={icon} size={34} color={colors.primary} />
+                  <Text style={styles.illustrationNumber}>0{index + 1}</Text>
+                </View>
+              ))}
             </View>
-
-            <Text style={styles.emptyTitle}>Sẵn sàng cho ngày mới?</Text>
+            <Text style={styles.emptyTitle}>Mặc khác đi,{'\n'}vẫn là chính bạn.</Text>
             <Text style={styles.emptyDesc}>
               Shelfy sẽ phân tích thời tiết hôm nay, tủ đồ và lịch sử mặc để phối set đồ phù hợp, thoải mái cho bạn.
             </Text>
@@ -301,26 +302,9 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceVariant,
     marginTop: spacing.sm,
   },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderSubtle,
-  },
-  headerTitle: {
-    ...typography.headlineSm,
-    color: colors.onSurface,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    ...typography.bodySm,
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
   scrollContent: {
-    padding: spacing.lg,
+    padding: spacing.xl,
+    paddingTop: spacing.xs,
     paddingBottom: spacing['4xl'],
   },
   heroCard: {
@@ -392,7 +376,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   itemCard: {
-    width: '47%',
+    flexBasis: '48%',
+    flexGrow: 0,
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,
@@ -435,7 +420,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   emptyHero: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primaryContainer,
     borderRadius: radius.xl,
     padding: spacing['2xl'],
     alignItems: 'center',
@@ -444,17 +429,13 @@ const styles = StyleSheet.create({
     ...shadows.sm,
     marginTop: spacing.md,
   },
-  emptyIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primaryContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
+  emptyEyebrow: { ...typography.eyebrow, color: colors.primary, textAlign: 'center' },
+  outfitIllustration: { flexDirection: 'row', gap: spacing.sm, marginVertical: spacing['2xl'], alignSelf: 'stretch' },
+  illustrationPiece: { flex: 1, minHeight: 106, backgroundColor: colors.surfaceContainerLow, borderRadius: radius.lg, padding: spacing.md, alignItems: 'center', justifyContent: 'center', gap: spacing.md },
+  illustrationAccent: { backgroundColor: colors.accent, transform: [{ rotate: '-5deg' }] },
+  illustrationNumber: { ...typography.caption, color: colors.onSurfaceVariant },
   emptyTitle: {
-    ...typography.headlineSm,
+    ...typography.editorialMd,
     color: colors.onSurface,
     textAlign: 'center',
     marginBottom: spacing.xs,

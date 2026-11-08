@@ -92,6 +92,7 @@ export default function AppInput({
             : { value: normalizedValue })}
           onChangeText={handleChangeText}
           placeholder={placeholder}
+          accessibilityLabel={label || placeholder}
           placeholderTextColor={colors.onSurfaceDisabled}
           secureTextEntry={isSecure}
           keyboardType={keyboardType}
@@ -112,7 +113,7 @@ export default function AppInput({
         />
 
         {secureTextEntry ? (
-          <Pressable onPress={toggleSecure} style={styles.rightIconContainer}>
+          <Pressable accessibilityRole="button" accessibilityLabel={isSecure ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'} onPress={toggleSecure} style={styles.rightIconContainer}>
             <MaterialIcons
               name={isSecure ? 'visibility-off' : 'visibility'}
               size={20}
@@ -121,6 +122,8 @@ export default function AppInput({
           </Pressable>
         ) : rightIcon ? (
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Xóa nội dung"
             onPress={onRightIconPress}
             style={styles.rightIconContainer}
             disabled={!onRightIconPress}
@@ -148,12 +151,12 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
+    backgroundColor: colors.surfaceContainerLow,
+    borderWidth: 1,
     borderColor: colors.borderSubtle,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    minHeight: 48,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.lg,
+    minHeight: 52,
   },
   inputWrapperFocused: {
     borderColor: colors.primary,
@@ -177,7 +180,10 @@ const styles = StyleSheet.create({
   },
   rightIconContainer: {
     marginLeft: spacing.sm,
-    padding: spacing.xs,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   errorText: {
     ...typography.caption,

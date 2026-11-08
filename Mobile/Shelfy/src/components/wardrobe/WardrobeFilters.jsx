@@ -19,6 +19,8 @@ export default function WardrobeFilters({
         const isSelected = selectedCategory === cat.value;
         return (
           <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelected }}
             key={cat.value}
             onPress={() => onSelectCategory(cat.value)}
             style={[
@@ -43,21 +45,23 @@ export default function WardrobeFilters({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.xs,
-    gap: spacing.xs + 2,
+    gap: spacing.sm,
   },
   chip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    borderRadius: radius.full,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+    justifyContent: 'center',
+    borderRadius: radius.md,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
   },
   chipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.primaryDark,
+    borderColor: colors.primaryDark,
   },
   chipText: {
     ...typography.labelSm,

@@ -147,6 +147,7 @@ async function screenFixture() {
     '../../src/api/dailyOutfitApi': { dailyOutfitApi: {} },
     '../../src/api/weatherApi': { weatherApi: { createSnapshot: async () => ({}) } },
     '../../src/utils/geolocation': { getCurrentLocation: async () => ({ lat: 10, lon: 106 }) },
+    '../../src/components/common/ScreenHeader': { __esModule: true, default: 'ScreenHeader' },
     '../../src/components/common/AppButton': { __esModule: true, default: 'AppButton' },
     '../../src/components/common/EmptyState': { __esModule: true, default: 'EmptyState' },
     '../../src/components/common/LoadingOverlay': { __esModule: true, default: 'LoadingOverlay' },

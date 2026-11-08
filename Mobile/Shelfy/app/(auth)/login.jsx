@@ -69,15 +69,16 @@ export default function LoginScreen() {
             <View style={styles.logoBadge}>
               <Ionicons name="shirt" size={32} color={colors.primary} />
             </View>
-            <Text style={styles.title}>Shelfy</Text>
+            <Text style={styles.title}>shelfy<Text style={styles.wordmarkStar}> ✳</Text></Text>
             <Text style={styles.subtitle}>
-              Quản lý tủ đồ thông minh & gợi ý trang phục AI
+              Tủ đồ quen. Phong cách mới.
             </Text>
           </View>
 
           {/* Form */}
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>Đăng nhập</Text>
+            <Text style={styles.formEyebrow}>CHÀO MỪNG BẠN TRỞ LẠI</Text>
+            <Text style={styles.formTitle}>Mở tủ đồ của bạn.</Text>
 
             <ErrorBanner message={error} onDismiss={() => setError('')} />
 
@@ -163,6 +164,8 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     justifyContent: 'center',
   },
+  wordmarkStar: { color: colors.secondary, fontSize: 30 },
+  formEyebrow: { ...typography.eyebrow, color: colors.secondary, marginBottom: spacing.sm },
   header: {
     alignItems: 'center',
     marginBottom: spacing['2xl'],
@@ -171,14 +174,17 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: radius.xl,
-    backgroundColor: colors.primaryContainer,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
   },
   title: {
     ...typography.displayLg,
-    color: colors.primary,
+    fontSize: 42,
+    lineHeight: 56,
+    letterSpacing: -2,
+    color: colors.primaryDark,
     fontWeight: '800',
   },
   subtitle: {
@@ -193,21 +199,18 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    shadowColor: '#0f172a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 2,
   },
   formTitle: {
-    ...typography.headlineSm,
+    ...typography.editorialMd,
     color: colors.onSurface,
     marginBottom: spacing.lg,
   },
   optionsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
     marginBottom: spacing.xl,
   },
   rememberMeContainer: {
