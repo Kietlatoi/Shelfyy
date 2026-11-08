@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shelfy-edge",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-30",
+  "vars": {
+    "GOOGLE_PLAY_BILLING_ENABLED": "true",
+    "GOOGLE_PLAY_PRO_PRODUCT_ID": "shelfy_pro_30_days",
+    "GOOGLE_PLAY_PREMIUM_PRODUCT_ID": "shelfy_premium_365_days",
+    "PUBLIC_BASE_URL": "https://shelfy-edge.shelfy-edge-worker.workers.dev",
+    "ALLOWED_ORIGIN": "https://shelfy-web-d7d.pages.dev",
+    "APP_DEEP_LINK": "shelfy://payment/result",
+    "PAYMENT_LINK_TTL_SECONDS": "900",
+    "BILLING_RETENTION_DAYS": "3650",
+    "EMAIL_CODE_TTL_SECONDS": "600",
+    "EMAIL_CODE_RESEND_SECONDS": "60",
+    "EMAIL_CODE_MAX_ATTEMPTS": "5"
+  },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "RATE_LIMITS",
+      "id": "5082c7939f5f4958905123d3c21b7ee6"
+    }
+  ]
+}

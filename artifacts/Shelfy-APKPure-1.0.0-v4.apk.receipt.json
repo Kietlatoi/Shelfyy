@@ -1,0 +1,24 @@
+{
+  "buildId": "f43a64b5-eb0c-4005-99ef-5650169b5b13",
+  "profile": "apkpure",
+  "channel": "APKPURE",
+  "paymentProvider": "PAYOS",
+  "package": "com.duongminhkiet.shelfy",
+  "version": "1.0.0",
+  "versionCode": 4,
+  "status": "FINISHED",
+  "path": "D:\\project\\Shelfy\\Shelfyy\\artifacts\\Shelfy-APKPure-1.0.0-v4.apk",
+  "bytes": 110349302,
+  "sha256": "B40E426C0524F914E6B60A9941526AC54C81CC511109194ED30FBFB51D4125D2",
+  "signingCertificateSha256": "3775f0a534fb2308087b2c52787ed3fbc7a169fb9010c8e90763e154d1ad871f",
+  "matchesUploadedAabCertificate": true,
+  "googlePlayInstalledCertificateCompared": false,
+  "downloadUrl": "https://expo.dev/artifacts/eas/AEbvTbjxVJ-k4r4HuvEKymx0dOTakqHElGa8mNucmow.apk",
+  "validation": {
+    "manifestChecked": true,
+    "mobileTestsPassed": 45,
+    "deviceSmokeTested": false,
+    "lintPassed": true,
+    "signatureVerified": true
+  }
+}

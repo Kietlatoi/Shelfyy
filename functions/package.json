@@ -1,0 +1,20 @@
+{
+  "name": "shelfy-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "test:unit": "node --test test/account-lifecycle.test.cjs test/billing.test.cjs test/calendar-oauth.test.cjs test/calendar.test.cjs test/cloudinary-assets.test.cjs test/cloudinary-signature.test.cjs test/daily-outfits.test.cjs test/media.test.cjs test/replicate-client.test.cjs test/styling-service.test.cjs test/stylist.test.cjs test/try-on.test.cjs test/vnpay-client.test.cjs test/wardrobe-items.test.cjs test/weather-provider.test.cjs test/weather.test.cjs",
+    "test:rules": "firebase emulators:exec --only auth,firestore,functions --project demo-shelfy \"node --test test/firestore.rules.test.cjs && node --test ../Mobile/Shelfy/tests/firebase-auth-emulator.emulator.cjs && node --test ../Mobile/Shelfy/tests/wardrobe-emulator.emulator.cjs && node --test ../Mobile/Shelfy/tests/outfit-emulator.emulator.cjs && node --test ../Mobile/Shelfy/tests/try-on-emulator.emulator.cjs && node --test ../Mobile/Shelfy/tests/billing-emulator.emulator.cjs && node --test test/lifecycle.emulator.cjs\""
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase-tools": "^15.31.0"
+  }
+}

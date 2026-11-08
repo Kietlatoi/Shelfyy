@@ -1,0 +1,356 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owns(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && (request.auth.token.email_verified == true
+          || exists(/databases/$(database)/documents/users/$(uid)))
+        && (!exists(/databases/$(database)/documents/_accountAccess/$(uid))
+          || get(/databases/$(database)/documents/_accountAccess/$(uid)).data.status == 'active');
+    }
+
+    function optionalShortString(data, field, maxLength) {
+      return !(field in data)
+        || data[field] == null
+        || (data[field] is string && data[field].size() <= maxLength);
+    }
+
+    function optionalStringList(data, field, maxItems) {
+      return !(field in data)
+        || data[field] == null
+        || (data[field] is list && data[field].size() <= maxItems);
+    }
+
+    function optionalPrice(data) {
+      return !('purchasePrice' in data)
+        || data.purchasePrice == null
+        || (data.purchasePrice is number && data.purchasePrice >= 0 && data.purchasePrice <= 1000000000);
+    }
+
+    function validCloudinaryRef(uid, data, folder) {
+      return data == null
+        || (data is map
+          && data.keys().hasOnly(['secureUrl', 'publicId'])
+          && data.secureUrl is string
+          && data.secureUrl.matches('^https://res[.]cloudinary[.]com/[^/]+/image/upload/.+$')
+          && data.publicId is string
+          && data.publicId.matches('^' + uid + '/' + folder + '/.+$'));
+    }
+
+    function validUserDocument(uid, data) {
+      return data.keys().hasOnly([
+          'fullName', 'email', 'phone', 'avatar', 'profile', 'timeZone', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll(['fullName', 'email', 'createdAt', 'updatedAt'])
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 100
+        && data.email == request.auth.token.email
+        && data.updatedAt == request.time
+        && optionalShortString(data, 'phone', 32)
+        && optionalShortString(data, 'timeZone', 64)
+        && (!('avatar' in data)
+          || data.avatar == null
+          || (data.avatar is map
+            && data.avatar.keys().hasOnly(['secureUrl', 'publicId'])
+            && data.avatar.secureUrl is string
+            && data.avatar.secureUrl.matches('^https://res[.]cloudinary[.]com/[^/]+/image/upload/.+$')
+            && data.avatar.publicId is string
+            && data.avatar.publicId.matches('^' + uid + '/avatars/.+$')))
+        && (!('profile' in data)
+          || (data.profile is map
+            && data.profile.keys().hasOnly([
+              'gender', 'heightCm', 'weightKg', 'bodyShape', 'skinTone',
+              'stylePreference', 'favoriteColors', 'privacyAiTrainingConsent'
+            ])));
+    }
+
+    function validWardrobeItem(uid, data) {
+      return data.keys().hasOnly([
+          'name', 'brand', 'category', 'subCategory', 'color', 'colorHex', 'season',
+          'size', 'pattern', 'material', 'tags', 'purchasePrice', 'purchaseDate',
+          'sourceUrl', 'image', 'thumbnail', 'backgroundRemovedUrl', 'favorite',
+          'status', 'aiDetected', 'wearCount', 'lastWornAt', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll(['name', 'category', 'favorite', 'status', 'createdAt', 'updatedAt'])
+        && data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 150
+        && data.category in ['TOP', 'BOTTOM', 'DRESS', 'SHOES', 'BAG', 'ACCESSORY', 'OUTERWEAR', 'OTHER']
+        && data.favorite is bool
+        && data.status in ['IN_USE', 'RARELY_USED', 'STORED', 'TO_SELL']
+        && data.wearCount is number
+        && data.wearCount >= 0
+        && (!('lastWornAt' in data) || data.lastWornAt == null || data.lastWornAt is timestamp)
+        && data.updatedAt == request.time
+        && optionalShortString(data, 'brand', 100)
+        && optionalShortString(data, 'subCategory', 100)
+        && optionalShortString(data, 'color', 50)
+        && optionalShortString(data, 'colorHex', 20)
+        && optionalShortString(data, 'season', 50)
+        && optionalShortString(data, 'size', 30)
+        && optionalShortString(data, 'pattern', 100)
+        && optionalShortString(data, 'material', 100)
+        && optionalShortString(data, 'purchaseDate', 32)
+        && optionalShortString(data, 'sourceUrl', 2048)
+        && optionalShortString(data, 'backgroundRemovedUrl', 2048)
+        && optionalStringList(data, 'tags', 25)
+        && optionalPrice(data)
+        && (!('thumbnail' in data) || validCloudinaryRef(uid, data.thumbnail, 'wardrobe'))
+        && (!('image' in data)
+          || validCloudinaryRef(uid, data.image, 'wardrobe'))
+        && data.favorite is bool;
+    }
+
+    function validWardrobeUpdate(uid) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'name', 'brand', 'category', 'subCategory', 'color', 'colorHex', 'season',
+          'size', 'pattern', 'material', 'tags', 'purchasePrice', 'purchaseDate',
+          'sourceUrl', 'image', 'thumbnail', 'backgroundRemovedUrl', 'favorite',
+          'status', 'wearCount', 'lastWornAt', 'updatedAt'
+        ])
+        && request.resource.data.updatedAt == request.time
+        && validWardrobeItem(uid, request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function validTryOn(uid, data) {
+      return data.keys().hasOnly([
+          'status', 'clothingItemId', 'itemSnapshot', 'personImagePublicId',
+          'resultImage', 'processingTimeMs', 'errorCode', 'errorMessage',
+          'isSaved', 'savedAt', 'isDeleted', 'deletedAt', 'createdAt',
+          'updatedAt', 'completedAt'
+        ])
+        && data.keys().hasAll([
+          'status', 'clothingItemId', 'itemSnapshot', 'personImagePublicId',
+          'isSaved', 'isDeleted', 'createdAt', 'updatedAt'
+        ])
+        && data.status in ['PENDING', 'PROCESSING', 'DONE', 'FAILED']
+        && data.clothingItemId is string
+        && data.clothingItemId.size() > 0
+        && data.clothingItemId.size() <= 128
+        && data.personImagePublicId is string
+        && data.personImagePublicId.matches('^' + uid + '/tryon-input/.+$')
+        && data.itemSnapshot is map
+        && data.itemSnapshot.keys().hasOnly(['id', 'name', 'category', 'image'])
+        && data.itemSnapshot.keys().hasAll(['id', 'name', 'category', 'image'])
+        && data.itemSnapshot.id == data.clothingItemId
+        && data.itemSnapshot.name is string
+        && data.itemSnapshot.name.size() > 0
+        && data.itemSnapshot.name.size() <= 150
+        && data.itemSnapshot.category in ['TOP', 'BOTTOM', 'DRESS', 'OUTERWEAR']
+        && validCloudinaryRef(uid, data.itemSnapshot.image, 'wardrobe')
+        && (!('resultImage' in data) || validCloudinaryRef(uid, data.resultImage, 'tryon-results'))
+        && (!('processingTimeMs' in data) || data.processingTimeMs == null
+          || (data.processingTimeMs is number && data.processingTimeMs >= 0))
+        && optionalShortString(data, 'errorCode', 100)
+        && optionalShortString(data, 'errorMessage', 500)
+        && data.isSaved is bool
+        && data.isDeleted is bool
+        && data.updatedAt == request.time;
+    }
+
+    function validWeather(data) {
+      return data.keys().hasOnly([
+          'provider', 'latitude', 'longitude', 'timezone', 'location', 'temperature',
+          'feelsLike', 'humidity', 'precipitation', 'rain', 'weatherCode', 'condition',
+          'cloudCover', 'windSpeed', 'windDirection', 'windGusts', 'isDay',
+          'observedAt', 'locationCell', 'cachedAtMillis', 'createdAt'
+        ])
+        && data.keys().hasAll([
+          'provider', 'latitude', 'longitude', 'location', 'temperature', 'feelsLike',
+          'humidity', 'weatherCode', 'condition', 'windSpeed', 'isDay',
+          'locationCell', 'cachedAtMillis', 'createdAt'
+        ])
+        && data.provider == 'OPEN_METEO'
+        && data.latitude is number && data.latitude >= -90 && data.latitude <= 90
+        && data.longitude is number && data.longitude >= -180 && data.longitude <= 180
+        && data.temperature is number && data.temperature >= -100 && data.temperature <= 100
+        && data.feelsLike is number && data.feelsLike >= -100 && data.feelsLike <= 100
+        && data.humidity is number && data.humidity >= 0 && data.humidity <= 100
+        && data.weatherCode is number
+        && data.windSpeed is number && data.windSpeed >= 0
+        && data.isDay is bool
+        && data.location is string && data.location.size() <= 150
+        && data.condition is string && data.condition.size() <= 100
+        && data.locationCell is string && data.locationCell.size() <= 40
+        && data.cachedAtMillis is number
+        && data.createdAt == request.time;
+    }
+
+    function validSuggestion(data) {
+      return data.keys().hasOnly([
+          'dateKey', 'timeZone', 'status', 'title', 'occasion', 'summary', 'reason',
+          'confidence', 'tips', 'modelName', 'weatherSnapshotId', 'calendarEventId',
+          'confirmedDailyOutfitId', 'items', 'mediaPublicIds', 'context',
+          'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'dateKey', 'timeZone', 'status', 'title', 'occasion', 'summary', 'reason',
+          'confidence', 'tips', 'modelName', 'items', 'mediaPublicIds', 'context',
+          'createdAt', 'updatedAt'
+        ])
+        && data.dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.timeZone is string && data.timeZone.size() <= 64
+        && data.status in ['GENERATED', 'CONFIRMED']
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.occasion is string && data.occasion.size() <= 100
+        && data.summary is string && data.summary.size() <= 500
+        && data.reason is string && data.reason.size() <= 1200
+        && data.confidence is number && data.confidence >= 0 && data.confidence <= 1
+        && data.tips is list && data.tips.size() <= 4
+        && data.modelName == 'rule-based-v1'
+        && data.items is list && data.items.size() > 0 && data.items.size() <= 20
+        && data.mediaPublicIds is list && data.mediaPublicIds.size() <= 40
+        && data.context is map
+        && optionalShortString(data, 'weatherSnapshotId', 128)
+        && optionalShortString(data, 'calendarEventId', 128)
+        && optionalShortString(data, 'confirmedDailyOutfitId', 128)
+        && data.updatedAt == request.time;
+    }
+
+    function validDailyOutfit(data) {
+      return data.keys().hasOnly([
+          'dateKey', 'timeZone', 'confirmedAt', 'itemIds', 'itemSnapshots',
+          'mediaPublicIds', 'name', 'description', 'occasion', 'style', 'source',
+          'favorite', 'notes', 'weatherSnapshotId', 'calendarEventId',
+          'wearCountUpdated', 'createdAt', 'updatedAt'
+        ])
+        && data.keys().hasAll([
+          'dateKey', 'timeZone', 'confirmedAt', 'itemIds', 'itemSnapshots',
+          'mediaPublicIds', 'name', 'description', 'occasion', 'source',
+          'favorite', 'wearCountUpdated', 'createdAt', 'updatedAt'
+        ])
+        && data.dateKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && data.timeZone is string && data.timeZone.size() <= 64
+        && data.confirmedAt == request.time
+        && data.itemIds is list && data.itemIds.size() > 0 && data.itemIds.size() <= 20
+        && data.itemSnapshots is list && data.itemSnapshots.size() == data.itemIds.size()
+        && data.mediaPublicIds is list && data.mediaPublicIds.size() <= 40
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 150
+        && data.description is string && data.description.size() <= 500
+        && data.occasion is string && data.occasion.size() <= 100
+        && data.source == 'USER_CREATED'
+        && data.favorite is bool
+        && data.wearCountUpdated is map
+        && optionalShortString(data, 'style', 100)
+        && optionalShortString(data, 'notes', 500)
+        && optionalShortString(data, 'weatherSnapshotId', 128)
+        && optionalShortString(data, 'calendarEventId', 128)
+        && data.updatedAt == request.time;
+    }
+
+    match /users/{uid} {
+      allow read: if owns(uid);
+      allow create: if owns(uid)
+        && validUserDocument(uid, request.resource.data)
+        && !('avatar' in request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if owns(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'fullName', 'phone', 'avatar', 'profile', 'timeZone', 'updatedAt'
+        ])
+        && validUserDocument(uid, request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if owns(uid);
+
+      match /wardrobe/{itemId} {
+        allow read: if owns(uid);
+        // New items go through the Worker so paid-plan storage limits cannot be bypassed.
+        allow create: if false;
+        allow update: if owns(uid) && validWardrobeUpdate(uid);
+        allow delete: if owns(uid);
+      }
+
+      match /dailyOutfits/{recordId} {
+        allow read: if owns(uid);
+        allow create: if owns(uid)
+          && recordId == request.resource.data.dateKey
+          && validDailyOutfit(request.resource.data)
+          && request.resource.data.createdAt == request.time;
+        allow update: if owns(uid)
+          && recordId == request.resource.data.dateKey
+          && validDailyOutfit(request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if owns(uid);
+      }
+      match /suggestions/{suggestionId} {
+        allow read: if owns(uid);
+        allow create: if owns(uid)
+          && validSuggestion(request.resource.data)
+          && request.resource.data.status == 'GENERATED'
+          && request.resource.data.createdAt == request.time;
+        allow update: if owns(uid)
+          && validSuggestion(request.resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'confirmedDailyOutfitId', 'updatedAt'
+          ])
+          && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if owns(uid);
+      }
+      match /tryOns/{jobId} {
+        allow read: if owns(uid);
+        allow create: if owns(uid)
+          && validTryOn(uid, request.resource.data)
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.isSaved == false
+          && request.resource.data.isDeleted == false;
+        allow update: if owns(uid)
+          && validTryOn(uid, request.resource.data)
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.clothingItemId == resource.data.clothingItemId
+          && request.resource.data.itemSnapshot == resource.data.itemSnapshot
+          && request.resource.data.personImagePublicId == resource.data.personImagePublicId;
+        allow delete: if owns(uid);
+      }
+      match /weatherSnapshots/{snapshotId} {
+        allow read: if owns(uid);
+        allow create, update: if owns(uid) && snapshotId == 'current' && validWeather(request.resource.data);
+        allow delete: if owns(uid);
+      }
+      match /entitlements/{entitlementId} {
+        allow read: if owns(uid);
+        allow write: if false;
+      }
+      match /payments/{paymentId} {
+        allow read: if owns(uid);
+        allow write: if false;
+      }
+      match /mediaAssets/{assetId} {
+        allow read, delete: if owns(uid);
+      }
+      match /auditEvents/{eventId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /plans/{planId} {
+      allow get, list: if resource.data.isActive == true;
+    }
+
+    match /_billingPayments/{paymentId} {
+      allow read, write: if false;
+    }
+
+    match /_billingWebhookEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /_billingCustomers/{uid} {
+      allow read, write: if false;
+    }
+
+    match /_accountAccess/{uid} {
+      allow read, write: if false;
+    }
+
+    match /_adminAuditEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
