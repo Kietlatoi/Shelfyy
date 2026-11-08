@@ -26,6 +26,8 @@ export default function Avatar({
 
   return (
     <Container
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? 'Đổi ảnh đại diện' : undefined}
       onPress={onPress}
       style={[styles.container, { width: size, height: size }, style]}
     >

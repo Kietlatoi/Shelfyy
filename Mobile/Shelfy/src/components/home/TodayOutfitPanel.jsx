@@ -7,7 +7,7 @@ import { dailyOutfitApi } from '../../api/dailyOutfitApi';
 import AppButton from '../common/AppButton';
 import { colors } from '../../constants/colors';
 import { typography } from '../../constants/typography';
-import { radius, shadows, spacing } from '../../constants/spacing';
+import { radius, spacing } from '../../constants/spacing';
 import { formatDate } from '../../utils/format';
 
 export default function TodayOutfitPanel() {
@@ -46,7 +46,7 @@ export default function TodayOutfitPanel() {
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
           <Ionicons name="shirt" size={20} color={colors.primary} />
-          <Text style={styles.title}>Outfit hôm nay</Text>
+          <Text style={styles.title}>Bộ phối hôm nay</Text>
         </View>
 
         {hasOutfit && (
@@ -96,7 +96,7 @@ export default function TodayOutfitPanel() {
           <View style={styles.emptyIconCircle}>
             <MaterialIcons name="auto-awesome" size={32} color={colors.primary} />
           </View>
-          <Text style={styles.emptyTitle}>Bạn chưa chọn outfit hôm nay</Text>
+          <Text style={styles.emptyTitle}>Một chút cảm hứng mới?</Text>
           <Text style={styles.emptyDesc}>
             Hãy để AI gợi ý trang phục phù hợp theo thời tiết và tủ đồ của bạn.
           </Text>
@@ -108,6 +108,7 @@ export default function TodayOutfitPanel() {
               size="md"
               icon={<MaterialIcons name="auto-awesome" size={18} color={colors.white} />}
               style={styles.suggestBtn}
+              fullWidth={false}
             />
             <AppButton
               title="Mở tủ đồ"
@@ -116,6 +117,7 @@ export default function TodayOutfitPanel() {
               size="md"
               icon={<Ionicons name="shirt-outline" size={18} color={colors.primary} />}
               style={styles.wardrobeBtn}
+              fullWidth={false}
             />
           </View>
         </View>
@@ -131,7 +133,6 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    ...shadows.sm,
     marginBottom: spacing.lg,
   },
   loadingCard: {
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    ...typography.titleMd,
+    ...typography.titleSm,
     color: colors.onSurface,
     marginLeft: spacing.xs,
   },
@@ -203,13 +204,16 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: colors.primaryContainer,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   emptyTitle: {
-    ...typography.titleMd,
+    ...typography.editorialMd,
+    fontSize: 23,
+    lineHeight: 32,
+    textAlign: 'center',
     color: colors.onSurface,
     marginBottom: spacing.xs,
   },

@@ -6,7 +6,7 @@ import { weatherApi } from '../../api/weatherApi';
 import { adaptWeatherSnapshot } from '../../api/adapters';
 import { colors } from '../../constants/colors';
 import { typography } from '../../constants/typography';
-import { radius, shadows, spacing } from '../../constants/spacing';
+import { radius, spacing } from '../../constants/spacing';
 
 export default function WeatherCard({ onWeatherLoaded }) {
   const [weather, setWeather] = useState(null);
@@ -88,6 +88,8 @@ export default function WeatherCard({ onWeatherLoaded }) {
         </View>
 
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Cập nhật thời tiết"
           onPress={() => fetchWeather(true)}
           style={styles.refreshBtn}
           disabled={refreshing}
@@ -144,12 +146,11 @@ export default function WeatherCard({ onWeatherLoaded }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primaryContainer,
     borderRadius: radius.xl,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    ...shadows.sm,
     marginBottom: spacing.lg,
   },
   loadingCard: {
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
   locationRow: {
     flexDirection: 'row',
@@ -178,7 +179,10 @@ const styles = StyleSheet.create({
     marginLeft: spacing.xs,
   },
   refreshBtn: {
-    padding: spacing.xs,
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   locationNotice: {
     ...typography.caption,
@@ -192,10 +196,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   temperature: {
-    fontSize: 40,
-    fontWeight: '800',
+    ...typography.editorialLg,
+    fontSize: 44,
     color: colors.onSurface,
-    lineHeight: 46,
+    lineHeight: 56,
   },
   condition: {
     ...typography.titleMd,
@@ -211,7 +215,7 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: colors.goldLight,
+    backgroundColor: colors.surfaceContainerLow,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -219,10 +223,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: colors.surfaceVariant,
+    backgroundColor: colors.transparent,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 0,
   },
   metricItem: {
     flexDirection: 'row',

@@ -11,12 +11,12 @@ export const CATEGORIES = [
 ];
 
 export const CATEGORY_MAP = {
-  TOP: { label: 'Áo', icon: 'checkroom', color: '#6366f1' },
+  TOP: { label: 'Áo', icon: 'checkroom', color: '#2e483a' },
   BOTTOM: { label: 'Quần', icon: 'airline-seat-legroom-reduced', color: '#3b82f6' },
   DRESS: { label: 'Váy', icon: 'dry-cleaning', color: '#ec4899' },
   SHOES: { label: 'Giày', icon: 'snowshoeing', color: '#10b981' },
   BAG: { label: 'Túi', icon: 'shopping-bag', color: '#f59e0b' },
-  ACCESSORY: { label: 'Phụ kiện', icon: 'watch', color: '#8b5cf6' },
+  ACCESSORY: { label: 'Phụ kiện', icon: 'watch', color: '#53633c' },
   OUTERWEAR: { label: 'Áo khoác', icon: 'layers', color: '#64748b' },
   OTHER: { label: 'Khác', icon: 'category', color: '#94a3b8' },
 };

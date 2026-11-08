@@ -19,6 +19,7 @@ import { uploadApi } from '../../../src/api/uploadApi';
 import { subscriptionApi } from '../../../src/api/subscriptionApi';
 import { wardrobeApi } from '../../../src/api/wardrobeApi';
 import Avatar from '../../../src/components/common/Avatar';
+import ScreenHeader from '../../../src/components/common/ScreenHeader';
 import AppButton from '../../../src/components/common/AppButton';
 import AppInput from '../../../src/components/common/AppInput';
 import LoadingOverlay from '../../../src/components/common/LoadingOverlay';
@@ -189,19 +190,22 @@ export default function ProfileScreen() {
       <LoadingOverlay visible={loading} message={loadingMsg} />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScreenHeader eyebrow="KHÔNG GIAN CỦA BẠN" title="Gu riêng, là bạn." />
         {/* Profile Card Header */}
         <View style={styles.profileCard}>
-          <Avatar
-            uri={user?.avatarUrl}
-            name={user?.fullName || user?.email}
-            size={84}
-            showEditBadge
-            onPress={handleChangeAvatar}
-            style={styles.avatar}
-          />
-
-          <Text style={styles.fullName}>{user?.fullName || 'Người dùng Shelfy'}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
+          <View style={styles.profileIdentity}>
+            <Avatar
+              uri={user?.avatarUrl}
+              name={user?.fullName || user?.email}
+              size={68}
+              showEditBadge
+              onPress={handleChangeAvatar}
+            />
+            <View style={styles.identityCopy}>
+              <Text style={styles.fullName}>{user?.fullName || 'Người dùng Shelfy'}</Text>
+              <Text style={styles.email}>{user?.email}</Text>
+            </View>
+          </View>
 
           <View style={styles.planBadge}>
             <MaterialIcons
@@ -262,9 +266,11 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        <Text style={styles.sectionLabel}>TỦ ĐỒ & TRẢI NGHIỆM</Text>
         {/* Menu Section */}
         <View style={styles.menuSection}>
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/(tabs)/profile/favorites')}
             style={styles.menuItem}
           >
@@ -278,6 +284,7 @@ export default function ProfileScreen() {
           <View style={styles.menuDivider} />
 
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/(tabs)/profile/wear-history')}
             style={styles.menuItem}
           >
@@ -291,6 +298,7 @@ export default function ProfileScreen() {
           <View style={styles.menuDivider} />
 
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/(tabs)/profile/premium')}
             style={styles.menuItem}
           >
@@ -309,6 +317,7 @@ export default function ProfileScreen() {
           <View style={styles.menuDivider} />
 
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/(tabs)/profile/payment-history')}
             style={styles.menuItem}
           >
@@ -321,7 +330,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuSection}>
-          <Pressable onPress={() => router.push('/(tabs)/profile/review')} style={styles.menuItem}>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/profile/review')} style={styles.menuItem}>
             <View style={[styles.menuIconCircle, { backgroundColor: colors.goldLight }]}>
               <MaterialIcons name="star" size={20} color={colors.gold} />
             </View>
@@ -330,9 +339,11 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
+        <Text style={styles.sectionLabel}>TÀI KHOẢN</Text>
         {/* Account Settings Menu */}
         <View style={styles.menuSection}>
           <Pressable
+            accessibilityRole="button"
             onPress={() => {
               setNewName(user?.fullName || '');
               setNameModalVisible(true);
@@ -349,6 +360,7 @@ export default function ProfileScreen() {
           <View style={styles.menuDivider} />
 
           <Pressable
+            accessibilityRole="button"
             onPress={() => {
               setPasswordError('');
               setPasswordModalVisible(true);
@@ -496,22 +508,21 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    padding: spacing.lg,
     paddingBottom: spacing['4xl'],
   },
   profileCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.primaryContainer,
     borderRadius: radius.xl,
     padding: spacing.xl,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginHorizontal: spacing.xl,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    ...shadows.sm,
     marginBottom: spacing.lg,
   },
-  avatar: {
-    marginBottom: spacing.md,
-  },
+  profileIdentity: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg, width: '100%' },
+  identityCopy: { flex: 1, minWidth: 0 },
+  sectionLabel: { ...typography.eyebrow, color: colors.secondary, marginHorizontal: spacing.xl, marginBottom: spacing.md },
   fullName: {
     ...typography.headlineSm,
     color: colors.onSurface,
@@ -525,7 +536,7 @@ const styles = StyleSheet.create({
   planBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryContainer,
+    backgroundColor: colors.accent,
     paddingHorizontal: spacing.md,
     paddingVertical: 4,
     borderRadius: radius.full,
@@ -538,12 +549,12 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   statsCard: {
+    marginHorizontal: spacing.xl,
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    ...shadows.sm,
     marginBottom: spacing.lg,
   },
   statsCardTitle: {
@@ -585,18 +596,19 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   menuSection: {
+    marginHorizontal: spacing.xl,
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.borderSubtle,
-    ...shadows.sm,
     marginBottom: spacing.lg,
     overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
+    padding: spacing.lg,
+    minHeight: 68,
   },
   menuIconCircle: {
     width: 38,
@@ -639,7 +651,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    backgroundColor: colors.darkOverlay,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
@@ -664,6 +676,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   modalBtn: {
-    minWidth: 100,
+    flex: 1,
+    width: 'auto',
+    minWidth: 0,
   },
 });

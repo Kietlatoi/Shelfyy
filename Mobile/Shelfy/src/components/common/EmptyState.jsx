@@ -45,14 +45,16 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 88,
     height: 88,
-    borderRadius: 44,
+    borderRadius: 24,
     backgroundColor: colors.primaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
   title: {
-    ...typography.titleLg,
+    ...typography.editorialMd,
+    fontSize: 24,
+    lineHeight: 34,
     color: colors.onSurface,
     textAlign: 'center',
     marginBottom: spacing.xs,

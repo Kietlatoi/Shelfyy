@@ -1,0 +1,28 @@
+{
+  "buildId": "18cf542a-796c-4ae3-9827-23f0e5060a88",
+  "buildUrl": "https://expo.dev/accounts/duongminhkiet/projects/Shelfy/builds/18cf542a-796c-4ae3-9827-23f0e5060a88",
+  "profile": "production",
+  "channel": "GOOGLE_PLAY",
+  "paymentProvider": "GOOGLE_PLAY",
+  "package": "com.duongminhkiet.shelfy",
+  "version": "1.0.2",
+  "versionCode": 7,
+  "status": "FINISHED",
+  "path": "D:\\project\\Shelfy\\Shelfyy\\artifacts\\Shelfy-GooglePlay-1.0.2-v7.aab",
+  "bytes": 76980260,
+  "sha256": "E562166BCB8B417F3FFABEAF55C32B439364CDE4F5ACDD9AE163CBE3C46598D6",
+  "signingCertificateSha256": "3775f0a534fb2308087b2c52787ed3fbc7a169fb9010c8e90763e154d1ad871f",
+  "downloadUrl": "https://expo.dev/artifacts/eas/o3ZFq4Io5RSIuWuAAQ_r-OrIwonMCRo2NSQxA-b4ytU.aab",
+  "uploadedToStore": false,
+  "validation": {
+    "manifestChecked": true,
+    "signatureVerified": true,
+    "distributionFlagCheckedInHermesBytecode": true,
+    "brandFontsBundled": true,
+    "mobileTestsPassed": 54,
+    "lintPassed": true,
+    "agentNativeSmokeTestCompleted": false,
+    "manualTestReportedByUser": true,
+    "newReleaseBinaryDeviceTested": false
+  }
+}

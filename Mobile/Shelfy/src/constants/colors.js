@@ -1,38 +1,39 @@
 export const colors = {
-  // Primary
-  primary: '#6366f1',          // Indigo 500
-  primaryLight: '#818cf8',     // Indigo 400
-  primaryDark: '#4f46e5',      // Indigo 600
-  primaryContainer: '#e0e7ff',  // Indigo 100
-  onPrimaryContainer: '#312e81', // Indigo 900
+  // Shelfy Studio: forest ink, sage surfaces, and a restrained lime accent.
+  primary: '#2e483a',
+  primaryLight: '#667b65',
+  primaryDark: '#18201d',
+  primaryContainer: '#dee5df',
+  onPrimaryContainer: '#263b2e',
   onPrimary: '#ffffff',
 
   // Secondary
-  secondary: '#8b5cf6',        // Violet 500
-  secondaryLight: '#a78bfa',   // Violet 400
-  secondaryDark: '#7c3aed',    // Violet 600
-  secondaryContainer: '#ede9fe', // Violet 100
-  onSecondaryContainer: '#4c1d95',
+  secondary: '#53633c',
+  secondaryLight: '#86966e',
+  secondaryDark: '#354226',
+  secondaryContainer: '#e8eddc',
+  onSecondaryContainer: '#354226',
   onSecondary: '#ffffff',
 
   // Accent & Premium
-  accent: '#ec4899',           // Pink 500
+  accent: '#d6f268',
+  onAccent: '#18201d',
   gold: '#f59e0b',             // Amber 500
   goldLight: '#fef3c7',
 
   // Surface & Background
-  background: '#f8fafc',       // Slate 50
+  background: '#f4f5f2',
   surface: '#ffffff',
-  surfaceVariant: '#f1f5f9',   // Slate 100
-  surfaceDim: '#e2e8f0',       // Slate 200
-  surfaceContainerLow: '#faf5ff',
-  surfaceContainerHigh: '#f3e8ff',
+  surfaceVariant: '#edf0e9',
+  surfaceDim: '#dee5df',
+  surfaceContainerLow: '#f8f9f5',
+  surfaceContainerHigh: '#e6ecdf',
 
   // Text
-  onSurface: '#0f172a',        // Slate 900
-  onSurfaceMedium: '#334155',  // Slate 700
-  onSurfaceVariant: '#64748b', // Slate 500
-  onSurfaceDisabled: '#94a3b8',// Slate 400
+  onSurface: '#18201d',
+  onSurfaceMedium: '#3d4d42',
+  onSurfaceVariant: '#5f6b61',
+  onSurfaceDisabled: '#7d877e',
 
   // Status
   success: '#10b981',          // Emerald 500
@@ -49,43 +50,44 @@ export const colors = {
   onInfo: '#1e40af',
 
   // Border & Dividers
-  borderSubtle: '#e2e8f0',     // Slate 200
-  borderMedium: '#cbd5e1',     // Slate 300
-  borderFocus: '#6366f1',
+  borderSubtle: '#dce2d8',
+  borderMedium: '#b8c4b4',
+  borderFocus: '#2e483a',
 
   // Special Overlays
   cardOverlay: 'rgba(255, 255, 255, 0.85)',
-  darkOverlay: 'rgba(15, 23, 42, 0.6)',
+  darkOverlay: 'rgba(24, 32, 29, 0.6)',
   white: '#ffffff',
   black: '#000000',
   transparent: 'transparent',
 };
 
 export const darkColors = {
-  primary: '#818cf8',
-  primaryLight: '#a5b4fc',
-  primaryDark: '#6366f1',
-  primaryContainer: '#312e81',
-  onPrimaryContainer: '#e0e7ff',
-  onPrimary: '#0f172a',
+  primary: '#b6cfad',
+  primaryLight: '#d4e5cc',
+  primaryDark: '#91b185',
+  primaryContainer: '#2e483a',
+  onPrimaryContainer: '#dee5df',
+  onPrimary: '#18201d',
 
-  secondary: '#a78bfa',
-  secondaryLight: '#c4b5fd',
-  secondaryDark: '#8b5cf6',
-  secondaryContainer: '#4c1d95',
-  onSecondaryContainer: '#ede9fe',
-  onSecondary: '#0f172a',
+  secondary: '#c4d598',
+  secondaryLight: '#e1edc4',
+  secondaryDark: '#9cae73',
+  secondaryContainer: '#354226',
+  onSecondaryContainer: '#e8eddc',
+  onSecondary: '#18201d',
 
-  accent: '#f472b6',
+  accent: '#d6f268',
+  onAccent: '#18201d',
   gold: '#fbbf24',
   goldLight: '#78350f',
 
-  background: '#0a0915',
-  surface: '#131127',
-  surfaceVariant: '#1e1a38',
-  surfaceDim: '#27234a',
-  surfaceContainerLow: '#171431',
-  surfaceContainerHigh: '#211d43',
+  background: '#111914',
+  surface: '#1b251e',
+  surfaceVariant: '#273329',
+  surfaceDim: '#364337',
+  surfaceContainerLow: '#202c23',
+  surfaceContainerHigh: '#2e3d31',
 
   onSurface: '#f8fafc',
   onSurfaceMedium: '#cbd5e1',
@@ -105,11 +107,11 @@ export const darkColors = {
   infoLight: '#1e3a8a',
   onInfo: '#bfdbfe',
 
-  borderSubtle: '#27234a',
-  borderMedium: '#383262',
-  borderFocus: '#818cf8',
+  borderSubtle: '#364337',
+  borderMedium: '#52634d',
+  borderFocus: '#b6cfad',
 
-  cardOverlay: 'rgba(19, 17, 39, 0.85)',
+  cardOverlay: 'rgba(27, 37, 30, 0.85)',
   darkOverlay: 'rgba(0, 0, 0, 0.75)',
   white: '#ffffff',
   black: '#000000',

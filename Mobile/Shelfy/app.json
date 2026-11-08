@@ -3,7 +3,7 @@
     "name": "Shelfy",
     "slug": "Shelfy",
     "scheme": "shelfy",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/image.png",
     "userInterfaceStyle": "light",
@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E9DFFC",
+        "backgroundColor": "#F4F5F2",
         "foregroundImage": "./assets/image.png"
       }
     },

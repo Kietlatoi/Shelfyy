@@ -19,9 +19,11 @@ import WardrobeFilters from '../../../src/components/wardrobe/WardrobeFilters';
 import WardrobeStats from '../../../src/components/wardrobe/WardrobeStats';
 import AppInput from '../../../src/components/common/AppInput';
 import EmptyState from '../../../src/components/common/EmptyState';
+import ErrorBanner from '../../../src/components/common/ErrorBanner';
+import ScreenHeader from '../../../src/components/common/ScreenHeader';
 import { colors } from '../../../src/constants/colors';
 import { typography } from '../../../src/constants/typography';
-import { spacing, shadows } from '../../../src/constants/spacing';
+import { spacing, shadows, radius } from '../../../src/constants/spacing';
 
 export default function WardrobeScreen() {
   const [items, setItems] = useState([]);
@@ -33,9 +35,12 @@ export default function WardrobeScreen() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+  const hasFilters = category !== 'ALL' || Boolean(searchQuery.trim());
 
   const fetchItems = useCallback(async (pageToFetch = 0, isRefresh = false) => {
     try {
+      setError('');
       if (pageToFetch === 0 && !isRefresh) setLoading(true);
 
       const res = await wardrobeApi.getItems({
@@ -80,8 +85,8 @@ export default function WardrobeScreen() {
         setItems((prev) => [...prev, ...merged]);
       }
       setPage(pageToFetch);
-    } catch (err) {
-      console.warn('Error fetching wardrobe items:', err);
+    } catch {
+      setError('Không thể tải tủ đồ. Kiểm tra kết nối mạng và thử lại.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -150,10 +155,11 @@ export default function WardrobeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <ScreenHeader eyebrow="BỘ SƯU TẬP CỦA BẠN" title="Tủ đồ riêng." subtitle="Mỗi món đồ, một cách để kể câu chuyện của bạn." />
       {/* Search Header */}
       <View style={styles.searchHeader}>
         <AppInput
-          placeholder="Tìm kiếm theo tên, thương hiệu..."
+          placeholder="Tìm tên món đồ, thương hiệu..."
           value={searchQuery}
           onChangeText={setSearchQuery}
           containerStyle={styles.searchInputContainer}
@@ -188,6 +194,12 @@ export default function WardrobeScreen() {
       {/* Wardrobe Stats bar */}
       <WardrobeStats stats={stats} totalCount={items.length} />
 
+      {error && items.length > 0 ? (
+        <View style={styles.filtersContainer}>
+          <ErrorBanner message={`${error} Kéo xuống để tải lại.`} />
+        </View>
+      ) : null}
+
       {/* Grid of Items */}
       {loading && items.length === 0 ? (
         <View style={styles.loadingContainer}>
@@ -211,6 +223,7 @@ export default function WardrobeScreen() {
           }
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.4}
+          keyboardShouldPersistTaps="handled"
           ListFooterComponent={
             loadingMore ? (
               <View style={styles.footerLoader}>
@@ -220,7 +233,19 @@ export default function WardrobeScreen() {
           }
           ListEmptyComponent={
             !loading ? (
-              <EmptyState
+              error ? <EmptyState
+                icon="wifi-off"
+                title="Chưa tải được tủ đồ"
+                description={error}
+                actionTitle="Thử lại"
+                onAction={() => fetchItems(0)}
+              /> : hasFilters ? <EmptyState
+                icon="search-off"
+                title="Không tìm thấy món đồ phù hợp"
+                description="Thử từ khóa khác hoặc xóa bộ lọc để xem lại toàn bộ tủ đồ."
+                actionTitle="Xóa bộ lọc"
+                onAction={() => { setCategory('ALL'); setSearchQuery(''); }}
+              /> : <EmptyState
                 icon="checkroom"
                 title="Tủ đồ của bạn còn trống"
                 description="Bắt đầu thêm các món đồ yêu thích để khám phá các gợi ý phối đồ từ Shelfy!"
@@ -235,7 +260,7 @@ export default function WardrobeScreen() {
       {/* Floating Action Button (FAB) */}
       <Pressable
         onPress={() => router.push('/(tabs)/wardrobe/add')}
-        style={styles.fab}
+        accessibilityRole="button" accessibilityLabel="Thêm món đồ" style={styles.fab}
       >
         <MaterialIcons name="add" size={28} color={colors.white} />
       </Pressable>
@@ -249,7 +274,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   searchHeader: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
     paddingTop: spacing.xs,
   },
   searchInputContainer: {
@@ -285,10 +310,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: spacing.xl,
     right: spacing.xl,
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: colors.primary,
+    width: 56,
+    height: 56,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
     ...shadows.glow(colors.primary),

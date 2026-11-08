@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../constants/colors';
 import { typography } from '../../constants/typography';
 import { radius, spacing } from '../../constants/spacing';
@@ -13,61 +12,27 @@ export default function WardrobeStats({ stats, totalCount = 0 }) {
   return (
     <View style={styles.container}>
       <View style={styles.statItem}>
-        <MaterialIcons name="inventory" size={16} color={colors.primary} />
-        <Text style={styles.statText}>
-          Tổng số: <Text style={styles.statBold}>{total}</Text> món
-        </Text>
+        <Text style={styles.statValue}>{total}</Text>
+        <Text style={styles.statText}>Món trong tủ</Text>
       </View>
-
       <View style={styles.divider} />
-
       <View style={styles.statItem}>
-        <MaterialIcons name="check-circle" size={16} color={colors.success} />
-        <Text style={styles.statText}>
-          Đã mặc: <Text style={styles.statBold}>{worn}</Text>
-        </Text>
+        <Text style={styles.statValue}>{worn}</Text>
+        <Text style={styles.statText}>Đã mặc</Text>
       </View>
-
       <View style={styles.divider} />
-
       <View style={styles.statItem}>
-        <MaterialIcons name="cloud-queue" size={16} color={colors.secondary} />
-        <Text style={styles.statText}>
-          Lưu trữ: <Text style={styles.statBold}>{storageLimit < 0 ? `${total} · Không giới hạn` : `${total}/${storageLimit}`}</Text>
-        </Text>
+        <Text style={styles.statValue}>{storageLimit < 0 ? '∞' : storageLimit}</Text>
+        <Text style={styles.statText}>Hạn mức lưu trữ</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.surfaceVariant,
-    borderRadius: radius.md,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  statText: {
-    ...typography.caption,
-    color: colors.onSurfaceVariant,
-  },
-  statBold: {
-    fontWeight: '700',
-    color: colors.onSurface,
-  },
-  divider: {
-    width: 1,
-    height: 14,
-    backgroundColor: colors.borderMedium,
-  },
+  container: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primaryContainer, borderRadius: radius.lg, marginHorizontal: spacing.xl, marginVertical: spacing.md, paddingVertical: spacing.md },
+  statItem: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.xs, gap: spacing.xs },
+  statValue: { ...typography.headlineSm, color: colors.onSurface, fontVariant: ['tabular-nums'] },
+  statText: { ...typography.caption, textAlign: 'center', color: colors.onSurfaceMedium },
+  divider: { width: 1, height: 32, backgroundColor: colors.borderMedium },
 });

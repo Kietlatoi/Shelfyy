@@ -54,6 +54,9 @@ export default function AppButton({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
       onPress={onPress}
       disabled={isDisabled}
       style={getContainerStyle}
@@ -91,7 +94,7 @@ export default function AppButton({
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -103,6 +106,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 1,
   },
   iconLeft: {
     marginRight: spacing.sm,
@@ -115,7 +119,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.99 }],
   },
   disabled: {
-    opacity: 0.5,
+    backgroundColor: colors.surfaceDim,
   },
   // Variants
   primary: {
@@ -139,12 +143,12 @@ const styles = StyleSheet.create({
   size_sm: {
     paddingVertical: spacing.xs + 2,
     paddingHorizontal: spacing.md,
-    minHeight: 36,
+    minHeight: 44,
   },
   size_md: {
     paddingVertical: spacing.sm + 4,
     paddingHorizontal: spacing.lg,
-    minHeight: 46,
+    minHeight: 50,
   },
   size_lg: {
     paddingVertical: spacing.md,

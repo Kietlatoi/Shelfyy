@@ -17,6 +17,7 @@ import { trialApi } from '../../src/api/trialApi';
 import { wardrobeApi } from '../../src/api/wardrobeApi';
 import { uploadApi } from '../../src/api/uploadApi';
 import AppButton from '../../src/components/common/AppButton';
+import ScreenHeader from '../../src/components/common/ScreenHeader';
 import LoadingOverlay from '../../src/components/common/LoadingOverlay';
 import TrialHistoryCard from '../../src/components/common/TrialHistoryCard';
 import { useTrialHistory } from '../../src/hooks/useTrialHistory';
@@ -213,18 +214,13 @@ export default function TrialScreen() {
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <LoadingOverlay visible={processing} message={jobStatus || 'Đang xử lý...'} />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Thử đồ ảo AI</Text>
-        <Text style={styles.headerSubtitle}>
-          Xem trước trang phục trên dáng người của bạn
-        </Text>
-      </View>
+      <ScreenHeader eyebrow="PHÒNG THỬ CỦA RIÊNG BẠN" title="Thử một diện mạo mới." subtitle="Chọn ảnh, chọn trang phục. Để Shelfy gợi mở." />
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Step Cards Row */}
         <View style={styles.selectorRow}>
           {/* Person Image Card */}
-          <Pressable onPress={showPortraitOptions} style={styles.selectorCard}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Chọn ảnh của bạn" onPress={showPortraitOptions} style={styles.selectorCard}>
             {personImageUri ? (
               <View style={styles.thumbWrapper}>
                 <Image source={{ uri: personImageUri }} style={styles.thumbImage} contentFit="cover" />
@@ -237,6 +233,7 @@ export default function TrialScreen() {
                 <View style={styles.iconCircle}>
                   <MaterialIcons name="person" size={28} color={colors.primary} />
                 </View>
+                <Text style={styles.stepNumber}>01</Text>
                 <Text style={styles.selectorLabel}>Ảnh của bạn</Text>
                 <Text style={styles.selectorPrompt}>Nhấn để chụp / chọn</Text>
               </View>
@@ -245,6 +242,7 @@ export default function TrialScreen() {
 
           {/* Clothing Item Card */}
           <Pressable
+            accessibilityRole="button" accessibilityLabel="Chọn trang phục từ tủ đồ"
             onPress={() => setItemPickerVisible(true)}
             style={styles.selectorCard}
           >
@@ -264,11 +262,17 @@ export default function TrialScreen() {
                 <View style={styles.iconCircle}>
                   <Ionicons name="shirt-outline" size={26} color={colors.secondary} />
                 </View>
-                <Text style={styles.selectorLabel}>Chọn trang phục</Text>
+                <Text style={styles.stepNumber}>02</Text>
+                <Text style={styles.selectorLabel}>Trang phục</Text>
                 <Text style={styles.selectorPrompt}>Chọn từ tủ đồ</Text>
               </View>
             )}
           </Pressable>
+        </View>
+
+        <View style={styles.photoTip}>
+          <MaterialIcons name="lightbulb-outline" size={20} color={colors.secondary} />
+          <Text style={styles.photoTipText}>Ảnh rõ người, đủ sáng sẽ giúp AI hình dung trang phục tốt hơn.</Text>
         </View>
 
         {/* Start Button */}
@@ -280,6 +284,8 @@ export default function TrialScreen() {
           icon={<MaterialIcons name="auto-fix-high" size={20} color={colors.white} />}
           style={styles.startBtn}
         />
+
+        <Text style={styles.aiNote}>Kết quả AI mang tính tham khảo về hình ảnh, không bảo đảm độ vừa vặn thực tế.</Text>
 
         {/* Try-on Result Card */}
         {result && (
@@ -324,7 +330,7 @@ export default function TrialScreen() {
         )}
 
         {/* Recent Try-on History */}
-        {(history.length > 0 || historyError) && (
+        {(history.length > 0 || Boolean(historyError)) && (
           <View style={styles.historySection}>
             <View style={styles.historyHeader}>
               <Text style={styles.sectionTitle}>Lịch sử thử đồ gần đây</Text>
@@ -348,12 +354,12 @@ export default function TrialScreen() {
       </ScrollView>
 
       {/* Item Picker Modal */}
-      <Modal visible={itemPickerVisible} animationType="slide" transparent>
+      <Modal visible={itemPickerVisible} animationType="slide" transparent onRequestClose={() => setItemPickerVisible(false)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Chọn trang phục thử đồ</Text>
-              <Pressable onPress={() => setItemPickerVisible(false)}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Đóng chọn trang phục" hitSlop={12} onPress={() => setItemPickerVisible(false)}>
                 <MaterialIcons name="close" size={24} color={colors.onSurface} />
               </Pressable>
             </View>
@@ -370,6 +376,8 @@ export default function TrialScreen() {
                 contentContainerStyle={styles.pickerGrid}
                 renderItem={({ item }) => (
                   <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Chọn ${item.name || 'món đồ'}`}
                     onPress={() => {
                       setSelectedItem(item);
                       setItemPickerVisible(false);
@@ -406,28 +414,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.sm,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderSubtle,
-  },
-  headerTitle: {
-    ...typography.headlineSm,
-    color: colors.onSurface,
-    fontWeight: '700',
-  },
-  headerSubtitle: {
-    ...typography.bodySm,
-    color: colors.onSurfaceVariant,
-    marginTop: 2,
-  },
   scrollContent: {
-    padding: spacing.lg,
+    padding: spacing.xl,
+    paddingTop: spacing.xs,
     paddingBottom: spacing['4xl'],
   },
+  stepNumber: { ...typography.eyebrow, color: colors.secondary, marginBottom: spacing.xs },
+  photoTip: { flexDirection: 'row', gap: spacing.sm, backgroundColor: colors.primaryContainer, padding: spacing.md, borderRadius: radius.md, marginBottom: spacing.lg },
+  photoTipText: { ...typography.bodySm, color: colors.onSurfaceMedium, flex: 1, lineHeight: 20 },
+  aiNote: { ...typography.caption, color: colors.onSurfaceVariant, textAlign: 'center', marginTop: -spacing.md, marginBottom: spacing.xl, lineHeight: 18 },
   selectorRow: {
     flexDirection: 'row',
     gap: spacing.md,
@@ -438,7 +433,7 @@ const styles = StyleSheet.create({
     aspectRatio: 0.8,
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.borderSubtle,
     overflow: 'hidden',
     ...shadows.sm,
@@ -476,7 +471,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: colors.primaryContainer,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
