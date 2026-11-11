@@ -45,7 +45,7 @@ function paymentFields(document) {
   return {
     orderCode: String(value.orderCode || document.id),
     provider: value.provider || 'PAYOS',
-    isTest: Boolean(value.isTest),
+    isTest: typeof value.isTest === 'boolean' ? value.isTest : null,
     entitlementReviewRequired: Boolean(value.entitlementReviewRequired),
     productId: value.productId || null,
     uid: value.uid || null,
@@ -53,6 +53,7 @@ function paymentFields(document) {
     planId: value.planId || '',
     planName: value.planName || value.planId || '',
     price: Number(value.price || 0),
+    catalogPrice: value.catalogPrice ?? value.price ?? null,
     amountPaid: Number(value.amountPaid || 0),
     currency: value.currency || 'VND',
     status: value.status || 'FAILED',
@@ -60,6 +61,7 @@ function paymentFields(document) {
     providerReference: value.providerReference || null,
     createdAt: value.createdAt || document.createTime,
     expiresAt: value.expiresAt || null,
+    entitlementExpiresAt: value.entitlementExpiresAt || null,
     paidAt: value.paidAt || null,
     cancelledAt: value.cancelledAt || null,
     updatedAt: value.updatedAt || document.updateTime,
@@ -149,7 +151,11 @@ export async function getAdminSummary(env, url, dependencies = {}) {
     ...(start ? [query.fieldFilter(field, 'GREATER_THAN_OR_EQUAL', timestamp ? new Date(start) : start)] : []),
     query.fieldFilter(field, 'LESS_THAN_OR_EQUAL', timestamp ? new Date(end) : end),
   );
-  const transactionQuery = { from: [{ collectionId: '_billingPayments' }], where: range('createdAt', window.start, window.end) };
+  const transactionQuery = {
+    from: [{ collectionId: '_billingPayments' }],
+    where: query.and(query.fieldFilter('status', 'IN', [...PAYMENT_STATUSES]), range('createdAt', window.start, window.end)),
+    orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }],
+  };
   const paidQuery = { from: [{ collectionId: '_billingPayments' }], where: query.and(query.fieldFilter('status', 'EQUAL', 'PAID'), range('paidAt', window.start, window.end)), orderBy: [{ field: { fieldPath: 'paidAt' }, direction: 'DESCENDING' }] };
   const sumAndCount = [{ alias: 'revenue', type: 'sum', fieldPath: 'amountPaid' }, { alias: 'count', type: 'count' }];
   const activity = async (collectionId) => {
@@ -159,7 +165,7 @@ export async function getAdminSummary(env, url, dependencies = {}) {
     } catch { return null; }
   };
   const [transactions, paid, totalUsers, adminProfile, transactionTotals, paidTotals, newUsers, ratings, wardrobe, tryOns, suggestions, dailyOutfits, previous] = await Promise.all([
-    run(env, { ...transactionQuery, orderBy: [{ field: { fieldPath: 'createdAt' }, direction: 'DESCENDING' }], limit: 10001 }),
+    run(env, { ...transactionQuery, limit: 10001 }),
     run(env, { ...paidQuery, orderBy: [{ field: { fieldPath: 'paidAt' }, direction: 'DESCENDING' }], limit: 10001 }),
     count(env, 'users'), get(env, `users/${required(env, 'ADMIN_UID')}`),
     aggregate(env, transactionQuery, [{ alias: 'count', type: 'count' }]),
@@ -336,7 +342,7 @@ export async function updateAdminUserAccess(env, admin, uid, body) {
 function paymentFilters(url) {
   const period = periodFromUrl(url);
   const status = String(url.searchParams.get('status') || '').toUpperCase();
-  if (status && !PAYMENT_STATUSES.has(status)) throw apiError(400, 'INVALID_STATUS', 'Trạng thái giao dịch không hợp lệ.');
+  if (status && status !== 'GRANTED' && !PAYMENT_STATUSES.has(status)) throw apiError(400, 'INVALID_STATUS', 'Trạng thái giao dịch không hợp lệ.');
   return { period, status: status || null, cutoff: cutoffFor(period) };
 }
 
@@ -358,9 +364,9 @@ export async function getAdminPayments(env, url) {
   };
 }
 
-export async function getAdminPayment(env, orderCode) {
-  if (!/^(\d{10,16}|gp_[a-f0-9]{64})$/.test(orderCode)) throw apiError(400, 'INVALID_ORDER_CODE', 'Mã đơn hàng không hợp lệ.');
-  const payment = await getDocument(env, `_billingPayments/${orderCode}`);
+export async function getAdminPayment(env, orderCode, get = getDocument) {
+  if (!/^(\d{10,16}|gp_[a-f0-9]{64}|grant_[a-f0-9]{32})$/.test(orderCode)) throw apiError(400, 'INVALID_ORDER_CODE', 'Mã đơn hàng không hợp lệ.');
+  const payment = await get(env, `_billingPayments/${orderCode}`);
   if (!payment) throw apiError(404, 'PAYMENT_NOT_FOUND', 'Không tìm thấy giao dịch.');
   return paymentFields(payment);
 }

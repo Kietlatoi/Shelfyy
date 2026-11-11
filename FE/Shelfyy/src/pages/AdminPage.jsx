@@ -19,7 +19,8 @@ const periods = [
   { value: '90d', label: '90 ngày' },
   { value: 'all', label: 'Tất cả' },
 ];
-const paymentStatuses = ['', 'CREATING', 'PENDING', 'PAID', 'CANCELLED', 'EXPIRED', 'FAILED', 'REVIEW', 'REFUNDED'];
+const paymentStatuses = ['', 'CREATING', 'PENDING', 'PAID', 'CANCELLED', 'EXPIRED', 'FAILED', 'REVIEW', 'REFUNDED', 'GRANTED'];
+const statusLabel = (value) => value === 'GRANTED' ? 'Cấp PRO thử' : value;
 
 function money(value) {
   return new Intl.NumberFormat('vi-VN', {
@@ -42,8 +43,9 @@ function Status({ value }) {
     REVIEW: 'bg-violet-50 text-violet-700', FAILED: 'bg-rose-50 text-rose-700',
     CANCELLED: 'bg-slate-100 text-slate-700', EXPIRED: 'bg-slate-100 text-slate-700',
     REFUNDED: 'bg-sky-50 text-sky-700', CREATING: 'bg-blue-50 text-blue-700',
+    GRANTED: 'bg-indigo-50 text-indigo-700',
   };
-  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${tones[value] || 'bg-slate-100 text-slate-700'}`}>{value || '—'}</span>;
+  return <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${tones[value] || 'bg-slate-100 text-slate-700'}`}>{statusLabel(value) || '—'}</span>;
 }
 
 function Loading() {
@@ -126,7 +128,7 @@ function Payments({ onSelect }) {
     setError('');
     try { await adminApi.exportPayments({ period, status }); } catch (reason) { setError(reason.message); } finally { setExporting(false); }
   };
-  return <section><div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Giao dịch</h1><p className="mt-1 text-sm text-slate-500">Theo dõi và đối soát thanh toán PayOS và Google Play.</p></div><button className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white disabled:opacity-60" disabled={exporting} onClick={exportCsv}><MaterialIcon name="download" size={18} />{exporting ? 'Đang xuất…' : 'Xuất CSV'}</button></div><div className="my-6 flex flex-wrap gap-3"><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setPeriod(event.target.value); }} value={period}>{periods.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setStatus(event.target.value); }} value={status}>{paymentStatuses.map((item) => <option key={item || 'all'} value={item}>{item || 'Tất cả trạng thái'}</option>)}</select></div><ErrorBox message={error} /><div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">{!data ? <Loading /> : <><PaymentTable onSelect={onSelect} rows={data.content} /><Pagination onChange={setPage} page={data.page} totalPages={data.totalPages} /></>}</div></section>;
+  return <section><div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-2xl font-extrabold">Giao dịch</h1><p className="mt-1 text-sm text-slate-500">Theo dõi thanh toán PayOS, Google Play và các lượt cấp gói thử.</p></div><button className="inline-flex h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white disabled:opacity-60" disabled={exporting} onClick={exportCsv}><MaterialIcon name="download" size={18} />{exporting ? 'Đang xuất…' : 'Xuất CSV'}</button></div><div className="my-6 flex flex-wrap gap-3"><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setPeriod(event.target.value); }} value={period}>{periods.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select><select className="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold" onChange={(event) => { setPage(0); setStatus(event.target.value); }} value={status}>{paymentStatuses.map((item) => <option key={item || 'all'} value={item}>{statusLabel(item) || 'Tất cả trạng thái'}</option>)}</select></div><ErrorBox message={error} /><div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">{!data ? <Loading /> : <><PaymentTable onSelect={onSelect} rows={data.content} /><Pagination onChange={setPage} page={data.page} totalPages={data.totalPages} /></>}</div></section>;
 }
 
 function Drawer({ title, onClose, children }) {
@@ -179,16 +181,33 @@ function PaymentDrawer({ orderCode, onClose, onUpdated }) {
       setBusy(false);
     }
   };
+  const granted = payment?.status === 'GRANTED';
+  const catalogPrice = payment?.catalogPrice === undefined ? payment?.price : payment.catalogPrice;
   const facts = payment ? [
-    ['Email', payment.buyerEmail || 'Đã ẩn danh'], ['UID', payment.uid || '—'],
-    ['Gói', payment.planId], ['Giá niêm yết', money(payment.price)],
-    ['Kênh thanh toán', payment.provider || 'PAYOS'], ['Giao dịch thử nghiệm', payment.isTest ? 'Có' : 'Không'],
+    ['Email', payment.buyerEmail || (payment.uid ? 'Chưa có email' : 'Đã ẩn danh')], ['UID', payment.uid],
+    ['Gói', payment.planId], ['Giá niêm yết', catalogPrice == null ? null : money(catalogPrice)],
+    ['Kênh thanh toán', granted ? 'Cấp thử nội bộ' : payment.provider],
+    ['Giao dịch thử nghiệm', payment.isTest == null ? 'Chưa phân loại' : payment.isTest ? 'Có' : 'Không'],
     ['Cần kiểm tra quyền lợi', payment.entitlementReviewRequired ? 'Có' : 'Không'],
-    ['PayOS paymentLinkId', payment.paymentLinkId || '—'], ['Mã tham chiếu', payment.providerReference || '—'],
-    ['Ngày tạo', dateTime(payment.createdAt)], ['Ngày thanh toán', dateTime(payment.paidAt)],
-    ['Cập nhật', dateTime(payment.updatedAt)], ['Mã lỗi', payment.failureCode || '—'],
+    ['Mã PayOS', payment.provider === 'PAYOS' ? payment.paymentLinkId || 'Chưa có mã PayOS' : 'Không áp dụng'],
+    [granted ? 'Mã tham chiếu nội bộ' : 'Mã tham chiếu', granted ? payment.orderCode : payment.providerReference || 'Chưa có mã tham chiếu'],
+    ['Ngày tạo', dateTime(payment.createdAt)], ['Ngày thanh toán', granted ? 'Không áp dụng' : dateTime(payment.paidAt)],
+    ...(granted ? [['Hết hạn PRO', dateTime(payment.entitlementExpiresAt)]] : []),
+    ['Cập nhật', dateTime(payment.updatedAt)], ['Mã lỗi', payment.failureCode || 'Không ghi nhận'],
   ] : [];
-  return <Drawer onClose={onClose} title={`Giao dịch ${orderCode}`}><ErrorBox message={error} />{!payment ? <Loading /> : <div className="mt-6 grid gap-4"><div className="flex items-center justify-between rounded-2xl bg-slate-50 p-5"><div><p className="text-sm text-slate-500">Số tiền</p><p className="mt-1 text-2xl font-extrabold">{money(payment.status === 'PAID' ? payment.amountPaid : payment.price)}</p></div><Status value={payment.status} /></div><dl className="grid gap-3">{facts.map(([label, value]) => <div className="rounded-xl border p-4" key={label}><dt className="text-xs font-bold uppercase text-slate-500">{label}</dt><dd className="mt-1 break-all font-semibold">{value}</dd></div>)}</dl><button className="h-12 rounded-xl bg-slate-950 font-bold text-white disabled:opacity-60" disabled={busy} onClick={reconcile}>{busy ? 'Đang đối soát…' : 'Đối soát giao dịch'}</button></div>}</Drawer>;
+  return <Drawer onClose={onClose} title={`Giao dịch ${orderCode}`}>
+    <ErrorBox message={error} />
+    {!payment ? <Loading /> : <div className="mt-6 grid gap-4">
+      <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-5">
+        <div><p className="text-sm text-slate-500">{granted ? 'Thực thu' : 'Số tiền'}</p><p className="mt-1 text-2xl font-extrabold">{money(granted || payment.status === 'PAID' ? payment.amountPaid : payment.price)}</p></div>
+        <Status value={payment.status} />
+      </div>
+      <dl className="grid gap-3">{facts.map(([label, value]) => <div className="rounded-xl border p-4" key={label}>
+        <dt className="text-xs font-bold uppercase text-slate-500">{label}</dt><dd className="mt-1 break-all font-semibold">{value && value !== '—' ? value : 'Chưa có dữ liệu'}</dd>
+      </div>)}</dl>
+      {!granted && <button className="h-12 rounded-xl bg-slate-950 font-bold text-white disabled:opacity-60" disabled={busy} onClick={reconcile}>{busy ? 'Đang đối soát…' : 'Đối soát giao dịch'}</button>}
+    </div>}
+  </Drawer>;
 }
 
 export function AdminPage() {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from '../src/index.js';
-import { adminUserPage, getAdminSummary } from '../src/admin.js';
+import { adminUserPage, getAdminPayment, getAdminSummary, reconcileAdminPayment } from '../src/admin.js';
 import { getAdminAnalytics } from '../src/admin-analytics.js';
 
 test('pinned users move to the first page in configured order before pagination', () => {
@@ -10,6 +10,22 @@ test('pinned users move to the first page in configured order before pagination'
   assert.deepEqual(adminUserPage(users, 0, 3, pins), [users[4], users[2], users[0]]);
   assert.deepEqual(adminUserPage(users, 1, 3, pins), [users[1], users[3]]);
   assert.deepEqual(adminUserPage(users, 0, 3), users.slice(0, 3));
+});
+
+test('internal PRO grants have readable details and cannot be reconciled as payments', async () => {
+  const orderCode = `grant_${'a'.repeat(32)}`;
+  const expiresAt = '2026-12-11T12:00:00.000Z';
+  const grant = await getAdminPayment({}, orderCode, async (_, path) => {
+    assert.equal(path, `_billingPayments/${orderCode}`);
+    return { id: orderCode, data: { provider: 'ADMIN_GRANT', status: 'GRANTED', isTest: true, catalogPrice: 69000, entitlementExpiresAt: expiresAt } };
+  });
+  assert.equal(grant.amountPaid, 0);
+  assert.equal(grant.catalogPrice, 69000);
+  assert.equal(grant.isTest, true);
+  assert.equal(grant.entitlementExpiresAt, expiresAt);
+  assert.equal(grant.paymentLinkId, null);
+  assert.equal(grant.paidAt, null);
+  await assert.rejects(reconcileAdminPayment({}, {}, orderCode), { code: 'INVALID_ORDER_CODE' });
 });
 
 test('both web origins can preflight admin calls, which still require authentication', async () => {

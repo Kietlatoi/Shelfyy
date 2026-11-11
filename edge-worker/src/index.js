@@ -491,7 +491,7 @@ async function route(request, env) {
     if (request.method === 'PATCH' && adminAccessMatch) {
       return updateAdminUserAccess(env, admin, decodeURIComponent(adminAccessMatch[1]), await readJson(request));
     }
-    const adminPaymentMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16}|gp_[a-f0-9]{64})$/);
+    const adminPaymentMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16}|gp_[a-f0-9]{64}|grant_[a-f0-9]{32})$/);
     if (request.method === 'GET' && adminPaymentMatch) return getAdminPayment(env, adminPaymentMatch[1]);
     const adminReconcileMatch = url.pathname.match(/^\/v1\/admin\/payments\/(\d{10,16}|gp_[a-f0-9]{64})\/reconcile$/);
     if (request.method === 'POST' && adminReconcileMatch) return reconcileAdminPayment(env, admin, adminReconcileMatch[1]);
