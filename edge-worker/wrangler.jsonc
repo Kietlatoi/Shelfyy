@@ -8,7 +8,7 @@
     "GOOGLE_PLAY_PRO_PRODUCT_ID": "shelfy_pro_30_days",
     "GOOGLE_PLAY_PREMIUM_PRODUCT_ID": "shelfy_premium_365_days",
     "PUBLIC_BASE_URL": "https://shelfy-edge.shelfy-edge-worker.workers.dev",
-    "ALLOWED_ORIGIN": "https://shelfy-web-d7d.pages.dev",
+    "ALLOWED_ORIGIN": "https://shelfy-web-d7d.pages.dev,https://shelfyy-jet.vercel.app",
     "APP_DEEP_LINK": "shelfy://payment/result",
     "PAYMENT_LINK_TTL_SECONDS": "900",
     "BILLING_RETENTION_DAYS": "3650",

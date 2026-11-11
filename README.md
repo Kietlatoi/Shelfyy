@@ -6,7 +6,7 @@
 
 - `Mobile/Shelfy`: ứng dụng React Native + Expo, dùng Firebase Auth, Firestore và Cloudflare Worker.
 - `edge-worker`: API cho admin, xác thực email, tải ảnh có chữ ký, AI và thanh toán.
-- `FE/Shelfyy`: landing page, admin, chính sách quyền riêng tư và hướng dẫn xóa tài khoản; triển khai bằng Cloudflare Pages.
+- `FE/Shelfyy`: landing page, admin, chính sách quyền riêng tư và hướng dẫn xóa tài khoản; triển khai trên Cloudflare Pages và Vercel.
 - Cloudinary: lưu ảnh. Khóa bí mật của nhà cung cấp nằm ở phía máy chủ.
 - `functions`: mã Firebase Functions được giữ riêng trong đợt dọn này.
 - `docs`, `doc`, `artifacts`: tài liệu và sản phẩm build. Một số tài liệu cũ mô tả kiến trúc trước đây, không phải hướng dẫn chạy hiện tại.
@@ -33,6 +33,8 @@ node --test test/*.test.js
 
 Các đường dẫn: `/`, `/admin`, `/privacy`, `/account-deletion`.
 Nút tải mặc định mở Shelfy trên APKPure; có thể thay bằng `VITE_ANDROID_DOWNLOAD_URL`.
+
+Trên Vercel, đặt Root Directory là `FE/Shelfyy` và cấu hình các biến `VITE_` theo `.env.example`.
 
 ## Chạy Worker
 
@@ -72,6 +74,7 @@ Chi tiết phân phối ngoài Google Play: [docs/apkpure-release.md](docs/apkpu
 
 - Website: https://shelfy-web-d7d.pages.dev
 - Admin: https://shelfy-web-d7d.pages.dev/admin
+- Website và admin trên Vercel: https://shelfyy-jet.vercel.app và https://shelfyy-jet.vercel.app/admin
 - Worker health: https://shelfy-edge.shelfy-edge-worker.workers.dev/health
 - APKPure: https://apkpure.com/p/com.duongminhkiet.shelfy
 

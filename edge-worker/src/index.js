@@ -59,7 +59,7 @@ function json(data, status = 200, corsHeaders = {}) {
 function corsFor(request, env) {
   const origin = request.headers.get('origin');
   if (!origin) return {};
-  if (!env.ALLOWED_ORIGIN || origin !== env.ALLOWED_ORIGIN) {
+  if (!env.ALLOWED_ORIGIN?.split(',').map((allowed) => allowed.trim()).includes(origin)) {
     throw new ApiError(403, 'ORIGIN_NOT_ALLOWED', 'Nguồn gọi API không được phép.');
   }
   return {

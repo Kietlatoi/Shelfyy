@@ -1,7 +1,25 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import worker from '../src/index.js';
 import { getAdminSummary } from '../src/admin.js';
 import { getAdminAnalytics } from '../src/admin-analytics.js';
+
+test('both web origins can preflight admin calls, which still require authentication', async () => {
+  const origins = ['https://pages.example', 'https://vercel.example'];
+  const env = { ALLOWED_ORIGIN: origins.join(', ') };
+  const url = 'https://worker.example/v1/admin/me';
+  for (const origin of origins) {
+    const headers = { origin };
+    const preflight = await worker.fetch(new Request(url, { method: 'OPTIONS', headers }), env);
+    assert.equal(preflight.status, 204);
+    assert.equal(preflight.headers.get('access-control-allow-origin'), origin);
+    assert.match(preflight.headers.get('access-control-allow-headers'), /authorization/);
+    assert.equal((await worker.fetch(new Request(url, { headers }), env)).status, 401);
+  }
+  const rejected = await worker.fetch(new Request(url, { method: 'OPTIONS', headers: { origin: `${origins[1]}.invalid` } }), env);
+  assert.equal(rejected.status, 403);
+  assert.equal(rejected.headers.get('access-control-allow-origin'), null);
+});
 
 test('summary distinguishes created orders, paid revenue, current users and missing activity', async () => {
   const now = new Date().toISOString();
