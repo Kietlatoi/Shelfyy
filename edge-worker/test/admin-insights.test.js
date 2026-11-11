@@ -1,8 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from '../src/index.js';
-import { getAdminSummary } from '../src/admin.js';
+import { adminUserPage, getAdminSummary } from '../src/admin.js';
 import { getAdminAnalytics } from '../src/admin-analytics.js';
+
+test('pinned users move to the first page in configured order before pagination', () => {
+  const users = ['newest', 'next', 'pin-2', 'older', 'pin-1'].map((id) => ({ id }));
+  const pins = 'pin-1, missing, pin-2';
+  assert.deepEqual(adminUserPage(users, 0, 3, pins), [users[4], users[2], users[0]]);
+  assert.deepEqual(adminUserPage(users, 1, 3, pins), [users[1], users[3]]);
+  assert.deepEqual(adminUserPage(users, 0, 3), users.slice(0, 3));
+});
 
 test('both web origins can preflight admin calls, which still require authentication', async () => {
   const origins = ['https://pages.example', 'https://vercel.example'];

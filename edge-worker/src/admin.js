@@ -229,6 +229,15 @@ async function userDetails(env, profile, snapshots) {
   };
 }
 
+export function adminUserPage(profiles, page, size, pinnedUids = '') {
+  const start = page * size;
+  if (!pinnedUids) return profiles.slice(start, start + size);
+  const pins = pinnedUids.split(',');
+  const order = new Map(pins.map((uid, index) => [uid.trim(), index]));
+  const rank = (profile) => order.get(profile.id) ?? pins.length;
+  return profiles.toSorted((a, b) => rank(a) - rank(b)).slice(start, start + size);
+}
+
 export async function getAdminUsers(env, url) {
   const page = Math.max(0, Number.parseInt(url.searchParams.get('page') || '0', 10) || 0);
   const size = Math.min(50, Math.max(1, Number.parseInt(url.searchParams.get('size') || String(PAGE_SIZE), 10) || PAGE_SIZE));
@@ -253,7 +262,7 @@ export async function getAdminUsers(env, url) {
   }
   profiles = profiles.filter((profile) => profile.id !== adminUid);
   const total = profiles.length;
-  if (!search) profiles = profiles.slice(page * size, (page + 1) * size);
+  if (!search) profiles = adminUserPage(profiles, page, size, env.ADMIN_PINNED_USER_IDS);
   const snapshots = profiles.length
     ? await batchGetDocuments(env, profiles.flatMap((profile) => [
       `_accountAccess/${profile.id}`,

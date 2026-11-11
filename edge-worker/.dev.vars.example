@@ -27,6 +27,8 @@ BILLING_RETENTION_DAYS="3650"
 # Optional: comma-separated browser origins allowed to call the Worker.
 # ALLOWED_ORIGIN="https://your-landing-page.example"
 ADMIN_UID="your-firebase-admin-uid"
+# Optional: comma-separated user UIDs to pin to the top of the admin list, in order.
+# ADMIN_PINNED_USER_IDS="uid-a,uid-b"
 # Optional: numeric GA4 property ID, not Measurement ID (G-...).
 GA4_PROPERTY_ID=""
 GOOGLE_PLAY_BILLING_ENABLED="false"
